@@ -24,8 +24,6 @@ setup(
         ]
     },
 
-    scripts = ['bin/red-fab-deploy'],
-
     url='http://www.github.com/ff0000/red-fab-deploy/',
     download_url = 'http://www.github.com/ff0000/red-fab-deploy/get/tip.zip',
     license = 'MIT license',
