@@ -11,7 +11,7 @@ from fab_deploy import *
 def my_site():
 	""" Default Configuration """
 	env.conf = dict(
-		INSTANCE_NAME = 'project_name'
+		INSTANCE_NAME = 'project_name',
 		REPO = 'http://some.repo.com/project_name/trunk',
 		SERVERS = {
 		}
