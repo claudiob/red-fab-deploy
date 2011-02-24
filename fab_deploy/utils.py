@@ -100,9 +100,10 @@ def update_env():
 		DB_USER      = 'root',
 		DB_PASSWORD  = 'password',
 		PROCESSES    = 1,
-		THREADS      = 15,
-		SERVER_NAME  = host,
 		SERVER_ADMIN = 'example@example.com',
+		SERVER_NAME  = host,
+		SERVER_TYPE  = 'nginx', # Choose from 'apache' or 'nginx'
+		THREADS      = 15,
 		VCS          = 'svn',
 
 		# these options shouldn't be set by user

@@ -26,14 +26,9 @@ def nginx_install():
 @run_as('root')
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
-	run('cd /opt/nginx/conf')
-	sudo('mv nginx.conf nginx.conf.backup')
-	if env.host_string in [env.LOAD1]:
-		sudo('ln -s %(dest)s/deploy/nginx.conf')
-	elif env.host_string in [env.DEV]:
-		sudo('ln -s %(dest)s/deploy/nginx.conf.dev')
-	else:
-		print('No nginx link for %(host_string)s' % env)
+	run('cd /etc/nginx')
+	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
+	run('ln -s %(SRC_DIR)s/deploy/nginx.conf /etc/nginx/nginx.conf' % env.conf)
 
 def nginx_start():
 	""" Start Nginx. """

@@ -3,9 +3,8 @@ from fabric.api import *
 from fabric.contrib.console import confirm
 from fabric.contrib.files import upload_template
 
-from fab_deploy.server.apache import apache_setup, apache_install, apache_touch_wsgi
-from fab_deploy.server.nginx import nginx_setup, nginx_install
 from fab_deploy.django_commands import compress, migrate, syncdb, test
+from fab_deploy.server import *
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import delete_pyc, run_as, detect_os
 from fab_deploy import vcs
@@ -42,14 +41,21 @@ def make_clone():
 	vcs.push()
 	#with cd(env.conf['SRC_DIR']):
 	#	vcs.up()
-	#update_django_config(restart=False)
+	update_django_config(restart=False)
 	vcs.configure()
 
 def update_django_config(restart=True):
 	""" Updates :file:`config.py` on server (using :file:`config.server.py`) """
-	upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
+	
+	# red typically makes it's own server files using the name of the server
+	# uploading a template is not the right approach right now
+	# TODO: Revisit this code to see if it can be useful.
+	#upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
 	if restart:
-		apache_touch_wsgi()
+		if env.conf['SERVER_TYPE'] == 'apache':
+			apache_touch_wsgi()
+		if env.conf['SERVER_TYPE'] == 'nginx':
+			uwsgi_restart()
 
 def up(branch=None):
 	""" Runs vcs ``up`` or ``checkout`` command on server and reloads
@@ -61,12 +67,15 @@ def up(branch=None):
 	apache_touch_wsgi()
 
 def setup_web_server():
-	""" Sets up a web server (apache + nginx). """
-	apache_install()
-	nginx_install()
-
-	apache_setup()
-	nginx_setup()
+	""" Sets up a web server (apache or nginx). """
+	if env.conf['SERVER_TYPE'] == 'apache':
+		apache_install()
+		apache_setup()
+	elif env.conf['SERVER_TYPE'] == 'nginx':	
+		nginx_install()
+		nginx_setup()
+		uwsgi_install()
+		uwsgi_setup()
 
 def push(*args):
 	''' Run it instead of your VCS push command.
