@@ -1,6 +1,6 @@
 #--- Deployment
 from fab_deploy.deploy import *
-from fab_deploy.virualenv import pip, pip_install, pip_update
+from fab_deploy.virtualenv import pip, pip_install, pip_update
 
 #--- Linux
 from fab_deploy.utils import (run_as, update_env, inside_project,
@@ -11,7 +11,7 @@ from fab_deploy.crontab import (crontab_set, crontab_add, crontab_show,
 
 #--- Django
 from fab_deploy.django_commands import (migrate, manage, syncdb, compress, test,
-	coverage, command_is_available)
+	command_is_available)
 
 #--- Servers
 from fab_deploy.server import *

@@ -1,7 +1,7 @@
 #coding: utf-8
 from __future__ import with_statement
 from fabric.api import *
-from fab_deploy.mysql import mysqldump
+from fab_deploy.db.mysql import mysqldump
 from fab_deploy.utils import inside_project
 
 @inside_project

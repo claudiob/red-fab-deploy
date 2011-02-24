@@ -1,7 +1,7 @@
 from functools import wraps
 import os
 import pprint
-from re
+import re
 
 from fabric.api import *
 from fabric.contrib.files import upload_template
@@ -40,14 +40,16 @@ def run_as(user):
 			run('aptitude update')
 	
 	"""
-	@wraps(func)
-	def inner(*args, **kwargs):
-		old_user, host, port = normalize(env.host_string)
-		env.host_string = join_host_strings(user, host, port)
-		result = func(*args, **kwargs)
-		env.host_string = join_host_strings(old_user, host, port)
-		return result
-	return inner
+	def decorator(func):
+		@wraps(func)
+		def inner(*args, **kwargs):
+			old_user, host, port = normalize(env.host_string)
+			env.host_string = join_host_strings(user, host, port)
+			result = func(*args, **kwargs)
+			env.host_string = join_host_strings(old_user, host, port)
+			return result
+		return inner
+	return decorator
 
 def upload_config_template(name, to=None):
 	if to is None:
@@ -75,6 +77,8 @@ def update_env():
 			)
 			update_env()
 	"""
+	print env.hosts
+	assert len(env.hosts)>0, "Must supply hosts in env.hosts."
 	assert len(env.hosts)==1, "Multiple hosts in env.hosts are not supported now. (%s)" % env.hosts
 	user, host, port = normalize(env.hosts[0])
 
@@ -91,7 +95,7 @@ def update_env():
 	defaults = _AttributeDict(
 		HG_BRANCH    = 'default',
 		SVN_BRANCH   = 'trunk',
-		DB           = 'mysql' # Choose from 'mysql' or 'postgresql'
+		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
 		DB_NAME      = env.conf['INSTANCE_NAME'],
 		DB_USER      = 'root',
 		DB_PASSWORD  = 'password',
@@ -127,6 +131,21 @@ def virtualenv():
 	
 	"""
 	return prefix('source '+env.conf['ENV_DIR']+'/bin/activate')
+
+def inside_virtualenv(func):
+    """
+    Decorator. Use it for perform actions inside virtualenv::
+
+        @inside_virtualenv
+        def my_command():
+            # virtualenv is active here
+
+    """
+    @wraps(func)
+    def inner(*args, **kwargs):
+        with virtualenv():
+            return func(*args, **kwargs)
+    return inner
 
 def inside_project(func):
 	"""

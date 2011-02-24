@@ -97,7 +97,7 @@ def ssh_add_key(pub_key_file):
 @run_as('root')
 def aptitude_install(packages, options=''):
 	""" Installs package via aptitude. """
-	run('aptitude install %s -y %s' % (options, packages,))a
+	run('aptitude install %s -y %s' % (options, packages,))
 
 @run_as('root')
 def aptitude_update():

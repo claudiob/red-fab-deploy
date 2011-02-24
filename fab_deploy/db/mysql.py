@@ -25,7 +25,7 @@ def mysql_install():
 	aptitude_install('debconf-utils')
 	
 	# get the password
-	passwd = env.conf['DB_PASSWORD')
+	passwd = env.conf['DB_PASSWORD']
 	if not passwd:
 		passwd = prompt('Please enter MySQL root password:')
 	

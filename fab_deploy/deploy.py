@@ -3,8 +3,8 @@ from fabric.api import *
 from fabric.contrib.console import confirm
 from fabric.contrib.files import upload_template
 
-from fab_deploy.apache import apache_setup, apache_install, apache_touch_wsgi
-from fab_deploy.nginx import nginx_setup, nginx_install
+from fab_deploy.server.apache import apache_setup, apache_install, apache_touch_wsgi
+from fab_deploy.server.nginx import nginx_setup, nginx_install
 from fab_deploy.django_commands import compress, migrate, syncdb, test
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import delete_pyc, run_as, detect_os

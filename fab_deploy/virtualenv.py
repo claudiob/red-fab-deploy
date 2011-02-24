@@ -1,6 +1,6 @@
 from fabric.api import *
 
-from fab_deploy.apache import apache_touch_wsgi
+from fab_deploy.server.apache import apache_touch_wsgi
 from fab_deploy.utils import inside_project
 
 @inside_project
