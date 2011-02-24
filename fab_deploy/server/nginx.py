@@ -26,7 +26,6 @@ def nginx_install():
 @run_as('root')
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
-	run('cd /etc/nginx')
 	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
 	run('ln -s %(SRC_DIR)s/deploy/nginx.conf /etc/nginx/nginx.conf' % env.conf)
 
