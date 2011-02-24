@@ -1,0 +1,12 @@
+_assets
+/bin
+/include
+/lib
+/src
+/build
+media/uploads/*
+*.db
+*.pyc
+*.Python
+site_index
+local_settings.py

@@ -1,0 +1,10 @@
+include *.txt
+include *.rst
+recursive-include fab_deploy/config_templates *.config
+recursive-include fab_deploy/config_templates *.py
+recursive-include fab_deploy/db *.py
+recursive-include fab_deploy/server *.py
+recursive-include fab_deploy/vcs *.py
+recursive-include fab_deploy/ *.py
+recursive-include docs *
+
