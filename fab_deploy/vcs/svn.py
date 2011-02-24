@@ -6,13 +6,21 @@ BRANCH_OPTION = 'SVN_BRANCH'
 def init():
 	pass
 
-def up(branch):
+def up():
 	""" Update the code to the latest revision """
-	run('svn up %s' % branch)
+	username = prompt('What is your svn username:')
+	password = prompt('What is your svn password:')
+	run('svn up %s --username %s --password %s ' % (
+		env.conf['SRC_DIR'],
+		username, password))
 
 def push():
 	""" Check out the code to the local repo """
-	local('svn co ssh://%s/src/%s/' % (env.hosts[0], env.conf.INSTANCE_NAME))
+	username = prompt('What is your svn username:')
+	password = prompt('What is your svn password:')
+	run('svn co %s %s --username %s --password %s ' % (
+		env.conf['REPO'], env.conf['SRC_DIR'],
+		username, password))
 
 def configure():
 	""" Configure the repo """

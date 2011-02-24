@@ -21,7 +21,7 @@ def full_deploy():
 
 def deploy_project():
 	""" Deploys project on prepared server. """
-	virtualenv_create()
+	#virtualenv_create()
 	make_clone()
 
 	pip_install('all', restart=False)
@@ -32,6 +32,7 @@ def deploy_project():
 	syncdb()
 	migrate()
 
+@run_as('root')
 def make_clone():
 	""" Creates repository clone on remote server. """
 	run('mkdir -p '+ env.conf['SRC_DIR'])
@@ -39,9 +40,9 @@ def make_clone():
 		with settings(warn_only=True):
 			vcs.init()
 	vcs.push()
-	with cd(env.conf['SRC_DIR']):
-		vcs.up()
-	update_django_config(restart=False)
+	#with cd(env.conf['SRC_DIR']):
+	#	vcs.up()
+	#update_django_config(restart=False)
 	vcs.configure()
 
 def update_django_config(restart=True):
