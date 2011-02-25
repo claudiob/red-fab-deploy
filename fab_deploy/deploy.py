@@ -26,7 +26,6 @@ def deploy_project():
 	syncdb()
 	#migrate()
 
-@run_as('root')
 def make_clone():
 	""" Creates repository clone on remote server. """
 	run('mkdir -p '+ env.conf['SRC_DIR'])
