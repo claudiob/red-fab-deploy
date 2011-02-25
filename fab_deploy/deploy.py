@@ -4,8 +4,7 @@ from fabric.contrib.console import confirm
 from fabric.contrib.files import upload_template
 
 from fab_deploy.django_commands import compress, migrate, syncdb, test
-from fab_deploy.server.apache import apache_touch_wsgi
-from fab_deploy.server.uwsgi import uwsgi_restart
+from fab_deploy.server import *
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import delete_pyc, run_as, detect_os
 from fab_deploy import vcs
@@ -53,19 +52,10 @@ def update_django_config(restart=True):
 	# TODO: Revisit this code to see if it can be useful.
 	#upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
 	if restart:
-		restart_web_server()
-
-def up(branch=None):
-	""" Runs vcs ``up`` or ``checkout`` command on server and reloads
-	mod_wsgi process. """
-	delete_pyc()
-	with cd('src/'+ env.conf['INSTANCE_NAME']):
-		vcs.up(branch)
-	compress()
-	restart_web_server()
+		touch_web_server()
 
 def setup_web_server():
-	""" Sets up a web server (apache or nginx). """
+	""" Sets up a web server. """
 	if env.conf['SERVER_TYPE'] == 'apache':
 		apache_install()
 		apache_setup()
@@ -75,12 +65,44 @@ def setup_web_server():
 		uwsgi_install()
 		uwsgi_setup()
 
+def start_web_server():
+	""" Starts up a web server. """
+	if env.conf['SERVER_TYPE'] == 'apache':
+		apache_start()
+	elif env.conf['SERVER_TYPE'] == 'nginx':	
+		nginx_start()
+		uwsgi_start()
+
+def stop_web_server():
+	""" Stops the web server. """
+	if env.conf['SERVER_TYPE'] == 'apache':
+		apache_stop()
+	elif env.conf['SERVER_TYPE'] == 'nginx':
+		uwsgi_stop()
+		nginx_stop()
+
 def restart_web_server():
 	""" Restarts the web server. """
+	if env.conf['SERVER_TYPE'] == 'apache':
+		apache_restart()
+	elif env.conf['SERVER_TYPE'] == 'nginx':
+		nginx_restart()
+
+def touch_web_server():
+	""" Touches the web server causing reload. """
 	if env.conf['SERVER_TYPE'] == 'apache':
 		apache_touch_wsgi()
 	elif env.conf['SERVER_TYPE'] == 'nginx':
 		uwsgi_restart()
+
+def up(branch=None):
+	""" Runs vcs ``up`` or ``checkout`` command on server and reloads
+	mod_wsgi process. """
+	delete_pyc()
+	with cd('src/'+ env.conf['INSTANCE_NAME']):
+		vcs.up(branch)
+	compress()
+	touch_web_server()
 
 def push(*args):
 	''' Run it instead of your VCS push command.
@@ -113,7 +135,7 @@ def push(*args):
 		migrate()
 	compress()
 	if 'norestart' not in args:
-		apache_touch_wsgi()
+		touch_web_server()
 	if 'notest' not in args:
 		test()
 

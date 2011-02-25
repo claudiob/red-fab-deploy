@@ -90,7 +90,7 @@ def mysql_create_db():
 @inside_project
 def mysqldump(dir=None):
 	""" Runs mysqldump. Result is stored at <env>/var/backups/ """
-	if dir is None:
+	if dir is not None:
 		dir = env.conf['ENV_DIR'] + '/var/backups'
 		now = datetime.now().strftime("%Y.%m.%d-%H.%M")
 		db = env.conf['DB_NAME']

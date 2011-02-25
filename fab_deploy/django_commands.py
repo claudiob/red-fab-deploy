@@ -29,13 +29,17 @@ def migrate(params='', do_backup=True):
 		backup_dir = env.conf['ENV_DIR']+'/var/backups/before-migrate'
 		run('mkdir -p '+ backup_dir)
 		mysqldump(backup_dir)
-	manage('migrate --noinput %s' % params)
+	#TODO: This appears to require django-south
+	#manage('migrate --noinput %s' % params)
 
 def syncdb(params=''):
 	""" Runs syncdb management command. """
 	manage('syncdb --noinput %s' % params)
 
 def compress(params=''):
+	""" Runs synccompress management command. """
+
+	#TODO: This appears to require django-synccompress
 	with settings(warn_only=True):
 		manage('synccompress %s' % params)
 
