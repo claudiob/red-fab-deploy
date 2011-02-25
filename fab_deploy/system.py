@@ -131,8 +131,8 @@ def ssh_copy_key(pub_key_file):
 	
 	with cd('/home/' + username):
 		run('mkdir -p .ssh')
-		#append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
-		append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
+		append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
+		#append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
 		run('chown -R %s:%s .ssh' % (username, username))
 	
 def ssh_add_key(pub_key_file):
