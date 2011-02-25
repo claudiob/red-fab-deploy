@@ -131,6 +131,7 @@ def virtualenv():
 			# virtualenv is active here
 	
 	"""
+	print('source '+env.conf['ENV_DIR']+'/bin/activate')
 	return prefix('source '+env.conf['ENV_DIR']+'/bin/activate')
 
 def inside_virtualenv(func):
@@ -164,8 +165,8 @@ def inside_project(func):
 	@wraps(func)
 	def inner(*args, **kwargs):
 		with cd(env.conf['SRC_DIR']):
-			with virtualenv():
-				return func(*args, **kwargs)
+			#with virtualenv():
+			return func(*args, **kwargs)
 	return inner
 
 @inside_project

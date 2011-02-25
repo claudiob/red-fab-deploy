@@ -22,24 +22,21 @@ def uwsgi_setup():
 	""" Setup uWSGI. """
 	pass
 
+@run_as('root')
 def uwsgi_start():
 	"""
 	Start uwsgi sockets
 	"""
-	run('''uwsgi -s %(DEV_IP)s:8001 -p 4 --wsgi-file
-		%(SRC_DIR)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
-		www-data''' % env.conf)
-	#elif env.host_string in [env.conf.DEV]:
-	#	run('''uwsgi -s /tmp/uwsgi.sock -p 4 --wsgi-file
-	#		%(dest)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
-	#		www-data''' % env)
+	run('uwsgi -s %s:8001 -p 4 --wsgi-file %s/deploy/django.wsgi -d /tmp/uwsgi.log --gid www-data' % (env.conf['SERVERS']['DEV_INT'],env.conf['SRC_DIR']))
 
+@run_as('root')
 def uwsgi_stop():
 	"""
 	Stop uwsgi sockets
 	"""
 	run('pkill uwsgi')
 
+@run_as('root')
 def uwsgi_restart():
 	"""
 	Restarts the uwsgi sockets.

@@ -6,7 +6,7 @@ from fabric.contrib.files import upload_template
 from fab_deploy.django_commands import compress, migrate, syncdb, test
 from fab_deploy.server import *
 from fab_deploy.system import prepare_server
-from fab_deploy.utils import delete_pyc, run_as, detect_os
+from fab_deploy.utils import delete_pyc, detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, pip_update, virtualenv_create
 
@@ -22,12 +22,8 @@ def deploy_project():
 	""" Deploys project on prepared server. """
 	#virtualenv_create()
 	make_clone()
-
 	pip_install()
-
 	setup_web_server()
-	#update_django_config()
-
 	syncdb()
 	#migrate()
 
@@ -41,7 +37,6 @@ def make_clone():
 	vcs.push()
 	#with cd(env.conf['SRC_DIR']):
 	#	vcs.up()
-	#update_django_config(restart=False)
 	vcs.configure()
 
 def update_django_config(restart=True):

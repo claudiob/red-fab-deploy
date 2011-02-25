@@ -1,4 +1,5 @@
 from fabric.api import *
+from fabric.contrib.files import exists
 
 from fab_deploy.utils import detect_os, run_as, upload_config_template
 from fab_deploy.system import aptitude_install, aptitude_update
@@ -26,18 +27,25 @@ def nginx_install():
 @run_as('root')
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
+	if exists('/etc/nginx/nginx.conf.bkp'):
+		warn('Nginx has already been set up')
+		return
+
 	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
 	run('ln -s %(SRC_DIR)s/deploy/nginx.conf /etc/nginx/nginx.conf' % env.conf)
 
+@run_as('root')
 def nginx_start():
 	""" Start Nginx. """
 	run('/usr/sbin/nginx')
 	print('Start nginx for %(host_string)s' % env)
 
+@run_as('root')
 def nginx_stop():
 	""" Stop Nginx. """
 	run('pkill nginx')
 
+@run_as('root')
 def nginx_restart():
 	""" Restarts Nginx. """
 	nginx_stop()

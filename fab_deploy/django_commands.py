@@ -1,8 +1,8 @@
 #coding: utf-8
-from __future__ import with_statement
 from fabric.api import *
+
 from fab_deploy.db.mysql import mysqldump
-from fab_deploy.utils import inside_project
+from fab_deploy.utils import inside_project, run_as
 
 @inside_project
 def command_is_available(command):
@@ -10,6 +10,7 @@ def command_is_available(command):
 		output = run('python manage.py help ' + command)
 	return output.succeeded
 
+@run_as('root')
 @inside_project
 def manage(command):
 	""" Runs django management command.
