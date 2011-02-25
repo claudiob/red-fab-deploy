@@ -14,7 +14,7 @@ def my_site():
 		INSTANCE_NAME = 'project_name',
 		REPO = 'http://some.repo.com/project_name/trunk',
 		SERVERS = {
-			'DEV'          : 'some.ip.address',
+			'DEV'          : 'root@some.ip.address',
 			'DEV_PASSWD'   : 'password',
 		}
 	)
