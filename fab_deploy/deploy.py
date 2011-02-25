@@ -1,4 +1,3 @@
-#coding: utf-8
 from fabric.api import *
 from fabric.contrib.console import confirm
 from fabric.contrib.files import upload_template

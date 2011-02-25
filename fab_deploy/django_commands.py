@@ -1,4 +1,3 @@
-#coding: utf-8
 from fabric.api import *
 
 from fab_deploy.db.mysql import mysqldump
