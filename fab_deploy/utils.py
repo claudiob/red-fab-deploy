@@ -68,7 +68,7 @@ def update_env():
 
 	::
 
-		from fab_deploy import *
+		from fab_deploy import update_env
 
 		def my_site():
 			env.hosts = ['my_site@example.com']

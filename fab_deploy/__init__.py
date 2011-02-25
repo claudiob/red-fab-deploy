@@ -1,6 +1,9 @@
 #--- Deployment
-from fab_deploy.deploy import *
-from fab_deploy.virtualenv import pip, pip_install, pip_update
+from fab_deploy.deploy import (full_deploy, deploy_project, make_clone,
+	update_django_config, up, setup_web_server, restart_web_server,
+	push, undeploy, )
+from fab_deploy.virtualenv import (pip, pip_install, pip_update, 
+	virtualenv_create, )
 
 #--- Linux
 from fab_deploy.utils import (run_as, update_env, inside_project,

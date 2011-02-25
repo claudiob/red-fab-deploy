@@ -4,7 +4,8 @@ from fabric.contrib.console import confirm
 from fabric.contrib.files import upload_template
 
 from fab_deploy.django_commands import compress, migrate, syncdb, test
-from fab_deploy.server import *
+from fab_deploy.server.apache import apache_touch_wsgi
+from fab_deploy.server.uwsgi import uwsgi_restart
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import delete_pyc, run_as, detect_os
 from fab_deploy import vcs
@@ -23,13 +24,13 @@ def deploy_project():
 	#virtualenv_create()
 	make_clone()
 
-	pip_install('all', restart=False)
+	pip_install()
 
 	setup_web_server()
-	update_django_config()
+	#update_django_config()
 
 	syncdb()
-	migrate()
+	#migrate()
 
 @run_as('root')
 def make_clone():
@@ -41,7 +42,7 @@ def make_clone():
 	vcs.push()
 	#with cd(env.conf['SRC_DIR']):
 	#	vcs.up()
-	update_django_config(restart=False)
+	#update_django_config(restart=False)
 	vcs.configure()
 
 def update_django_config(restart=True):
@@ -52,10 +53,7 @@ def update_django_config(restart=True):
 	# TODO: Revisit this code to see if it can be useful.
 	#upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
 	if restart:
-		if env.conf['SERVER_TYPE'] == 'apache':
-			apache_touch_wsgi()
-		if env.conf['SERVER_TYPE'] == 'nginx':
-			uwsgi_restart()
+		restart_web_server()
 
 def up(branch=None):
 	""" Runs vcs ``up`` or ``checkout`` command on server and reloads
@@ -64,7 +62,7 @@ def up(branch=None):
 	with cd('src/'+ env.conf['INSTANCE_NAME']):
 		vcs.up(branch)
 	compress()
-	apache_touch_wsgi()
+	restart_web_server()
 
 def setup_web_server():
 	""" Sets up a web server (apache or nginx). """
@@ -76,6 +74,13 @@ def setup_web_server():
 		nginx_setup()
 		uwsgi_install()
 		uwsgi_setup()
+
+def restart_web_server():
+	""" Restarts the web server. """
+	if env.conf['SERVER_TYPE'] == 'apache':
+		apache_touch_wsgi()
+	elif env.conf['SERVER_TYPE'] == 'nginx':
+		uwsgi_restart()
 
 def push(*args):
 	''' Run it instead of your VCS push command.
@@ -101,7 +106,7 @@ def push(*args):
 		vcs.up()
 
 	if 'pip_update' in args:
-		pip_update(restart=False)
+		pip_update()
 	if 'syncdb' in args:
 		syncdb()
 	if 'migrate' in args:

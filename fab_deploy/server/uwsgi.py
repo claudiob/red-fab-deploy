@@ -17,24 +17,22 @@ def uwsgi_install():
 		return
 	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
+@run_as('root')
+def uwsgi_setup():
+	""" Setup uWSGI. """
+	pass
+
 def uwsgi_start():
 	"""
 	Start uwsgi sockets
 	"""
-	if env.host_string in [env.conf.WEB1]:
-		run('''uwsgi -s %(WEB1_INT)s:8001 -p 4 --wsgi-file
-			%(dest)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
-			www-data''' % env)
-	elif env.host_string in [env.conf.WEB2]:
-		run('''uwsgi -s %(WEB2_INT)s:8001 -p 4 --wsgi-file
-			%(dest)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
-			www-data''' % env)
-	elif env.host_string in [env.conf.DEV]:
-		run('''uwsgi -s /tmp/uwsgi.sock -p 4 --wsgi-file
-			%(dest)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
-			www-data''' % env)
-	else:
-		print('No uwsgi start for %(host_string)s' % env)
+	run('''uwsgi -s %(DEV_IP)s:8001 -p 4 --wsgi-file
+		%(SRC_DIR)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
+		www-data''' % env.conf)
+	#elif env.host_string in [env.conf.DEV]:
+	#	run('''uwsgi -s /tmp/uwsgi.sock -p 4 --wsgi-file
+	#		%(dest)s/deploy/django.wsgi -d /tmp/uwsgi.log --gid
+	#		www-data''' % env)
 
 def uwsgi_stop():
 	"""

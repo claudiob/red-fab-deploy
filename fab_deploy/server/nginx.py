@@ -31,10 +31,8 @@ def nginx_setup():
 
 def nginx_start():
 	""" Start Nginx. """
-	if env.host_string in [env.LOAD1]:
-		run('/opt/nginx/sbin/nginx')
-	else:
-		print('No nginx start for %(host_string)s' % env)
+	run('/usr/sbin/nginx')
+	print('Start nginx for %(host_string)s' % env)
 
 def nginx_stop():
 	""" Stop Nginx. """
