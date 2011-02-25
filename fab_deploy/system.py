@@ -93,6 +93,7 @@ def create_linux_account(pub_key_file):
 	    fab create_linux_account:"/home/kmike/.ssh/id_rsa.pub"
 	
 	You'll need the ssh public key.
+
 	:func:`create_linux_account<fab_deploy.system.create_linux_account>`
 	creates a new linux user and uploads provided ssh key. Test that ssh
 	login is working::
@@ -110,11 +111,19 @@ def create_linux_account(pub_key_file):
 		return
 
 	with (settings(warn_only=True)):
-		run('adduser %s --disabled-password --gecos ""' % username)
+		#run('adduser %s --disabled-password --gecos ""' % username)
+		run('adduser %s --disabled-password' % username)
 		ssh_copy_key(pub_key_file)
 
 @run_as('root')
 def ssh_copy_key(pub_key_file):
+	"""
+	Adds a ssh key from passed file to user's authorized_keys on server. 
+	
+	SSH keys for user can be copied at any time::
+
+		fab ssh_copy_key:"/home/kmike/coworker-keys/ivan.id_dsa.pub"
+	"""
 	
 	username = env.conf['USER']
 	with open(os.path.normpath(pub_key_file), 'rt') as f:
