@@ -17,7 +17,7 @@ def full_deploy(tagname):
 	""" Prepares server and deploys the project. """
 	os = detect_os()
 	if not confirm("Is the OS detected correctly (%s)?" % os, default=False):
-		abort("Detection fails. Please set env.conf.OS to correct value.")
+		abort(red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
 	deploy_project(tagname)
 
@@ -160,7 +160,7 @@ def export(tagname):
 #	user data (database, backups) is preserved. """
 #
 #	if not confirm("Do you wish to undeploy host %s?" % env.hosts[0], default=False):
-#		abort("Aborting.")
+#		abort(red("Aborting."))
 #
 #	@run_as('root')
 #	def wipe_web():

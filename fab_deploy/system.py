@@ -3,7 +3,7 @@ import os.path
 from fabric.api import *
 from fabric.colors import *
 from fabric.contrib.files import append, exists
-from fabric.utils import puts, abort
+from fabric.utils import puts
 
 from fab_deploy.utils import run_as, detect_os
 
