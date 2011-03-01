@@ -1,13 +1,17 @@
+import os.path
+
 from fabric.api import *
+from fabric.colors import *
 from fabric.contrib.console import confirm
-from fabric.contrib.files import upload_template
+from fabric.contrib.files import exists,upload_template
 
 from fab_deploy.django_commands import compress, migrate, syncdb, test
 from fab_deploy.server import *
 from fab_deploy.system import prepare_server
-from fab_deploy.utils import delete_pyc, detect_os, run_as, virtualenv
-from fab_deploy.vcs import svn
-from fab_deploy.virtualenv import pip_install, pip_update, virtualenv_create
+from fab_deploy.utils import delete_pyc, detect_os, run_as
+from fab_deploy import vcs
+from fab_deploy.virtualenv import (pip_install, pip_update, 
+	virtualenv_create, virtualenv)
 
 def full_deploy(tagname):
 	""" Prepares server and deploys the project. """
@@ -19,14 +23,25 @@ def full_deploy(tagname):
 
 def deploy_project(tagname):
 	""" Deploys project on prepared server. """
-	svn.export(tagname)
-	tar.push(tagname)
-	with cd(os.path.join(env.conf['SRC_DIR'],tagname)):
+	make_src_dir()
+	tag_dir = os.path.join(env.conf['SRC_DIR'],tagname)
+	if exists(tag_dir):
+		abort(red('Tagged directory already exists: %s' % tagname))
+
+	export(tagname)
+
+	with cd(tag_dir):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
-		syncdb()
-	setup_web_server()
+		#syncdb()
+		# load sql database dump
+	#setup_web_server()
+
+@run_as('root')
+def make_src_dir():
+	run('mkdir -p %s' % env.conf['SRC_DIR'])
+	run('chmod a+w %s' % env.conf['SRC_DIR'])
 
 def setup_web_server():
 	""" Sets up a web server. """
@@ -69,36 +84,21 @@ def touch_web_server():
 	elif env.conf['SERVER_TYPE'] == 'nginx':
 		uwsgi_restart()
 
-#def make_clone(tagname):
-#	""" Creates repository clone on remote server. """
-#	run('mkdir -p '+ env.conf['SRC_DIR'])
-#	with cd(env.conf['SRC_DIR']):
-#		with settings(warn_only=True):
-#			svn.init()
-#	svn.push(tagname)
-#	with cd(env.conf['SRC_DIR']):
-#		vcs.up(tagname)
-#	svn.configure()
-#
-#def update_django_config(restart=True):
-#	""" Updates :file:`config.py` on server (using :file:`config.server.py`) """
-#	
-#	# red typically makes it's own server files using the name of the server
-#	# uploading a template is not the right approach right now
-#	# TODO: Revisit this code to see if it can be useful.
-#	upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
-#	if restart:
-#		touch_web_server()
-#
-#def up(branch=None):
-#	""" Runs vcs ``up`` or ``checkout`` command on server and reloads
-#	mod_wsgi process. """
+def up(tagname):
+	""" Runs vcs ``update`` command on server """
 #	delete_pyc()
-#	with cd('src/'+ env.conf['INSTANCE_NAME']):
-#		vcs.up(branch)
+	vcs.up(tagname)
 #	compress()
 #	touch_web_server()
-#
+
+def push(tagname):
+	""" Runs vcs ``checkout`` command on server """
+	vcs.push(tagname)
+
+def export(tagname):
+	""" Runs vcs ``export`` command on server """
+	vcs.export(tagname)
+
 #def push(*args):
 #	''' Run it instead of your VCS push command.
 #
@@ -133,7 +133,28 @@ def touch_web_server():
 #		touch_web_server()
 #	if 'notest' not in args:
 #		test()
-#
+
+#def make_clone(tagname):
+#	""" Creates repository clone on remote server. """
+#	run('mkdir -p '+ env.conf['SRC_DIR'])
+#	with cd(env.conf['SRC_DIR']):
+#		with settings(warn_only=True):
+#			svn.init()
+#	svn.push(tagname)
+#	with cd(env.conf['SRC_DIR']):
+#		vcs.up(tagname)
+#	svn.configure()
+
+#def update_django_config(restart=True):
+#	""" Updates :file:`config.py` on server (using :file:`config.server.py`) """
+#	
+#	# red typically makes it's own server files using the name of the server
+#	# uploading a template is not the right approach right now
+#	# TODO: Revisit this code to see if it can be useful.
+#	upload_template('config.server.py', '%s/config.py' % env.conf['SRC_DIR'], env.conf, True)
+#	if restart:
+#		touch_web_server()
+
 #def undeploy():
 #	""" Shuts site down. This command doesn't clean everything, e.g.
 #	user data (database, backups) is preserved. """

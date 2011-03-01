@@ -1,10 +1,11 @@
 #--- Deployment
-from fab_deploy.deploy import (full_deploy, deploy_project, #make_clone,
+from fab_deploy.deploy import (full_deploy, deploy_project,
 	setup_web_server, start_web_server, stop_web_server, 
-	restart_web_server, touch_web_server, #up, push, undeploy, 
+	restart_web_server, touch_web_server, 
+	up, push, export, #undeploy, 
 	)
 from fab_deploy.virtualenv import (pip, pip_install, pip_update, 
-	virtualenv_create, )
+	virtualenv_create, virtualenv)
 
 #--- Linux
 from fab_deploy.utils import (run_as, update_env,

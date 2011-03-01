@@ -87,14 +87,38 @@ def mysql_create_db():
 	mysql_execute('CREATE DATABASE %s %s;' % (mysql_database, params),
 		mysql_user, mysql_password)
 
-def mysqldump(dir=None):
-	""" Runs mysqldump. Result is stored at <env>/var/backups/ """
-	if dir is not None:
-		dir = env.conf['SRC_DIR'] + '/var/backups'
-		now = datetime.now().strftime("%Y.%m.%d-%H.%M")
-		db = env.conf['DB_NAME']
-		password = env.conf['DB_PASSWORD']
-		run('mysqldump -uroot -p%s %s > %s/%s%s.sql' % (password, db, dir, db, now))
+def mysql_create_user():
+	"""
+	Create a new mysql user.
+	"""
+	mysql_database = prompt('Please enter MySQL database name:')
+	mysql_user = prompt('Please enter root MySQL username:')
+	mysql_password = prompt('Please enter root MySQL password for %s:' % mysql_user)
+	
+	new_user = prompt('Please enter new MySQL username:')
+	new_password = prompt('Please enter new MySQL password for %s:' % new_user)
+
+	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
+	mysql_execute("GRANT ALL privileges ON *.* TO '%s' IDENTIFIED BY '%s';" % 
+		(new_user,new_password),
+		mysql_user, mysql_password)
+
+def mysqldump():
+	""" 
+	Runs mysqldump. Result is stored at <env>/var/backups/ 
+	"""
+	#dir = os.path.join(env.conf['SRC_DIR'],'sql/')
+	dir = 'sql/'
+	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
+	db = env.conf['DB_NAME']
+	password = env.conf['DB_PASSWORD']
+	run('mysqldump -uroot -p%s %s > %s/%s-%s.sql' % (password, db, dir, db, now))
+
+def mysqlload(filename):
+	"""
+	try mysql DATABASENAME < filename.sql
+	"""
+	pass
 
 def mysql_backup():
 	""" Backup the database """

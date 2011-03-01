@@ -1,7 +1,7 @@
 from fabric.api import *
 from fabric.contrib.files import exists
 
-from fab_deploy.utils import detect_os, run_as, upload_config_template
+from fab_deploy.utils import detect_os, run_as
 from fab_deploy.system import aptitude_install, aptitude_update
 
 def _nginx_is_installed():

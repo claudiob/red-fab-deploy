@@ -1,6 +1,6 @@
 from fabric.api import *
 
-from fab_deploy.utils import run_as, upload_config_template
+from fab_deploy.utils import run_as
 from fab_deploy.system import aptitude_install
 from fab_deploy.virtualenv import pip
 

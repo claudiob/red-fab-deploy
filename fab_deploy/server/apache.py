@@ -3,7 +3,7 @@ import re
 from fabric.api import *
 from fabric.contrib.files import append
 
-from fab_deploy.utils import run_as, upload_config_template
+from fab_deploy.utils import run_as#, upload_config_template
 from fab_deploy.system import aptitude_install
 
 APACHE_PORTS_FILE = '/etc/apache2/ports.conf'
@@ -21,7 +21,7 @@ def apache_make_wsgi():
 	wsgi_dir = env.conf['ENV_DIR']+'/var/wsgi/'
 	run('mkdir -p ' + wsgi_dir)
 	file_name = env.conf['INSTANCE_NAME']+'.py'
-	upload_config_template('django_wsgi.py', wsgi_dir+file_name)
+	#upload_config_template('django_wsgi.py', wsgi_dir+file_name)
 
 @run_as('root')
 def apache_start():
@@ -55,7 +55,7 @@ def apache_make_config():
 	""" Updates apache config. """
 	_apache_setup_port()
 	name = env.conf['INSTANCE_NAME']
-	upload_config_template('apache.config', '/etc/apache2/sites-available/%s' % name)
+	#upload_config_template('apache.config', '/etc/apache2/sites-available/%s' % name)
 	run('a2ensite %s' % name)
 
 def apache_setup():

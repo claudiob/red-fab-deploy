@@ -51,12 +51,12 @@ def run_as(user):
 		return inner
 	return decorator
 
-def upload_config_template(name, to=None):
-	if to is None:
-		base_dir = env.conf['ENV_DIR'] + "/etc/"
-		run('mkdir -p ' + base_dir)
-		to = base_dir + name
-	upload_template('./config_templates/' + name, to, env.conf, True)
+#def upload_config_template(name, to=None):
+#	if to is None:
+#		base_dir = env.conf['ENV_DIR'] + "/etc/"
+#		run('mkdir -p ' + base_dir)
+#		to = base_dir + name
+#	upload_template('./config_templates/' + name, to, env.conf, True)
 
 def update_env():
 	"""
@@ -105,10 +105,11 @@ def update_env():
 		SERVER_TYPE  = 'nginx', # Choose from 'apache' or 'nginx'
 		THREADS      = 15,
 		VCS          = 'svn',
+		VCS_TAGS     = 'branches',#'tags',
 
 		# these options shouldn't be set by user
 		HOME_DIR = HOME_DIR,
-		ENV_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
+		#ENV_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
 		SRC_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
 		USER     = user,
 	)
@@ -122,17 +123,6 @@ def update_env():
 	for db in ['mysql','postgresql']: # expand DB name to full import path
 		if env.conf.DB == db:
 			env.conf.DB = 'fab_deploy.db.'+db
-
-def virtualenv(tagname):
-	"""
-	Context manager. Use it to perform actions inside virtualenv::
-
-		with virtualenv(tagname):
-			# virtualenv is active here
-	
-	"""
-	print('source /bin/activate')
-	return prefix('source /bin/activate')
 
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
