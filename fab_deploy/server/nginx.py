@@ -1,4 +1,5 @@
 from fabric.api import *
+from fabric.colors import *
 from fabric.contrib.files import exists
 
 from fab_deploy.utils import detect_os, run_as
@@ -13,7 +14,7 @@ def _nginx_is_installed():
 def nginx_install():
 	""" Install nginx. """
 	if _nginx_is_installed():
-		warn('Nginx is already installed')
+		warn(yellow('Nginx is already installed'))
 		return
 	
 	os = detect_os()
@@ -28,7 +29,7 @@ def nginx_install():
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
 	if exists('/etc/nginx/nginx.conf.bkp'):
-		warn('Nginx has already been set up')
+		warn(yellow('Nginx has already been set up'))
 		return
 
 	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')

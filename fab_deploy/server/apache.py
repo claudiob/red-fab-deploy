@@ -1,6 +1,7 @@
 import re
 
 from fabric.api import *
+from fabric.colors import *
 from fabric.contrib.files import append
 
 from fab_deploy.utils import run_as#, upload_config_template
@@ -133,5 +134,5 @@ def _apache_setup_port():
 			puts('Instance is not binded to any port. Binding it to port ' + str(port))
 			run("echo '%s\n' > %s" % ('\n'.join(lines), APACHE_PORTS_FILE))
 			return
-	warn('All apache ports are used!')
+	warn(yellow('All apache ports are used!'))
 

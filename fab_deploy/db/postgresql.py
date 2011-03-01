@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from fabric.api import *
+from fabric.colors import *
 
 from fab_deploy.utils import run_as
 from fab_deploy.system import aptitude_install
@@ -13,7 +15,7 @@ def _postgresql_is_installed():
 def postgresql_install():
 	""" Installs postgreSQL """
 	if _postgresql_is_installed():
-		warn('PostgreSQL is already installed.')
+		warn(yellow('PostgreSQL is already installed.'))
 		return
 
 	aptitude_install('postgresql-client-common postgresql-common')

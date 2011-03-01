@@ -1,6 +1,7 @@
 import os.path
 
 from fabric.api import *
+from fabric.colors import *
 from fabric.contrib.files import append, exists
 from fabric.utils import puts, abort
 
@@ -107,7 +108,7 @@ def create_linux_account(pub_key_file):
 	"""
 	username = env.conf['USER']
 	if _user_exists(username):
-		warn('The user %s already exists' % username)
+		warn(yellow('The user %s already exists' % username))
 		return
 
 	with (settings(warn_only=True)):

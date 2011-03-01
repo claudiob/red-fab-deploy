@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from fabric.api import *
+from fabric.colors import *
 
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy.system import aptitude_install
@@ -13,7 +15,7 @@ def _mysql_is_installed():
 def mysql_install():
 	""" Installs MySQL """
 	if _mysql_is_installed():
-		warn('MySQL is already installed.')
+		warn(yellow('MySQL is already installed.'))
 		return
 
 	# Ensure mysql won't ask for a password on installation
@@ -45,7 +47,8 @@ def mysql_install():
 
 	run("echo '%s' | debconf-set-selections" % "\n".join(debconf_defaults))
 
-	warn('\n=========\nThe password for mysql "root" user will be set to "%s"\n=========\n' % passwd)
+	warn(yellow('The password for mysql "root" user will be set to "%s"' % passwd))
+
 	common_packages = [
 		'automysqlbackup',
 		'sendmail',

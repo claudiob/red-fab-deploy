@@ -1,4 +1,5 @@
 from fabric.api import *
+from fabric.colors import *
 
 from fab_deploy.utils import run_as
 from fab_deploy.system import aptitude_install
@@ -13,7 +14,7 @@ def _uwsgi_is_installed():
 def uwsgi_install():
 	""" Install uWSGI. """
 	if _uwsgi_is_installed():
-		warn('uWSGI is already installed')
+		warn(yellow('uWSGI is already installed'))
 		return
 	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 

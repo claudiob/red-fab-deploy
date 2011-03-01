@@ -1,4 +1,5 @@
 from fabric.api import *
+from fabric.colors import *
 
 from fab_deploy.db.mysql import mysqldump
 from fab_deploy.utils import run_as
@@ -16,7 +17,7 @@ def manage(command):
 		fab manage:createsuperuser
 	"""
 	if not command_is_available(command):
-		warn('Management command "%s" is not available' % command)
+		warn(yellow('Management command "%s" is not available' % command))
 	else:
 		run('python manage.py '+ command)
 
