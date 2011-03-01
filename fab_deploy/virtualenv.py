@@ -22,6 +22,7 @@ def virtualenv_create(site_packages=True):
 		run('virtualenv env/')
 	else:
 		run('virtualenv --no-site-packages env/')
+	run('ln -s env/bin/activate')
 
 def virtualenv():
 	"""

@@ -14,8 +14,7 @@ def _nginx_is_installed():
 def nginx_install():
 	""" Install nginx. """
 	if _nginx_is_installed():
-		warn(yellow('Nginx is already installed'))
-		return
+		abort(red('Nginx is already installed'))
 	
 	os = detect_os()
 	options = {'lenny': '-t lenny-backports'}
@@ -26,14 +25,14 @@ def nginx_install():
 	run('rm -f /etc/nginx/sites-enabled/default')
 
 @run_as('root')
-def nginx_setup():
+def nginx_setup(tagname):
 	""" Updates nginx config and restarts nginx """
 	if exists('/etc/nginx/nginx.conf.bkp'):
-		warn(yellow('Nginx has already been set up'))
-		return
+		abort(red('Nginx has already been set up'))
 
 	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
-	run('ln -s %(SRC_DIR)s/deploy/nginx.conf /etc/nginx/nginx.conf' % env.conf)
+	run('ln -s %s/%s/deploy/nginx.conf /etc/nginx/nginx.conf' % (
+		env.conf['SRC_DIR'],tagname))
 
 @run_as('root')
 def nginx_start():

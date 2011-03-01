@@ -13,6 +13,11 @@ def prepare_server():
 	install_common_software()
 
 @run_as('root')
+def set_host_name(hostname):
+	""" Set the host name on a server """
+	pass
+
+@run_as('root')
 def setup_backports():
 	""" Adds backports repo to apt sources. """
 	os = detect_os()
@@ -28,6 +33,7 @@ def setup_backports():
 	run("echo 'deb %s' > /etc/apt/sources.list.d/backports.sources.list" % backports[os])
 	with settings(warn_only=True):
 		aptitude_update()
+		aptitude_upgrade()
 
 @run_as('root')
 def install_common_software():
@@ -73,6 +79,7 @@ def install_common_software():
 	#aptitude_install('bzr', '--without-recommends')
 
 	run('easy_install -U pip')
+	#setup_web_server()
 	run('pip install -U virtualenv')
 
 def _user_exists(username):
@@ -158,4 +165,9 @@ def aptitude_install(packages, options=''):
 def aptitude_update():
 	""" Update aptitude packages on the server """
 	run('aptitude update')
+	
+@run_as('root')
+def aptitude_upgrade():
+	""" Upgrade aptitude packages on the server """
+	run('aptitude upgrade')
 	

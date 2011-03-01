@@ -34,25 +34,22 @@ def deploy_project(tagname):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
-		#syncdb()
-		# load sql database dump
-	#setup_web_server()
 
 @run_as('root')
 def make_src_dir():
 	run('mkdir -p %s' % env.conf['SRC_DIR'])
 	run('chmod a+w %s' % env.conf['SRC_DIR'])
 
-def setup_web_server():
+def setup_web_server(tagname):
 	""" Sets up a web server. """
 	if env.conf['SERVER_TYPE'] == 'apache':
 		apache_install()
-		apache_setup()
+		apache_setup(tagname)
 	elif env.conf['SERVER_TYPE'] == 'nginx':	
 		nginx_install()
-		nginx_setup()
+		nginx_setup(tagname)
 		uwsgi_install()
-		uwsgi_setup()
+		uwsgi_setup(tagname)
 
 def start_web_server():
 	""" Starts up a web server. """

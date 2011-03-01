@@ -14,21 +14,22 @@ def _uwsgi_is_installed():
 def uwsgi_install():
 	""" Install uWSGI. """
 	if _uwsgi_is_installed():
-		warn(yellow('uWSGI is already installed'))
-		return
+		abort(red('uWSGI is already installed'))
 	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
 @run_as('root')
-def uwsgi_setup():
+def uwsgi_setup(tagname):
 	""" Setup uWSGI. """
-	pass
+	with cd(env.conf['SRC_DIR']):
+		run('ln -s %s/%s/deploy/django.wsgi' % (env.conf['SRC_DIR'],tagname))
 
 @run_as('root')
 def uwsgi_start():
 	"""
 	Start uwsgi sockets
 	"""
-	run('uwsgi -s %s:8001 -p 4 --wsgi-file %s/deploy/django.wsgi -d /tmp/uwsgi.log --gid www-data' % (env.conf['SERVERS']['DEV_INT'],env.conf['SRC_DIR']))
+	run('uwsgi -s %s:8001 -p 4 --wsgi-file %s/django.wsgi -d /tmp/uwsgi.log --gid www-data' % (
+			env.host_string,env.conf['SRC_DIR']))
 
 @run_as('root')
 def uwsgi_stop():
