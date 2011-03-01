@@ -1,16 +1,14 @@
 from fabric.api import *
 
 from fab_deploy.db.mysql import mysqldump
-from fab_deploy.utils import inside_project, run_as
+from fab_deploy.utils import run_as
 
-@inside_project
 def command_is_available(command):
 	with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
 		output = run('python manage.py help ' + command)
 	return output.succeeded
 
 @run_as('root')
-@inside_project
 def manage(command):
 	""" Runs django management command.
 	Example::
@@ -43,7 +41,6 @@ def compress(params=''):
 	with settings(warn_only=True):
 		manage('synccompress %s' % params)
 
-@inside_project
 def test(what=''):
 	""" Runs 'runtests.sh' script from project root.
 	Example runtests.sh content::

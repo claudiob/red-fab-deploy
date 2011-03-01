@@ -12,7 +12,7 @@ def my_site():
 	""" Default Configuration """
 	env.conf = dict(
 		INSTANCE_NAME = 'project_name',
-		REPO = 'http://some.repo.com/project_name/trunk',
+		REPO = 'http://some.repo.com/project_name/',
 		SERVERS = {
 			'DEV'          : 'root@some.ip.address',
 			'DEV_PASSWD'   : 'password',

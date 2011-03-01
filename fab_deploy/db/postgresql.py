@@ -1,7 +1,7 @@
 from datetime import datetime
 from fabric.api import *
 
-from fab_deploy.utils import detect_os, inside_project, run_as
+from fab_deploy.utils import run_as
 from fab_deploy.system import aptitude_install
 
 def _postgresql_is_installed():

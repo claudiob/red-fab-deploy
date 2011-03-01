@@ -1,7 +1,7 @@
 from datetime import datetime
 from fabric.api import *
 
-from fab_deploy.utils import detect_os, inside_project, run_as
+from fab_deploy.utils import detect_os, run_as
 from fab_deploy.system import aptitude_install
 
 def _mysql_is_installed():
@@ -87,11 +87,10 @@ def mysql_create_db():
 	mysql_execute('CREATE DATABASE %s %s;' % (mysql_database, params),
 		mysql_user, mysql_password)
 
-@inside_project
 def mysqldump(dir=None):
 	""" Runs mysqldump. Result is stored at <env>/var/backups/ """
 	if dir is not None:
-		dir = env.conf['ENV_DIR'] + '/var/backups'
+		dir = env.conf['SRC_DIR'] + '/var/backups'
 		now = datetime.now().strftime("%Y.%m.%d-%H.%M")
 		db = env.conf['DB_NAME']
 		password = env.conf['DB_PASSWORD']

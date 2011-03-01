@@ -123,53 +123,17 @@ def update_env():
 		if env.conf.DB == db:
 			env.conf.DB = 'fab_deploy.db.'+db
 
-def virtualenv():
+def virtualenv(tagname):
 	"""
 	Context manager. Use it to perform actions inside virtualenv::
 
-		with virtualenv():
+		with virtualenv(tagname):
 			# virtualenv is active here
 	
 	"""
-	print('source '+env.conf['ENV_DIR']+'/bin/activate')
-	return prefix('source '+env.conf['ENV_DIR']+'/bin/activate')
+	print('source /bin/activate')
+	return prefix('source /bin/activate')
 
-def inside_virtualenv(func):
-    """
-    Decorator. Use it for perform actions inside virtualenv::
-
-        @inside_virtualenv
-        def my_command():
-            # virtualenv is active here
-
-    """
-    @wraps(func)
-    def inner(*args, **kwargs):
-        with virtualenv():
-            return func(*args, **kwargs)
-    return inner
-
-def inside_project(func):
-	"""
-	Decorator. Use it for perform actions inside project dir::
-
-		from fabric.api import *
-		from fab_deploy.utils import inside_project
-
-		@inside_project
-		def cleanup():
-			# the current dir is a project source dir
-			run('python manage.py cleanup')
-
-	"""
-	@wraps(func)
-	def inner(*args, **kwargs):
-		with cd(env.conf['SRC_DIR']):
-			#with virtualenv():
-			return func(*args, **kwargs)
-	return inner
-
-@inside_project
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
 	run("find . -name '*.pyc' -delete")
