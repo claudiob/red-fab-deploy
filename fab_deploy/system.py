@@ -129,8 +129,19 @@ def linux_account_create(pub_key_file):
 		return
 
 	with (settings(warn_only=True)):
-		run('adduser %s --disabled-password' % username)
+		run('adduser --disabled-password %s' % username)
 		ssh_copy_key(pub_key_file)
+
+@run_as('root')
+def linux_account_addgroup():
+	username = prompt('Enter the username for the account you wish to add to a group:')
+	if not _user_exists(username):
+		warn(yellow('The user %s does not exist' % username))
+		return
+
+	group = prompt('Enter the group name you want to add the user to:')
+	with (settings(warn_only=True)):
+		run('adduser %s %s' % (username,group))
 	
 @run_as('root')
 def linux_account_setup():

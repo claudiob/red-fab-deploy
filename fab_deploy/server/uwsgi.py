@@ -1,8 +1,9 @@
 from fabric.api import *
 from fabric.colors import *
+from fabric.contrib.files import exists
 
-from fab_deploy.utils import run_as
-from fab_deploy.virtualenv import pip
+from fab_deploy.utils import detect_os, run_as
+from fab_deploy.system import aptitude_install, aptitude_update
 
 def _uwsgi_is_installed():
 	with settings(hide('stderr'), warn_only=True):
@@ -16,31 +17,41 @@ def uwsgi_install():
 		warn(yellow('uWSGI is already installed'))
 		return
 
-	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
+	os = detect_os()
+	options = {'lenny': '-t lenny-backports'}
 
-def uwsgi_setup():
-	""" Setup uWSGI. """
-	pass
+	sudo('add-apt-repository ppa:uwsgi/release')
+	aptitude_update()
+	aptitude_install('uwsgi', options.get(os,''))
 
 @run_as('root')
+def uwsgi_setup():
+	""" Setup uWSGI. """
+	if not exists('/srv/active/'):
+		warn(yellow('There is no active deployment'))
+		return
+
+	if exists('/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'):
+		warn(yellow('uWSGI has already been set up'))
+	else:
+		run('ln -s /srv/active/deploy/uwsgi.ini /etc/uwsgi/uwsgi-python2.6/uwsgi.ini')
+
 def uwsgi_start():
 	"""
 	Start uwsgi sockets
 	"""
-	run('uwsgi -s %s:8001 -p 4 --wsgi-file /srv/active/deploy/django_wsgi.py -d /tmp/uwsgi.log --gid www-data' % (env.conf['SRV_INT']))
-	print(green('Start uWSGI for %(host_string)s' % env))
+	sudo('service uwsgi-python2.6 start')
+	puts(green('Start uWSGI for %(host_string)s' % env))
 
-@run_as('root')
 def uwsgi_stop():
 	"""
 	Stop uwsgi sockets
 	"""
-	run('pkill uwsgi')
+	sudo('service uwsgi-python2.6 stop')
 
 def uwsgi_restart():
 	"""
 	Restarts the uwsgi sockets.
 	"""
-	uwsgi_stop()
-	uwsgi_start()
+	sudo('service uwsgi-python2.6 restart')
 

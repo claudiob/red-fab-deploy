@@ -34,24 +34,21 @@ def nginx_setup():
 
 	if exists('/etc/nginx/nginx.conf.bkp'):
 		warn(yellow('Nginx has already been set up'))
+		return
 	else:
 		run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
-	
-	run('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
+		run('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
 
-@run_as('root')
 def nginx_start():
 	""" Start Nginx. """
-	run('/usr/sbin/nginx')
+	sudo('service nginx start')
 	print(green('Start nginx for %(host_string)s' % env))
 
-@run_as('root')
 def nginx_stop():
 	""" Stop Nginx. """
-	run('pkill nginx')
+	sudo('service nginx stop')
 
 def nginx_restart():
 	""" Restarts Nginx. """
-	nginx_stop()
-	nginx_start()
+	sudo('service nginx restart')
 

@@ -62,4 +62,4 @@ def deploy_project(tagname):
 #	run('rm -rf %s' % env.conf['SRC_DIR'])
 #	for folder in ['bin', 'include', 'lib', 'src']:
 #		run('rm -rf %s' % env.conf['ENV_DIR'] + '/' + folder)
-#
+
