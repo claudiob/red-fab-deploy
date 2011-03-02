@@ -1,32 +1,31 @@
+from fabric.api import *
+
+from fab_deploy.system import run_as
 
 #--- Media
 def media_rsync():
 	"""
-	Syncs media from web1 to load1 and web2.
+	Syncs media in /srv/active/uploads/ directory from given host
 	"""
-	if env.host_string in [env.LOAD1, env.WEB2, env.DEV]:
-		run('''rsync --recursive %(WEB1)s:%(dest)s/media/uploads/
-		%(dest)s/media/uploads/ --size-only''' % env)
-	else:
-		print('No media to rsync for %(host_string)s' % env)
 
+	media_user = prompt('Please enter the media host user:')
+	media_host = prompt('Please enter the media host IP:')
+	run('''rsync --recursive %s@%s:/srv/active/uploads/ /srv/active/uploads/ --size-only''' % (media_user,media_host))
+
+@run_as('root')
 def media_chown():
 	"""
 	Changes the ownership of media to www-data:www-data.
 	"""
-	if env.host_string in [env.LOAD1, env.WEB1, env.WEB2, env.DEV]:
-		run('chown -R www-data:www-data %(dest)s/media/uploads' % env)
-	else:
-		print('No media to chown for %(host_string)s' % env)
+	
+	run('chown -R www-data:www-data /srv/active/uploads')
 
+@run_as('root')
 def media_chmod():
 	"""
 	Changes the ownership of media to www-data:www-data.
 	"""
-	if env.host_string in [env.LOAD1, env.WEB1, env.WEB2, env.DEV]:
-		run('chmod -R 755 %(dest)s/media/uploads' % env)
-	else:
-		print('No media to chown for %(host_string)s' % env)
+	run('chmod -R 755 /srv/active/uploads')
 
 def media_sync():
 	"""

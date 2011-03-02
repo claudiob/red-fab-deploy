@@ -27,3 +27,7 @@ from fab_deploy.db import *
 
 #--- Version Control
 from fab_deploy.vcs import *
+
+#--- Media
+from fab_deploy.media import *
+
