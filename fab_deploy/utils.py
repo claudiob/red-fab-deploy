@@ -101,6 +101,7 @@ def update_env():
 		HOME_DIR = HOME_DIR,
 		ENV_DIR  = '/srv/active/env/',
 		SRC_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
+		FILES    = os.path.join(os.path.dirname(__file__),'templates'),
 		USER     = user,
 	)
 	defaults.update(env.conf)

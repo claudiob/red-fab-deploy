@@ -99,7 +99,7 @@ def _user_exists(username):
 	return output.succeeded
 
 @run_as('root')
-def create_linux_account(pub_key_file):
+def linux_account_create(pub_key_file):
 	"""
 	Creates linux account and setups ssh access. 
 	
@@ -123,7 +123,7 @@ def create_linux_account(pub_key_file):
 	    Fabric commands should be executed in shell from the project root
 	    on local machine (not from the python console, not on server shell).
 	"""
-	username = env.conf['USER']
+	username = prompt('Enter the username for the account you wish to create:')
 	if _user_exists(username):
 		warn(yellow('The user %s already exists' % username))
 		return
@@ -131,6 +131,25 @@ def create_linux_account(pub_key_file):
 	with (settings(warn_only=True)):
 		run('adduser %s --disabled-password' % username)
 		ssh_copy_key(pub_key_file)
+	
+@run_as('root')
+def linux_account_setup():
+	"""
+	Copies a set of files into the home directory of a user
+	"""
+	username = prompt('Enter the username for the account you wish to setup:')
+	if not _user_exists(username):
+		warn(yellow('The user %s does not exist' % username))
+		return
+
+	user_home = os.path.join('/home',username)
+	templates = env.conf['FILES']
+	for filename in ['.bashrc','.inputrc','.screenrc','.vimrc',]:
+		put(os.path.join(templates,filename),os.path.join(user_home,filename))
+	
+	for path in ['.vim/filetype.vim','.vim/doc/NERD_tree.txt','.vim/plugin/NERD_tree.vim']:
+		run('mkdir -p %s' % os.path.join(user_home,os.path.dirname(path)))
+		put(os.path.join(templates,path),os.path.join(user_home,path))
 
 @run_as('root')
 def ssh_copy_key(pub_key_file):
