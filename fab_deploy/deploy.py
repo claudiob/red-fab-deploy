@@ -18,6 +18,7 @@ def full_deploy(tagname):
 		abort(red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
 	deploy_project(tagname)
+	make_active(tagname)
 
 def deploy_project(tagname):
 	""" Deploys project on prepared server. """
@@ -32,8 +33,6 @@ def deploy_project(tagname):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
-	
-	make_active(tagname)
 
 #def undeploy():
 #	""" Shuts site down. This command doesn't clean everything, e.g.

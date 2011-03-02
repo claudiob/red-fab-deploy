@@ -87,10 +87,9 @@ def install_common_software():
 
 	vcs_options = {'lenny': '-t lenny-backports'}
 	aptitude_install('mercurial git-core', vcs_options.get(os, ""))
-	#aptitude_install('bzr', '--without-recommends')
+	aptitude_install('bzr', '--without-recommends')
 
 	run('easy_install -U pip')
-	#setup_web_server()
 	run('pip install -U virtualenv')
 
 def _user_exists(username):
@@ -130,7 +129,6 @@ def create_linux_account(pub_key_file):
 		return
 
 	with (settings(warn_only=True)):
-		#run('adduser %s --disabled-password --gecos ""' % username)
 		run('adduser %s --disabled-password' % username)
 		ssh_copy_key(pub_key_file)
 
