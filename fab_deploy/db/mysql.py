@@ -27,9 +27,7 @@ def mysql_install():
 	aptitude_install('debconf-utils')
 	
 	# get the password
-	passwd = env.conf['DB_PASSWORD']
-	if not passwd:
-		passwd = prompt('Please enter MySQL root password:')
+	passwd = prompt('Please enter MySQL root password:')
 	
 	# get the correct version for installation
 	mysql_versions = {
@@ -56,18 +54,10 @@ def mysql_install():
 		'python-mysqldb',
 		]
 	extra_packages = {
-		'lenny': [
-			'libmysqlclient15-dev',
-			],
-		'sqeeze': [
-			'libmysqlclient-dev',
-			],
-		'lucid': [
-			'libmysqlclient-dev',
-			],
-		'maverick': [
-			'libmysqlclient-dev',
-			],
+		'lenny'   : ['libmysqlclient15-dev',],
+		'sqeeze'  : ['libmysqlclient-dev',],
+		'lucid'   : ['libmysqlclient-dev',],
+		'maverick': ['libmysqlclient-dev',],
 	}
 	aptitude_install(" ".join(common_packages + extra_packages[os]))
 
@@ -108,18 +98,19 @@ def mysql_drop_user():
 
 	mysql_execute("DROP USER %s;" % (drop_user), mysql_user)
 
-def mysql_dump(tagname):
+def mysql_dump():
 	""" 
-	Runs mysqldump. Result is stored at /srv/<src_dir>/<tagname>/sql/ 
+	Runs mysqldump. Result is stored at /srv/active/sql/ 
 	"""
-	dir = os.path.join(env.conf['SRC_DIR'],tagname,'sql/')
+	dir = '/srv/active/sql/'
+	run('mkdir -p %s' % dir)
 	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
-	mysql_database = env.conf['DB_NAME']
-	if not mysql_database:
-		mysql_database = prompt('Please enter MySQL database name:')
-	password = env.conf['DB_PASSWORD']
-	run('mysqldump -uroot -p%s %s > %s/%s-%s.sql' % (password, mysql_database,
-		dir, mysql_database, now))
+	
+	mysql_user     = prompt('Please enter MySQL username:')
+	mysql_database = prompt('Please enter MySQL database name:')
+	
+	run('mysqldump -u%s -p %s > %s' % (mysql_user, mysql_database,
+		os.path.join(dir, '%s-%s.sql' % (mysql_database, now))))
 
 def mysql_load(filename):
 	"""

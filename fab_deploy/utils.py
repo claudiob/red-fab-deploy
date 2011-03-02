@@ -4,6 +4,7 @@ import pprint
 import re
 
 from fabric.api import *
+from fabric.colors import *
 from fabric.contrib.files import upload_template
 from fabric.network import normalize, join_host_strings
 from fabric.state import _AttributeDict
@@ -73,13 +74,13 @@ def update_env():
 		def my_site():
 			env.hosts = ['my_site@example.com']
 			env.conf = dict(
-				DB_PASSWORD = 'password',
+				INSTANCE_NAME = 'my_site',
 			)
 			update_env()
 	"""
-	print env.hosts
-	assert len(env.hosts)>0, "Must supply hosts in env.hosts."
-	assert len(env.hosts)==1, "Multiple hosts in env.hosts are not supported now. (%s)" % env.hosts
+	
+	assert len(env.hosts)>0, red("Must supply hosts in env.hosts.")
+	assert len(env.hosts)==1, red("Multiple hosts in env.hosts are not supported now. (%s)" % env.hosts)
 	user, host, port = normalize(env.hosts[0])
 
 	env.conf = getattr(env, 'conf', {})
@@ -93,12 +94,7 @@ def update_env():
 		env.conf['INSTANCE_NAME'] = user
 
 	defaults = _AttributeDict(
-		HG_BRANCH    = 'default',
-		SVN_BRANCH   = 'trunk',
 		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
-		#DB_NAME      = env.conf['INSTANCE_NAME'],
-		#DB_USER      = 'root',
-		#DB_PASSWORD  = 'password',
 		PROCESSES    = 1,
 		SERVER_ADMIN = 'example@example.com',
 		SERVER_NAME  = host,
@@ -110,20 +106,22 @@ def update_env():
 
 		# these options shouldn't be set by user
 		HOME_DIR = HOME_DIR,
-		#ENV_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
+		ENV_DIR  = '/srv/active/env/',
 		SRC_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
 		USER     = user,
 	)
 	defaults.update(env.conf)
 	env.conf = defaults
 
-	for vcs in ['hg','svn','none']: # expand VCS name to full import path
+	for vcs in ['svn','tar']: # expand VCS name to full import path
 		if env.conf.VCS == vcs:
-			env.conf.VCS = 'fab_deploy.vcs.'+vcs
+			env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
+			break
 	
 	for db in ['mysql','postgresql']: # expand DB name to full import path
 		if env.conf.DB == db:
-			env.conf.DB = 'fab_deploy.db.'+db
+			env.conf.DB = 'fab_deploy.db.%s' % db
+			break
 
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
