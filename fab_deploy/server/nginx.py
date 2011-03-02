@@ -27,12 +27,14 @@ def nginx_install():
 @run_as('root')
 def nginx_setup(tagname):
 	""" Updates nginx config and restarts nginx """
+	if not exists('/srv/active/'):
+		abort(red('There is no active deployment'))
+
 	if exists('/etc/nginx/nginx.conf.bkp'):
 		abort(red('Nginx has already been set up'))
 
 	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
-	run('ln -s %s/%s/deploy/nginx.conf /etc/nginx/nginx.conf' % (
-		env.conf['SRC_DIR'],tagname))
+	run('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
 
 @run_as('root')
 def nginx_start():
@@ -45,7 +47,6 @@ def nginx_stop():
 	""" Stop Nginx. """
 	run('pkill nginx')
 
-@run_as('root')
 def nginx_restart():
 	""" Restarts Nginx. """
 	nginx_stop()

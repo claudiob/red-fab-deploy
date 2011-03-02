@@ -2,7 +2,6 @@ from fabric.api import *
 from fabric.colors import *
 
 from fab_deploy.utils import run_as
-from fab_deploy.system import aptitude_install
 from fab_deploy.virtualenv import pip
 
 def _uwsgi_is_installed():
@@ -17,19 +16,16 @@ def uwsgi_install():
 		abort(red('uWSGI is already installed'))
 	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
-@run_as('root')
-def uwsgi_setup(tagname):
+def uwsgi_setup():
 	""" Setup uWSGI. """
-	with cd(env.conf['SRC_DIR']):
-		run('ln -s %s/%s/deploy/django.wsgi' % (env.conf['SRC_DIR'],tagname))
+	pass
 
 @run_as('root')
 def uwsgi_start():
 	"""
 	Start uwsgi sockets
 	"""
-	run('uwsgi -s %s:8001 -p 4 --wsgi-file %s/django.wsgi -d /tmp/uwsgi.log --gid www-data' % (
-			env.host_string,env.conf['SRC_DIR']))
+	run('uwsgi -s %s:8001 -p 4 --wsgi-file /srv/active/deploy/django_wsgi.py -d /tmp/uwsgi.log --gid www-data' % (env.conf['SRV_INT']))
 
 @run_as('root')
 def uwsgi_stop():
@@ -38,7 +34,6 @@ def uwsgi_stop():
 	"""
 	run('pkill uwsgi')
 
-@run_as('root')
 def uwsgi_restart():
 	"""
 	Restarts the uwsgi sockets.

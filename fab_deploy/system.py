@@ -17,6 +17,11 @@ def set_host_name(hostname):
 	""" Set the host name on a server """
 	pass
 
+def make_active(tagname):
+	""" Make a tag active """
+	with cd('/srv'):
+		run('ln -s %s/%s active' % (env.conf['SRC_DIR'],tagname))
+
 @run_as('root')
 def setup_backports():
 	""" Adds backports repo to apt sources. """

@@ -1,7 +1,7 @@
 from fabric.api import *
 from fabric.colors import *
 
-from fab_deploy.db.mysql import mysqldump
+from fab_deploy.db.mysql import mysql_dump
 from fab_deploy.utils import run_as
 
 def command_is_available(command):
@@ -27,7 +27,7 @@ def migrate(params='', do_backup=True):
 	if do_backup:
 		backup_dir = env.conf['ENV_DIR']+'/var/backups/before-migrate'
 		run('mkdir -p '+ backup_dir)
-		mysqldump(backup_dir)
+		mysql_dump(backup_dir)
 	#TODO: This appears to require django-south
 	#manage('migrate --noinput %s' % params)
 

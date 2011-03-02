@@ -7,7 +7,7 @@ from fabric.contrib.files import exists,upload_template
 
 from fab_deploy.django_commands import compress, migrate, syncdb, test
 from fab_deploy.server import *
-from fab_deploy.system import prepare_server
+from fab_deploy.system import prepare_server, make_active
 from fab_deploy.utils import delete_pyc, detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import (pip_install, pip_update, 
@@ -34,6 +34,8 @@ def deploy_project(tagname):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
+	
+	make_active(tagname)
 
 @run_as('root')
 def make_src_dir():

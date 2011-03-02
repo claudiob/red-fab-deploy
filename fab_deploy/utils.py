@@ -96,13 +96,14 @@ def update_env():
 		HG_BRANCH    = 'default',
 		SVN_BRANCH   = 'trunk',
 		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
-		DB_NAME      = env.conf['INSTANCE_NAME'],
-		DB_USER      = 'root',
-		DB_PASSWORD  = 'password',
+		#DB_NAME      = env.conf['INSTANCE_NAME'],
+		#DB_USER      = 'root',
+		#DB_PASSWORD  = 'password',
 		PROCESSES    = 1,
 		SERVER_ADMIN = 'example@example.com',
 		SERVER_NAME  = host,
 		SERVER_TYPE  = 'nginx', # Choose from 'apache' or 'nginx'
+		SRV_INT      = host,
 		THREADS      = 15,
 		VCS          = 'svn',
 		VCS_TAGS     = 'branches',#'tags',

@@ -71,57 +71,60 @@ def mysql_install():
 	}
 	aptitude_install(" ".join(common_packages + extra_packages[os]))
 
-def mysql_execute(sql, user=None, password=None):
+def mysql_execute(sql, user='', password=''):
 	"""
 	Executes passed sql command using mysql shell.
 	"""
-	user = user
-	password = password
 	return run("echo '%s' | mysql -u%s -p%s" % (sql, user, password))
 
 def mysql_create_db():
 	"""
 	Creates an empty mysql database. 
 	"""
+	mysql_user     = prompt('Please enter MySQL username:')
 	mysql_database = prompt('Please enter MySQL database name:')
-	mysql_user = prompt('Please enter MySQL username:')
-	mysql_password = prompt('Please enter MySQL password for %s:' % mysql_user)
+	
 	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
-	mysql_execute('CREATE DATABASE %s %s;' % (mysql_database, params),
-		mysql_user, mysql_password)
+	mysql_execute('CREATE DATABASE %s %s;' % (mysql_database, params), mysql_user)
 
 def mysql_create_user():
 	"""
 	Create a new mysql user.
 	"""
-	mysql_database = prompt('Please enter MySQL database name:')
-	mysql_user = prompt('Please enter root MySQL username:')
-	mysql_password = prompt('Please enter root MySQL password for %s:' % mysql_user)
+	mysql_user     = prompt('Please enter MySQL username:')
 	
-	new_user = prompt('Please enter new MySQL username:')
-	new_password = prompt('Please enter new MySQL password for %s:' % new_user)
+	new_user       = prompt('Please enter new MySQL username:')
+	new_password   = prompt('Please enter new MySQL password for %s:' % new_user)
 
-	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
-	mysql_execute("GRANT ALL privileges ON *.* TO '%s' IDENTIFIED BY '%s';" % 
-		(new_user,new_password),
-		mysql_user, mysql_password)
+	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";""" % 
+		(new_user, new_password), mysql_user)
 
-def mysqldump():
-	""" 
-	Runs mysqldump. Result is stored at <env>/var/backups/ 
+def mysql_drop_user():
 	"""
-	#dir = os.path.join(env.conf['SRC_DIR'],'sql/')
-	dir = 'sql/'
+	Create a new mysql user.
+	"""
+	mysql_user     = prompt('Please enter MySQL username:')
+	drop_user      = prompt('Please enter MySQL username to drop:')
+
+	mysql_execute("DROP USER %s;" % (drop_user), mysql_user)
+
+def mysql_dump(tagname):
+	""" 
+	Runs mysqldump. Result is stored at /srv/<src_dir>/<tagname>/sql/ 
+	"""
+	dir = os.path.join(env.conf['SRC_DIR'],tagname,'sql/')
 	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
 	db = env.conf['DB_NAME']
 	password = env.conf['DB_PASSWORD']
 	run('mysqldump -uroot -p%s %s > %s/%s-%s.sql' % (password, db, dir, db, now))
 
-def mysqlload(filename):
+def mysql_load(filename):
 	"""
 	try mysql DATABASENAME < filename.sql
 	"""
-	pass
+	mysql_user     = prompt('Please enter MySQL username:')
+	mysql_database = prompt('Please enter MySQL database name:')
+	run('mysql %s -u%s -p < %s' % (mysql_database, mysql_user, filename))
 
 def mysql_backup():
 	""" Backup the database """
