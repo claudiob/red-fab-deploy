@@ -168,15 +168,15 @@ def ssh_add_key(pub_key_file):
 @run_as('root')
 def aptitude_install(packages, options=''):
 	""" Installs package via aptitude. """
-	run('aptitude install %s -y %s' % (options, packages,))
+	run('apt-get install %s -y %s' % (options, packages,))
 
 @run_as('root')
 def aptitude_update():
 	""" Update aptitude packages on the server """
-	run('aptitude update')
+	run('apt-get update')
 	
 @run_as('root')
 def aptitude_upgrade():
 	""" Upgrade aptitude packages on the server """
-	run('aptitude upgrade')
+	run('apt-get upgrade')
 	
