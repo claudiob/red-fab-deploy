@@ -13,7 +13,9 @@ def _uwsgi_is_installed():
 def uwsgi_install():
 	""" Install uWSGI. """
 	if _uwsgi_is_installed():
-		abort(red('uWSGI is already installed'))
+		warn(yellow('uWSGI is already installed'))
+		return
+
 	pip('install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
 def uwsgi_setup():

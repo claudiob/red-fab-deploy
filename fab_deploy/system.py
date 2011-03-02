@@ -7,20 +7,26 @@ from fabric.utils import puts
 
 from fab_deploy.utils import run_as, detect_os
 
-def prepare_server():
-	""" Prepares server: installs system packages. """
-	setup_backports()
-	install_common_software()
-
 @run_as('root')
 def set_host_name(hostname):
 	""" Set the host name on a server """
 	pass
 
+@run_as('root')
+def make_src_dir():
+	run('mkdir -p %s' % env.conf['SRC_DIR'])
+	run('chmod a+w %s' % env.conf['SRC_DIR'])
+
+@run_as('root')
 def make_active(tagname):
 	""" Make a tag active """
 	with cd('/srv'):
 		run('ln -s %s/%s active' % (env.conf['SRC_DIR'],tagname))
+
+def prepare_server():
+	""" Prepares server: installs system packages. """
+	setup_backports()
+	install_common_software()
 
 @run_as('root')
 def setup_backports():

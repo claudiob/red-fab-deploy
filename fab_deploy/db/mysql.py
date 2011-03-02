@@ -114,9 +114,12 @@ def mysql_dump(tagname):
 	"""
 	dir = os.path.join(env.conf['SRC_DIR'],tagname,'sql/')
 	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
-	db = env.conf['DB_NAME']
+	mysql_database = env.conf['DB_NAME']
+	if not mysql_database:
+		mysql_database = prompt('Please enter MySQL database name:')
 	password = env.conf['DB_PASSWORD']
-	run('mysqldump -uroot -p%s %s > %s/%s-%s.sql' % (password, db, dir, db, now))
+	run('mysqldump -uroot -p%s %s > %s/%s-%s.sql' % (password, mysql_database,
+		dir, mysql_database, now))
 
 def mysql_load(filename):
 	"""

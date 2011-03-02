@@ -14,8 +14,9 @@ def _nginx_is_installed():
 def nginx_install():
 	""" Install nginx. """
 	if _nginx_is_installed():
-		abort(red('Nginx is already installed'))
-	
+		warn(yellow('Nginx is already installed'))
+		return
+
 	os = detect_os()
 	options = {'lenny': '-t lenny-backports'}
 
@@ -28,12 +29,14 @@ def nginx_install():
 def nginx_setup(tagname):
 	""" Updates nginx config and restarts nginx """
 	if not exists('/srv/active/'):
-		abort(red('There is no active deployment'))
+		warn(yellow('There is no active deployment'))
+		return
 
 	if exists('/etc/nginx/nginx.conf.bkp'):
-		abort(red('Nginx has already been set up'))
-
-	run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
+		warn(yellow('Nginx has already been set up'))
+	else:
+		run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
+	
 	run('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
 
 @run_as('root')

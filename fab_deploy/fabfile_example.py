@@ -14,7 +14,8 @@ def my_site():
 		INSTANCE_NAME = 'project_name',
 		REPO = 'http://some.repo.com/project_name/',
 		SERVERS = {
-			'DEV'          : 'root@some.ip.address',
+			'DEV'          : 'some.external.ip.address',
+			'DEV_INT'      : 'some.internal.ip.address',
 			'DEV_PASSWD'   : 'password',
 		}
 	)
@@ -29,5 +30,7 @@ def dev():
 	env.hosts = [env.conf['SERVERS']['DEV']]
 	if 'DEV_PASSWD' in env.conf['SERVERS']:
 		env.password = env.conf['SERVERS']['DEV_PASSWD']
+	if 'DEV_INT' in env.conf['SERVERS']:
+		env.conf['SRV_INT'] = env.conf['SERVERS']['DEV_INT']
 	update_env()
 
