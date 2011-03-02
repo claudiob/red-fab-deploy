@@ -1,3 +1,2 @@
 red-fab-deploy
-jinja2
 -e git+git://github.com/bitprophet/fabric.git#egg=fabric

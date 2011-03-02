@@ -12,7 +12,17 @@ from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
 def full_deploy(tagname):
-	""" Prepares server and deploys the project. """
+	""" 
+	Prepares server, deploys a project with a given tag name, and then makes
+	that deployment the active deployment on the server.
+
+	This step is a convenience step and should only be called once when a server
+	is set up for the first time.
+	
+	Before running this command you'll want to run
+	fab_deploy.system.create_linux_account and set up an account.
+	
+	"""
 	os_sys = detect_os()
 	if not confirm("Is the OS detected correctly (%s)?" % os_sys, default=False):
 		abort(red("Detection fails. Please set env.conf.OS to correct value."))

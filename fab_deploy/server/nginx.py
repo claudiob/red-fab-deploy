@@ -26,7 +26,7 @@ def nginx_install():
 	run('rm -f /etc/nginx/sites-enabled/default')
 
 @run_as('root')
-def nginx_setup(tagname):
+def nginx_setup():
 	""" Updates nginx config and restarts nginx """
 	if not exists('/srv/active/'):
 		warn(yellow('There is no active deployment'))

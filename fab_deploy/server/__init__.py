@@ -1,3 +1,5 @@
+from fabric.api import *
+
 from fab_deploy.server.apache import (apache_install, apache_setup,
 	apache_start, apache_stop, apache_restart, 
 	apache_touch_wsgi, apache_make_wsgi,
@@ -7,14 +9,14 @@ from fab_deploy.server.nginx import (nginx_install, nginx_setup,
 from fab_deploy.server.uwsgi import (uwsgi_install, uwsgi_setup,
 	uwsgi_start, uwsgi_stop, uwsgi_restart, )
 
-def web_server_setup(tagname):
+def web_server_setup():
 	""" Sets up a web server. """
 	if env.conf['SERVER_TYPE'] == 'apache':
 		apache_install()
-		apache_setup(tagname)
+		apache_setup()
 	elif env.conf['SERVER_TYPE'] == 'nginx':	
 		nginx_install()
-		nginx_setup(tagname)
+		nginx_setup()
 		uwsgi_install()
 		uwsgi_setup()
 
