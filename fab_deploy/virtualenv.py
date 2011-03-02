@@ -1,4 +1,5 @@
 from fabric.api import *
+from fabric.colors import *
 
 from fab_deploy.utils import run_as
 
@@ -28,10 +29,10 @@ def virtualenv():
 	"""
 	Context manager. Use it to perform actions inside virtualenv::
 
-		with virtualenv(tagname):
+		with virtualenv():
 			# virtualenv is active here
 	
 	"""
-	print('source env/bin/activate')
+	print(green('source env/bin/activate'))
 	return prefix('source env/bin/activate')
 

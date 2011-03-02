@@ -52,13 +52,6 @@ def run_as(user):
 		return inner
 	return decorator
 
-#def upload_config_template(name, to=None):
-#	if to is None:
-#		base_dir = env.conf['ENV_DIR'] + "/etc/"
-#		run('mkdir -p ' + base_dir)
-#		to = base_dir + name
-#	upload_template('./config_templates/' + name, to, env.conf, True)
-
 def update_env():
 	"""
 	Updates :attr:`env.conf` configuration with some defaults and converts
@@ -128,10 +121,6 @@ def delete_pyc():
 	run("find . -name '*.pyc' -delete")
 
 def print_env():
-	""" Prints env values. Useful for debuggins. """
+	""" Prints env values. Useful for debugging. """
 	puts(pprint.pformat(env))
-
-def _data_path(fname):
-    """Return the path to a data file of ours."""
-    return os.path.join(os.path.split(__file__)[0], fname)
 

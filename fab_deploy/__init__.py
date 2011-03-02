@@ -1,7 +1,5 @@
 #--- Deployment
-from fab_deploy.deploy import (full_deploy, deploy_project,
-	#undeploy, 
-	)
+from fab_deploy.deploy import (full_deploy, deploy_project,)
 from fab_deploy.virtualenv import (pip, pip_install, pip_update, 
 	virtualenv_create, virtualenv)
 

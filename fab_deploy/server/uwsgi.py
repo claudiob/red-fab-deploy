@@ -28,6 +28,7 @@ def uwsgi_start():
 	Start uwsgi sockets
 	"""
 	run('uwsgi -s %s:8001 -p 4 --wsgi-file /srv/active/deploy/django_wsgi.py -d /tmp/uwsgi.log --gid www-data' % (env.conf['SRV_INT']))
+	print(green('Start uWSGI for %(host_string)s' % env))
 
 @run_as('root')
 def uwsgi_stop():

@@ -43,7 +43,7 @@ def nginx_setup():
 def nginx_start():
 	""" Start Nginx. """
 	run('/usr/sbin/nginx')
-	print('Start nginx for %(host_string)s' % env)
+	print(green('Start nginx for %(host_string)s' % env))
 
 @run_as('root')
 def nginx_stop():
