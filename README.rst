@@ -33,25 +33,33 @@ Rackspace Setup
        
    Here "tagname" is the name of the tagged version of the code you wish
    to deploy.  This code must reside in the /repo/tags/ directory.
-   If you have not created a tag yet, do it with
-   
+   If you have not created a tag yet, do it with::
+
       $ svn copy trunk tags/release-0.0.1; svn ci -m "Tagging 'trunk' for django-fab-deploy to work."
 
    For the source code to be installed from the SVN repository to the server you need to enter your SVN credentials.
    
-   **If this is not the first time** you are deploying on the server then run:
+   **If this is not the first time** you are deploying on the server then run::
 
        $ fab dev deploy_project:"tagname" -i deploy/[your private SSH key here]
        $ fab dev make_active:"tagname" -i deploy/[your private SSH key here]
 
-5. Next you'll want to get the server going::
-
+5. Next you'll want to get the server going
+  **If this is the first time** deploying on the server run the following::
+  Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP address of the production machine.
+  Edit deploy/nginx.conf and substitute the 127.0.0.1 in the upstream django server with the local IP address and the 127.0.0.1 in the server_name with the remote IP address of the production machine.
+  Then launch::
+  
        $ fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
 
+  **If this is not the first time** then just run::
+
+       $ fab dev uwsgi_restart -i deploy/[your private SSH key here]
+       $ fab dev web_server_restart -i deploy/[your private SSH key here]
+  
 6. Next you'll have to run the commands to have the application running, such as::
 
        $ fab dev manage:syncdb -i deploy/[your private SSH key here]
        $ fab dev manage:loaddata test -i deploy/[your private SSH key here]
 
 7. Now everything should be running
-
