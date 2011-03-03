@@ -9,6 +9,11 @@ from fabric.utils import puts
 from fab_deploy.package import *
 from fab_deploy.utils import detect_os, run_as
 
+def _get_username_password():
+	username = prompt('What is your username:')
+	password = prompt('What is your password:')
+	return username, password
+
 def set_host_name(hostname):
 	""" Set the host name on a server """
 	#sudo
