@@ -96,7 +96,7 @@ def update_env():
 		SRV_INT      = host,
 		THREADS      = 15,
 		VCS          = 'svn',
-		VCS_TAGS     = 'branches',#'tags',
+		VCS_TAGS     = 'tags',
 
 		# these options shouldn't be set by user
 		HOME_DIR = HOME_DIR,
