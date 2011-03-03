@@ -31,6 +31,6 @@ def virtualenv():
 			# virtualenv is active here
 	
 	"""
-	puts(green('source env/bin/activate'))
-	return prefix('source env/bin/activate')
+	puts(green('source /srv/active/env/bin/activate'))
+	return prefix('source /srv/active/env/bin/activate')
 

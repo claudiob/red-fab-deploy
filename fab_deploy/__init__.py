@@ -18,7 +18,7 @@ from fab_deploy.utils import (update_env,
 
 #--- Django
 from fab_deploy.django_commands import (migrate, manage, syncdb, 
-	compress, test, command_is_available)
+	compress, test)
 
 #--- Servers
 from fab_deploy.server import *

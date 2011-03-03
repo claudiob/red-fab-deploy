@@ -2,11 +2,7 @@ from fabric.api import *
 from fabric.colors import *
 
 from fab_deploy.db.mysql import mysql_dump
-
-def command_is_available(command):
-	with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
-		output = run('python manage.py help ' + command)
-	return output.succeeded
+from fab_deploy.virtualenv import virtualenv
 
 def manage(command):
 	""" Runs django management command.
@@ -14,17 +10,16 @@ def manage(command):
 
 		fab manage:createsuperuser
 	"""
-	if not command_is_available(command):
-		warn(yellow('Management command "%s" is not available' % command))
-	else:
-		run('python manage.py '+ command)
+	with cd('/srv/active/project/'):
+		with virtualenv():
+			run('python manage.py %s' % command)
 
 def migrate(params='', do_backup=True):
 	""" Runs migrate management command. Database backup is performed
 	before migrations if ``do_backup=False`` is not passed. """
 	if do_backup:
-		backup_dir = env.conf['ENV_DIR']+'/var/backups/before-migrate'
-		run('mkdir -p '+ backup_dir)
+		backup_dir = '/srv/active/var/backups/before-migrate'
+		run('mkdir -p %s' % backup_dir)
 		mysql_dump(backup_dir)
 	#TODO: This appears to require django-south
 	#manage('migrate --noinput %s' % params)
@@ -55,5 +50,5 @@ def test(what=''):
 		fi
 	"""
 	with settings(warn_only=True):
-		run('./runtests.sh ' + what)
+		run('./runtests.sh %s' % what)
 
