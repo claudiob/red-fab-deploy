@@ -9,6 +9,7 @@ from fab_deploy.crontab import (crontab_set, crontab_add, crontab_show,
 from fab_deploy.package import (package_install, package_update, package_upgrade)
 from fab_deploy.system import (make_src_dir, make_active,
 	prepare_server, setup_backports, install_common_software, 
+	rackspace_as_ec2,
 	linux_account_create, linux_account_setup, 
 	linux_account_addgroup, grant_sudo_access,
 	ssh_copy_key, ssh_add_key,)

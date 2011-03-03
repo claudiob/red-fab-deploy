@@ -60,7 +60,7 @@ let NERDTreeIgnore=['\.vim$', '\.pyc$']
 "map <silent> <C-i> :JavaImpSilent<cr>:JIS<cr>
 
 "set tw=80
-set spell
+"set spell
 
 vmap > >gv
 vmap < <gv

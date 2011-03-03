@@ -7,7 +7,7 @@ from fabric.contrib.files import append, exists
 from fabric.utils import puts
 
 from fab_deploy.package import *
-from fab_deploy.utils import detect_os
+from fab_deploy.utils import detect_os, run_as
 
 def set_host_name(hostname):
 	""" Set the host name on a server """
@@ -17,7 +17,7 @@ def set_host_name(hostname):
 def make_src_dir():
 	""" Makes the /srv/<project>/ directory and creates the correct permissions """
 	sudo('mkdir -p %s' % (env.conf['SRC_DIR']))
-	sudo('chown -R %s:www-data /srv' % (env.conf['USER']))
+	sudo('chown -R www-data:www-data /srv')
 	sudo('chmod -R g+w /srv')
 
 def make_active(tagname):
@@ -97,6 +97,13 @@ def _user_exists(username):
 		output = run('id %s' % username)
 	return output.succeeded
 
+@run_as('root')
+def rackspace_as_ec2(pub_key_file):
+	linux_account_create(pub_key_file)
+	linux_account_setup()
+	linux_account_addgroup()
+	grant_sudo_access()
+	
 def linux_account_create(pub_key_file):
 	"""
 	Creates linux account and sets up ssh access. 
@@ -106,7 +113,7 @@ def linux_account_create(pub_key_file):
 	
 	::
 	
-	    fab create_linux_account:"/home/kmike/.ssh/id_rsa.pub"
+	    fab create_linux_account:"/home/<user>/.ssh/id_rsa.pub"
 	
 	You'll need the ssh public key.
 
