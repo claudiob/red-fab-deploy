@@ -3,14 +3,13 @@ from fabric.colors import *
 from fabric.contrib.files import exists
 
 from fab_deploy.package import package_install, package_update
-from fab_deploy.utils import detect_os, run_as
+from fab_deploy.utils import detect_os
 
 def _uwsgi_is_installed():
 	with settings(hide('stderr'), warn_only=True):
 		option = run('which uwsgi')
 	return option.succeeded
 
-@run_as('root')
 def uwsgi_install():
 	""" Install uWSGI. """
 	if _uwsgi_is_installed():
@@ -24,7 +23,6 @@ def uwsgi_install():
 	package_update()
 	package_install('uwsgi', options.get(os,''))
 
-@run_as('root')
 def uwsgi_setup():
 	""" Setup uWSGI. """
 	if not exists('/srv/active/'):
@@ -34,7 +32,7 @@ def uwsgi_setup():
 	if exists('/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'):
 		warn(yellow('uWSGI has already been set up'))
 	else:
-		run('ln -s /srv/active/deploy/uwsgi.ini /etc/uwsgi/uwsgi-python2.6/uwsgi.ini')
+		sudo('ln -s /srv/active/deploy/uwsgi.ini /etc/uwsgi/uwsgi-python2.6/uwsgi.ini')
 
 def uwsgi_start():
 	"""

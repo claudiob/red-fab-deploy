@@ -1,5 +1,6 @@
-import os.path
 from datetime import datetime
+import os.path
+
 from fabric.api import *
 
 def _exclude_string():

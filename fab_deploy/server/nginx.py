@@ -3,14 +3,13 @@ from fabric.colors import *
 from fabric.contrib.files import exists
 
 from fab_deploy.package import package_install, package_update
-from fab_deploy.utils import detect_os, run_as
+from fab_deploy.utils import detect_os
 
 def _nginx_is_installed():
 	with settings(hide('stderr'), warn_only=True):
 		output = run('dpkg-query --show nginx')
 	return output.succeeded
 
-@run_as('root')
 def nginx_install():
 	""" Install nginx. """
 	if _nginx_is_installed():
@@ -25,7 +24,6 @@ def nginx_install():
 	package_install(['nginx','libxml2','libxml2-dev'], options.get(os,''))
 	run('rm -f /etc/nginx/sites-enabled/default')
 
-@run_as('root')
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
 	if not exists('/srv/active/'):
@@ -36,8 +34,8 @@ def nginx_setup():
 		warn(yellow('Nginx has already been set up'))
 		return
 	else:
-		run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
-		run('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
+		sudo('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
+		sudo('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
 
 def nginx_start():
 	""" Start Nginx. """

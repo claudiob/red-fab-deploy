@@ -1,8 +1,6 @@
 from fabric.api import *
 from fabric.colors import *
 
-from fab_deploy.utils import run_as
-
 def pip(commands=''):
 	""" Runs pip command """
    	run('pip '+ commands)

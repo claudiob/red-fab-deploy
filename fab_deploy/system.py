@@ -2,26 +2,26 @@ import os.path
 
 from fabric.api import *
 from fabric.colors import *
+from fabric.contrib.console import confirm
 from fabric.contrib.files import append, exists
 from fabric.utils import puts
 
 from fab_deploy.package import *
-from fab_deploy.utils import run_as, detect_os
+from fab_deploy.utils import detect_os
 
-@run_as('root')
 def set_host_name(hostname):
 	""" Set the host name on a server """
+	#sudo
 	pass
 
-@run_as('root')
 def make_src_dir():
-	run('mkdir -p %s' % (env.conf['SRC_DIR']))
-	run('chown -R %s:www-data %s' % (env.conf['USER'],env.conf['SRC_DIR']))
-	run('chmod -R g+w %s' % (env.conf['SRC_DIR']))
+	""" Makes the /srv/<project>/ directory and creates the correct permissions """
+	sudo('mkdir -p %s' % (env.conf['SRC_DIR']))
+	sudo('chown -R %s:www-data /srv' % (env.conf['USER']))
+	sudo('chmod -R g+w /srv')
 
-@run_as('root')
 def make_active(tagname):
-	""" Make a tag active """
+	""" Make a tag at /srv/<project>/<tagname>  active """
 	with cd('/srv'):
 		run('ln -s %s/%s active' % (env.conf['SRC_DIR'],tagname))
 
@@ -57,19 +57,16 @@ def install_common_software():
 		'libcurl3-dev',
 		'libjpeg-dev',
 		'libssl-dev',
-		'locales-all',
 		'memcached',
 		'psmisc',
 		'python2.6',
 		'python2.6-dev',
 		'python-imaging',
 		'python-pip',
-		'python-profiler',
 		'python-setuptools',
 		'python-software-properties',
 		'python-virtualenv',
 		'rsync',
-		'scponly',
 		'screen',
 		'subversion',
 		'zlib1g-dev',
@@ -93,10 +90,6 @@ def install_common_software():
 
 	vcs_options = {'lenny': '-t lenny-backports'}
 	package_install(['mercurial','git-core'], vcs_options.get(os, ""))
-	package_install('bzr', '--without-recommends')
-
-	#run('easy_install -U pip')
-	#run('pip install -U virtualenv')
 
 def _user_exists(username):
 	""" Determine if a user exists """
@@ -104,10 +97,9 @@ def _user_exists(username):
 		output = run('id %s' % username)
 	return output.succeeded
 
-@run_as('root')
 def linux_account_create(pub_key_file):
 	"""
-	Creates linux account and setups ssh access. 
+	Creates linux account and sets up ssh access. 
 	
 	If there is no linux account for user specified in :attr:`env.hosts`
 	then add a new linux server user, manually or using
@@ -129,21 +121,26 @@ def linux_account_create(pub_key_file):
 	    Fabric commands should be executed in shell from the project root
 	    on local machine (not from the python console, not on server shell).
 	"""
-	username = prompt('Enter the username for the account you wish to create:')
+	username = env.conf['USER']
+	if not confirm('Do you wish to create a linux account for %s?' % username,default=True):
+		username = prompt('Enter the username you wish to use:')
+	
 	if _user_exists(username):
 		warn(yellow('The user %s already exists' % username))
 		return
 
 	with (settings(warn_only=True)):
-		run('adduser --disabled-password %s' % username)
+		sudo('adduser --disabled-password %s' % username)
 		ssh_copy_key(pub_key_file)
 
-@run_as('root')
 def linux_account_setup():
 	"""
 	Copies a set of files into the home directory of a user
 	"""
-	username = prompt('Enter the username for the account you wish to setup:')
+	username = env.conf['USER']
+	if not confirm('Do you wish to setup the linux account for %s?' % username,default=True):
+		username = prompt('Enter the username you wish to use:')
+	
 	if not _user_exists(username):
 		warn(yellow('The user %s does not exist' % username))
 		return
@@ -157,23 +154,28 @@ def linux_account_setup():
 		run('mkdir -p %s' % os.path.join(user_home,os.path.dirname(path)))
 		put(os.path.join(templates,path),os.path.join(user_home,path))
 
-@run_as('root')
 def linux_account_addgroup():
-	username = prompt('Enter the username for the account you wish to add to a group:')
+	""" Adds a linux account to a group """
+	username = env.conf['USER']
+	if not confirm('Do you wish to add a linux group account for %s?' % username,default=True):
+		username = prompt('Enter the username you wish to use:')
+	
 	if not _user_exists(username):
 		warn(yellow('The user %s does not exist' % username))
 		return
 
 	group = prompt('Enter the group name you want to add the user to:')
 	with (settings(warn_only=True)):
-		run('adduser %s %s' % (username,group))
+		sudo('adduser %s %s' % (username,group))
 
-@run_as('root')
 def grant_sudo_access():
 	"""
 	Grants sudo access to a user
 	"""
-	username = prompt('Enter the username for the account you wish to grant sudo access:')
+	username = env.conf['USER']
+	if not confirm('Do you wish to sudo access for %s?' % username,default=True):
+		username = prompt('Enter the username you wish to use:')
+	
 	if not _user_exists(username):
 		warn(yellow('The user %s does not exist' % username))
 		return
@@ -181,7 +183,6 @@ def grant_sudo_access():
 	text="%s\tALL=(ALL) NOPASSWD:ALL" % username
 	append('/etc/sudoers',text,use_sudo=True)
 	
-@run_as('root')
 def ssh_copy_key(pub_key_file):
 	"""
 	Adds a ssh key from passed file to user's authorized_keys on server. 
@@ -192,14 +193,12 @@ def ssh_copy_key(pub_key_file):
 	"""
 	
 	username = env.conf['USER']
-	with open(os.path.normpath(pub_key_file), 'rt') as f:
-		ssh_key = f.read()
+	if not confirm('Do you wish to copy the ssh key for %s?' % username,default=True):
+		username = prompt('Enter the username you wish to use:')
 	
 	with cd('/home/' + username):
-		run('mkdir -p .ssh')
-		append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
-		#append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
-		run('chown -R %s:%s .ssh' % (username, username))
+		ssh_add_key(pub_key_file)
+		sudo('chown -R %s:%s .ssh' % (username, username))
 
 def ssh_add_key(pub_key_file):
 	""" 
@@ -211,6 +210,8 @@ def ssh_add_key(pub_key_file):
 	"""
 	with open(os.path.normpath(pub_key_file), 'rt') as f:
 		ssh_key = f.read()
+	
 	run('mkdir -p .ssh')
-	append('.ssh/authorized_keys', ssh_key)
+	append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
+	#append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
 

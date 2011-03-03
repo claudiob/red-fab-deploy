@@ -12,7 +12,7 @@ from fab_deploy.system import (make_src_dir, make_active,
 	linux_account_create, linux_account_setup, 
 	linux_account_addgroup, grant_sudo_access,
 	ssh_copy_key, ssh_add_key,)
-from fab_deploy.utils import (run_as, update_env,
+from fab_deploy.utils import (update_env,
 	delete_pyc, print_env, detect_os)
 
 #--- Django

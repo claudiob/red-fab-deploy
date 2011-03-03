@@ -4,14 +4,13 @@ from fabric.api import *
 from fabric.colors import *
 
 from fab_deploy.package import package_install
-from fab_deploy.utils import detect_os, run_as
+from fab_deploy.utils import detect_os
 
 def _mysql_is_installed():
 	with settings(hide('stderr'), warn_only=True):
 		output = run('mysql --version')
 	return output.succeeded
 	
-@run_as('root')
 def mysql_install():
 	""" Installs MySQL """
 	if _mysql_is_installed():

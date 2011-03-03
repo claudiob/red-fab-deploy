@@ -2,14 +2,12 @@ from fabric.api import *
 from fabric.colors import *
 
 from fab_deploy.db.mysql import mysql_dump
-from fab_deploy.utils import run_as
 
 def command_is_available(command):
 	with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
 		output = run('python manage.py help ' + command)
 	return output.succeeded
 
-@run_as('root')
 def manage(command):
 	""" Runs django management command.
 	Example::
