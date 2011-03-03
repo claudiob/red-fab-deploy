@@ -7,7 +7,7 @@ def _exclude_string():
     excludes = ['config.py', '*.pyc', '*.pyo', '*.swp', '.svn/']
     exclude_string = " ".join(['--exclude "%s"' % pattern for pattern in excludes])
     if os.path.exists('.excludes'):
-        exclude_string =  "-X .excludes " + exclude_string
+        exclude_string =  "-X .excludes %s" % exclude_string
     return exclude_string
 
 def push(tagname):
@@ -26,10 +26,10 @@ def push(tagname):
     tar_file = "/tmp/fab.%s.tar" % datetime.utcnow().strftime(
         '%Y_%m_%d_%H-%M-%S')
     local("tar %s -czf %s /tmp/%s" % (_exclude_string(), tar_file, tagname))
-    tgz_name = env.conf.SRC_DIR + '/' + env.conf.INSTANCE_NAME + ".tar.gz"
+    tgz_name = '%s/%s.tar.gz' % (env.conf.SRC_DIR, env.conf.INSTANCE_NAME)
     put(tar_file, tgz_name)
-    local("rm -f " + tar_file)
+    local("rm -f %s" % tar_file)
     with cd(env.conf.SRC_DIR):
-        run("tar -xzf " + tgz_name)
-        run("rm -f " + tgz_name)
+        run("tar -xzf %s" % tgz_name)
+        run("rm -f %s" % tgz_name)
 

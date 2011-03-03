@@ -56,13 +56,13 @@ def deploy_project(tagname):
 #
 #	@run_as('root')
 #	def wipe_web():
-#		run('rm -f /etc/nginx/sites-enabled/'+env.conf['INSTANCE_NAME'])
-#		run('a2dissite ' + env.conf['INSTANCE_NAME'])
+#		run('rm -f /etc/nginx/sites-enabled/%s' % env.conf['INSTANCE_NAME'])
+#		run('a2dissite %s' % env.conf['INSTANCE_NAME'])
 #		run('invoke-rc.d nginx reload')
 #		run('invoke-rc.d apache2 reload')
 #
 #	wipe_web()
 #	run('rm -rf %s' % env.conf['SRC_DIR'])
 #	for folder in ['bin', 'include', 'lib', 'src']:
-#		run('rm -rf %s' % env.conf['ENV_DIR'] + '/' + folder)
+#		run('rm -rf %s/%s' % (env.conf['ENV_DIR'], folder))
 

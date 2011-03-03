@@ -28,7 +28,7 @@ def configure():
 
 #def make_clone(tagname):
 #	""" Creates repository clone on remote server. """
-#	run('mkdir -p '+ env.conf['SRC_DIR'])
+#	run('mkdir -p %s' % env.conf['SRC_DIR'])
 #	with cd(env.conf['SRC_DIR']):
 #		with settings(warn_only=True):
 #			svn.init()
@@ -57,7 +57,7 @@ def configure():
 #
 #	vcs.push()
 #	delete_pyc()
-#	with cd('src/'+env.conf['INSTANCE_NAME']):
+#	with cd('src/%s'env.conf['INSTANCE_NAME']):
 #		vcs.up()
 #
 #	if 'pip_update' in args:

@@ -3,7 +3,7 @@ from fabric.colors import *
 
 def pip(commands=''):
 	""" Runs pip command """
-   	run('pip '+ commands)
+   	run('pip %s' % commands)
 
 def pip_install(what='requirements', options=''):
 	""" Installs pip requirements listed in ``deploy/<file>.txt`` file. """

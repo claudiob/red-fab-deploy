@@ -20,7 +20,7 @@ def crontab_add(content, marker=None):
     """ Adds line to crontab. Line can be appended with special marker
     comment so it'll be possible to reliably remove or update it later. """
     old_crontab = _get_current()
-    crontab_set(old_crontab + '\n' + content + _marker(marker))
+    crontab_set('%s\n%s%s' % (old_crontab, content, _marker(marker)))
 
 def crontab_remove(marker):
     """ Removes a line added and marked using crontab_add. """

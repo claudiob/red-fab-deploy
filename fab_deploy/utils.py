@@ -101,7 +101,7 @@ def update_env():
 		# these options shouldn't be set by user
 		HOME_DIR = HOME_DIR,
 		ENV_DIR  = '/srv/active/env/',
-		SRC_DIR  = '/srv/' + env.conf['INSTANCE_NAME'],
+		SRC_DIR  = '/srv/%s' % env.conf['INSTANCE_NAME'],
 		FILES    = os.path.join(os.path.dirname(__file__),'templates'),
 		USER     = user,
 	)

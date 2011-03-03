@@ -203,7 +203,7 @@ def ssh_copy_key(pub_key_file):
 	if not confirm('Do you wish to copy the ssh key for %s?' % username,default=True):
 		username = prompt('Enter the username you wish to use:')
 	
-	with cd('/home/' + username):
+	with cd('/home/%s' % username):
 		ssh_add_key(pub_key_file)
 		sudo('chown -R %s:%s .ssh' % (username, username))
 
