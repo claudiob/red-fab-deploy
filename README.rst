@@ -48,8 +48,9 @@ Rackspace Setup
        $ fab -i deploy/[your private SSH key here] dev deploy_project:"tagname" 
        $ fab -i deploy/[your private SSH key here] dev make_active:"tagname"
 
-5. Next you'll want to get the server going
-  **If this is the first time** deploying on the server run the following::
+5. Next you'll want to get the server going.
+
+   **If this is the first time** deploying on the server run the following::
 
        Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP 
        address of the production machine.
@@ -57,11 +58,11 @@ Rackspace Setup
        django server with the local IP address and the 127.0.0.1 in the 
        server_name with the remote IP address of the production machine.
   
-  Then launch::
+   Then launch::
   
        $ fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
 
-  **If this is not the first time** then just run::
+   **If this is not the first time** then just run::
 
        $ fab -i deploy/[your private SSH key here] dev uwsgi_restart
        $ fab -i deploy/[your private SSH key here] dev web_server_restart
