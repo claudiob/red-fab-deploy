@@ -76,11 +76,9 @@ def update_env():
 	assert len(env.hosts)==1, red("Multiple hosts in env.hosts are not supported now. (%s)" % env.hosts)
 	user, host, port = normalize(env.hosts[0])
 
-	if not user:
-		user = 'ubuntu'
-	
+	env.user = user
 	env.conf = getattr(env, 'conf', {})
-
+	
 	if user != 'root':
 		HOME_DIR = '/home/%s' % user
 	else:

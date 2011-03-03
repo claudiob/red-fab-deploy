@@ -148,7 +148,7 @@ def linux_account_setup():
 		warn(yellow('The user %s does not exist' % username))
 		return
 
-	user_home = os.path.join('/home',username)
+	user_home = env.conf['HOME_DIR']
 	templates = env.conf['FILES']
 	for filename in ['.bashrc','.inputrc','.screenrc','.vimrc',]:
 		put(os.path.join(templates,filename),os.path.join(user_home,filename))
