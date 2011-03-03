@@ -22,7 +22,7 @@ def nginx_install():
 	sudo('add-apt-repository ppa:nginx/stable')
 	package_update()
 	package_install(['nginx','libxml2','libxml2-dev'], options.get(os,''))
-	run('rm -f /etc/nginx/sites-enabled/default')
+	#run('rm -f /etc/nginx/sites-enabled/default')
 
 def nginx_setup():
 	""" Updates nginx config and restarts nginx """
