@@ -40,7 +40,7 @@ def nginx_setup():
 def nginx_start():
 	""" Start Nginx. """
 	sudo('service nginx start')
-	print(green('Start nginx for %(host_string)s' % env))
+	puts(green('Start nginx for %(host_string)s' % env))
 
 def nginx_stop():
 	""" Stop Nginx. """

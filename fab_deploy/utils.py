@@ -122,7 +122,7 @@ def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
 	run("find . -name '*.pyc' -delete")
 
-def print_env():
+def debug_env():
 	""" Prints env values. Useful for debugging. """
 	puts(pprint.pformat(env))
 

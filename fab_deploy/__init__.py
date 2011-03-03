@@ -14,7 +14,7 @@ from fab_deploy.system import (make_src_dir, make_active,
 	linux_account_addgroup, grant_sudo_access,
 	ssh_copy_key, ssh_add_key,)
 from fab_deploy.utils import (update_env,
-	delete_pyc, print_env, detect_os)
+	delete_pyc, debug_env, detect_os)
 
 #--- Django
 from fab_deploy.django_commands import (migrate, manage, syncdb, 
