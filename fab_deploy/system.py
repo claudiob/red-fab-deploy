@@ -5,6 +5,7 @@ from fabric.colors import *
 from fabric.contrib.files import append, exists
 from fabric.utils import puts
 
+from fab_deploy.package import *
 from fab_deploy.utils import run_as, detect_os
 
 @run_as('root')
@@ -14,8 +15,9 @@ def set_host_name(hostname):
 
 @run_as('root')
 def make_src_dir():
-	run('mkdir -p %s' % env.conf['SRC_DIR'])
-	run('chmod a+w %s' % env.conf['SRC_DIR'])
+	run('mkdir -p %s' % (env.conf['SRC_DIR']))
+	run('chown -R %s:www-data %s' % (env.conf['USER'],env.conf['SRC_DIR']))
+	run('chmod -R g+w %s' % (env.conf['SRC_DIR']))
 
 @run_as('root')
 def make_active(tagname):
@@ -28,7 +30,6 @@ def prepare_server():
 	setup_backports()
 	install_common_software()
 
-@run_as('root')
 def setup_backports():
 	""" Adds backports repo to apt sources. """
 	os = detect_os()
@@ -38,15 +39,14 @@ def setup_backports():
 	}
 
 	if os not in backports:
-		puts("Backpors are not available for %s" % os)
+		warn(yellow("Backports are not available for %s" % os))
 		return
 
 	run("echo 'deb %s' > /etc/apt/sources.list.d/backports.sources.list" % backports[os])
 	with settings(warn_only=True):
-		aptitude_update()
-		aptitude_upgrade()
+		package_update()
+		package_upgrade()
 
-@run_as('root')
 def install_common_software():
 	""" Installs common system packages. """
 	common_packages = [
@@ -61,13 +61,15 @@ def install_common_software():
 		'memcached',
 		'psmisc',
 		'python2.6',
+		'python2.6-dev',
 		'python-imaging',
 		'python-pip',
 		'python-profiler',
 		'python-setuptools',
 		'python-software-properties',
-		'python2.6-dev',
+		'python-virtualenv',
 		'rsync',
+		'scponly',
 		'screen',
 		'subversion',
 		'zlib1g-dev',
@@ -81,16 +83,20 @@ def install_common_software():
 
 	os = detect_os()
 	if os not in extra_packages:
-		abord('Your OS (%s) is currently unsupported.' % os)
+		abort(red('Your OS (%s) is currently unsupported.' % os))
 	
-	aptitude_install(" ".join(common_packages + extra_packages[os]))
+	with settings(warn_only=True):
+		package_update()
+		package_upgrade()
+
+	package_install(common_packages + extra_packages[os])
 
 	vcs_options = {'lenny': '-t lenny-backports'}
-	aptitude_install('mercurial git-core', vcs_options.get(os, ""))
-	aptitude_install('bzr', '--without-recommends')
+	package_install(['mercurial','git-core'], vcs_options.get(os, ""))
+	package_install('bzr', '--without-recommends')
 
-	run('easy_install -U pip')
-	run('pip install -U virtualenv')
+	#run('easy_install -U pip')
+	#run('pip install -U virtualenv')
 
 def _user_exists(username):
 	""" Determine if a user exists """
@@ -133,17 +139,6 @@ def linux_account_create(pub_key_file):
 		ssh_copy_key(pub_key_file)
 
 @run_as('root')
-def linux_account_addgroup():
-	username = prompt('Enter the username for the account you wish to add to a group:')
-	if not _user_exists(username):
-		warn(yellow('The user %s does not exist' % username))
-		return
-
-	group = prompt('Enter the group name you want to add the user to:')
-	with (settings(warn_only=True)):
-		run('adduser %s %s' % (username,group))
-	
-@run_as('root')
 def linux_account_setup():
 	"""
 	Copies a set of files into the home directory of a user
@@ -162,6 +157,30 @@ def linux_account_setup():
 		run('mkdir -p %s' % os.path.join(user_home,os.path.dirname(path)))
 		put(os.path.join(templates,path),os.path.join(user_home,path))
 
+@run_as('root')
+def linux_account_addgroup():
+	username = prompt('Enter the username for the account you wish to add to a group:')
+	if not _user_exists(username):
+		warn(yellow('The user %s does not exist' % username))
+		return
+
+	group = prompt('Enter the group name you want to add the user to:')
+	with (settings(warn_only=True)):
+		run('adduser %s %s' % (username,group))
+
+@run_as('root')
+def grant_sudo_access():
+	"""
+	Grants sudo access to a user
+	"""
+	username = prompt('Enter the username for the account you wish to grant sudo access:')
+	if not _user_exists(username):
+		warn(yellow('The user %s does not exist' % username))
+		return
+
+	text="%s\tALL=(ALL) NOPASSWD:ALL" % username
+	append('/etc/sudoers',text,use_sudo=True)
+	
 @run_as('root')
 def ssh_copy_key(pub_key_file):
 	"""
@@ -195,18 +214,3 @@ def ssh_add_key(pub_key_file):
 	run('mkdir -p .ssh')
 	append('.ssh/authorized_keys', ssh_key)
 
-@run_as('root')
-def aptitude_install(packages, options=''):
-	""" Installs package via aptitude. """
-	run('apt-get install %s -y %s' % (options, packages,))
-
-@run_as('root')
-def aptitude_update():
-	""" Update aptitude packages on the server """
-	run('apt-get update')
-	
-@run_as('root')
-def aptitude_upgrade():
-	""" Upgrade aptitude packages on the server """
-	run('apt-get upgrade')
-	

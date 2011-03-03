@@ -4,8 +4,8 @@ from fabric.api import *
 from fabric.colors import *
 from fabric.contrib.files import append
 
+from fab_deploy.package import package_install
 from fab_deploy.utils import run_as#, upload_config_template
-from fab_deploy.system import aptitude_install
 
 APACHE_PORTS_FILE = '/etc/apache2/ports.conf'
 APACHE_FIRST_PORT = 50000 # see http://www.iana.org/assignments/port-numbers
@@ -46,7 +46,7 @@ def apache_restart():
 @run_as('root')
 def apache_install():
 	""" Installs apache. """
-	aptitude_install('apache2 libapache2-mod-wsgi libapache2-mod-rpaf')
+	package_install(['apache2','libapache2-mod-wsgi','libapache2-mod-rpaf'])
 	run('rm -f /etc/apache2/sites-enabled/default')
 	run('rm -f /etc/apache2/sites-enabled/000-default')
 	apache_setup_locale()

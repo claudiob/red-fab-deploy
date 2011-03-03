@@ -37,8 +37,8 @@ def run_as(user):
 		from fab_deploy.utils import run_as
 
 		@run_as('root')
-		def aptitude_update():
-			run('aptitude update')
+		def package_update():
+			run('package update')
 	
 	"""
 	def decorator(func):

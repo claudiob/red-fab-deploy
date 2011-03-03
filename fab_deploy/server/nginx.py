@@ -2,8 +2,8 @@ from fabric.api import *
 from fabric.colors import *
 from fabric.contrib.files import exists
 
+from fab_deploy.package import package_install, package_update
 from fab_deploy.utils import detect_os, run_as
-from fab_deploy.system import aptitude_install, aptitude_update
 
 def _nginx_is_installed():
 	with settings(hide('stderr'), warn_only=True):
@@ -21,8 +21,8 @@ def nginx_install():
 	options = {'lenny': '-t lenny-backports'}
 
 	sudo('add-apt-repository ppa:nginx/stable')
-	aptitude_update()
-	aptitude_install('nginx libxml2 libxml2-dev', options.get(os,''))
+	package_update()
+	package_install(['nginx','libxml2','libxml2-dev'], options.get(os,''))
 	run('rm -f /etc/nginx/sites-enabled/default')
 
 @run_as('root')

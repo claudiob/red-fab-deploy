@@ -3,8 +3,8 @@ from datetime import datetime
 from fabric.api import *
 from fabric.colors import *
 
+from fab_deploy.package import package_install
 from fab_deploy.utils import detect_os, run_as
-from fab_deploy.system import aptitude_install
 
 def _mysql_is_installed():
 	with settings(hide('stderr'), warn_only=True):
@@ -24,7 +24,7 @@ def mysql_install():
 	# http://www.muhuk.com/2010/05/how-to-install-mysql-with-fabric/
 
 	os = detect_os()
-	aptitude_install('debconf-utils')
+	package_install('debconf-utils')
 	
 	# get the password
 	passwd = prompt('Please enter MySQL root password:')
@@ -59,7 +59,7 @@ def mysql_install():
 		'lucid'   : ['libmysqlclient-dev',],
 		'maverick': ['libmysqlclient-dev',],
 	}
-	aptitude_install(" ".join(common_packages + extra_packages[os]))
+	package_install(common_packages + extra_packages[os])
 
 def mysql_execute(sql, user='', password=''):
 	"""

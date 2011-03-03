@@ -3,8 +3,8 @@ from datetime import datetime
 from fabric.api import *
 from fabric.colors import *
 
+from fab_deploy.package import package_install
 from fab_deploy.utils import run_as
-from fab_deploy.system import aptitude_install
 
 def _postgresql_is_installed():
 	with settings(hide('stderr'), warn_only=True):
@@ -18,4 +18,4 @@ def postgresql_install():
 		warn(yellow('PostgreSQL is already installed.'))
 		return
 
-	aptitude_install('postgresql-client-common postgresql-common')
+	package_install(['postgresql-client-common','postgresql-common'])
