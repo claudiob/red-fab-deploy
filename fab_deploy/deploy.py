@@ -44,6 +44,9 @@ def deploy_project(tagname):
 		with virtualenv():
 			pip_install()
 
+	sudo('chown -R www-data:www-data /srv')
+	sudo('chmod -R g+w /srv')
+
 #def undeploy():
 #	""" Shuts site down. This command doesn't clean everything, e.g.
 #	user data (database, backups) is preserved. """
