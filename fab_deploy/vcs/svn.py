@@ -1,4 +1,5 @@
 from fabric.api import *
+import os
 
 def init():
 	pass
