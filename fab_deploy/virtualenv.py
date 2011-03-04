@@ -1,27 +1,26 @@
-from fabric.api import *
-from fabric.colors import *
+import fabric.api
 
 def pip(commands=''):
 	""" Runs pip command """
-   	run('pip %s' % commands)
+   	fabric.api.run('pip %s' % commands)
 
 def pip_install(what='requirements', options=''):
 	""" Installs pip requirements listed in ``deploy/<file>.txt`` file. """
-	run('pip install %s -r deploy/%s.txt' % (options,what))
+	fabric.api.run('pip install %s -r deploy/%s.txt' % (options,what))
 
 def pip_update(what='requirements', options=''):
 	""" Updates pip requirements listed in ``deploy/<file>.txt`` file. """
-   	run('pip install %s -U -r deploy/%s.txt' % (options,what))
+   	fabric.api.run('pip install %s -U -r deploy/%s.txt' % (options,what))
 
 def virtualenv_create(site_packages=True):
 	""" 
 	Create a virtual environment in the env/ directory
 	"""
 	if site_packages:
-		run('virtualenv env/')
+		fabric.api.run('virtualenv env/')
 	else:
-		run('virtualenv --no-site-packages env/')
-	run('ln -s env/bin/activate')
+		fabric.api.run('virtualenv --no-site-packages env/')
+	fabric.api.run('ln -s env/bin/activate')
 
 def virtualenv():
 	"""
@@ -31,6 +30,6 @@ def virtualenv():
 			# virtualenv is active here
 	
 	"""
-	puts(green('source /srv/active/env/bin/activate'))
-	return prefix('source /srv/active/env/bin/activate')
+	fabric.api.puts(fabric.colors.green('source env/bin/activate'))
+	return fabric.api.prefix('source env/bin/activate')
 

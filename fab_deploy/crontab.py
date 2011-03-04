@@ -1,20 +1,20 @@
-from fabric.api import *
+import fabric
 
 def _marker(marker):
     return ' # MARKER:%s' % marker if marker else ''
 
 def _get_current():
     with settings(hide('warnings', 'stdout'), warn_only=True):
-        output = run('crontab -l')
+        output = fabric.api.run('crontab -l')
         return output if output.succeeded else ''
 
 def crontab_set(content):
     """ Sets crontab content """
-    run("echo '%s'|crontab -" % content)
+    fabric.api.run("echo '%s'|crontab -" % content)
 
 def crontab_show():
     """ Shows current crontab """
-    puts(_get_current())
+    fabric.api.puts(_get_current())
 
 def crontab_add(content, marker=None):
     """ Adds line to crontab. Line can be appended with special marker

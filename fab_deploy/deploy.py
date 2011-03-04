@@ -1,9 +1,6 @@
 import os.path
 
-from fabric.api import *
-from fabric.colors import *
-from fabric.contrib.console import confirm
-from fabric.contrib.files import exists
+import fabric.api
 
 from fab_deploy.server import *
 from fab_deploy.system import prepare_server, make_src_dir, make_active
@@ -24,8 +21,8 @@ def full_deploy(tagname):
 	
 	"""
 	os_sys = detect_os()
-	if not confirm("Is the OS detected correctly (%s)?" % os_sys, default=False):
-		abort(red("Detection fails. Please set env.conf.OS to correct value."))
+	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default=False):
+		abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
 	deploy_project(tagname)
 	make_active(tagname)
@@ -34,8 +31,8 @@ def deploy_project(tagname):
 	""" Deploys project on prepared server. """
 	make_src_dir()
 	tag_dir = os.path.join(env.conf['SRC_DIR'],tagname)
-	if exists(tag_dir):
-		abort(red('Tagged directory already exists: %s' % tagname))
+	if fabric.contrib.files.exists(tag_dir):
+		abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 
 	vcs.export(tagname)
 
@@ -51,18 +48,18 @@ def deploy_project(tagname):
 #	""" Shuts site down. This command doesn't clean everything, e.g.
 #	user data (database, backups) is preserved. """
 #
-#	if not confirm("Do you wish to undeploy host %s?" % env.hosts[0], default=False):
-#		abort(red("Aborting."))
+#	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % env.hosts[0], default=False):
+#		abort(fabric.colors.red("Aborting."))
 #
 #	@run_as('root')
 #	def wipe_web():
-#		run('rm -f /etc/nginx/sites-enabled/%s' % env.conf['INSTANCE_NAME'])
-#		run('a2dissite %s' % env.conf['INSTANCE_NAME'])
-#		run('invoke-rc.d nginx reload')
-#		run('invoke-rc.d apache2 reload')
+#		fabric.api.run('rm -f /etc/nginx/sites-enabled/%s' % env.conf['INSTANCE_NAME'])
+#		fabric.api.run('a2dissite %s' % env.conf['INSTANCE_NAME'])
+#		fabric.api.run('invoke-rc.d nginx reload')
+#		fabric.api.run('invoke-rc.d apache2 reload')
 #
 #	wipe_web()
-#	run('rm -rf %s' % env.conf['SRC_DIR'])
+#	fabric.api.run('rm -rf %s' % env.conf['SRC_DIR'])
 #	for folder in ['bin', 'include', 'lib', 'src']:
-#		run('rm -rf %s/%s' % (env.conf['ENV_DIR'], folder))
+#		fabric.api.run('rm -rf %s/%s' % (env.conf['ENV_DIR'], folder))
 

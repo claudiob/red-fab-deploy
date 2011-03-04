@@ -9,7 +9,7 @@ setup(
 		'fab_deploy.server',
 		'fab_deploy.vcs'
 		],
-	version = '0.0.1'
+	version = '0.0.1',
     author='FF0000 Geeks',
     author_email='ff0000geeks@ff0000.com',
 
