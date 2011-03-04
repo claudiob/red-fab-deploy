@@ -1,6 +1,6 @@
 import fabric.api
 
-from fab_deploy.system import link
+from fab_deploy.file import link
 
 def pip(commands=''):
 	""" Runs pip command """

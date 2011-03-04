@@ -9,10 +9,10 @@ from fab_deploy.virtualenv import (pip, pip_install, pip_update,
 #--- Linux
 from fab_deploy.crontab import (crontab_set, crontab_add, crontab_show,
 	crontab_remove, crontab_update)
+from fab_deploy.file import is_link, link, unlink, readlink
 from fab_deploy.package import (package_install, package_update, package_upgrade)
 from fab_deploy.system import (service,
 	make_src_dir, make_active,
-	link, unlink, readlink,
 	prepare_server, setup_backports, install_common_software, 
 	rackspace_as_ec2,
 	linux_account_create, linux_account_setup, 

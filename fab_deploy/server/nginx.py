@@ -1,7 +1,8 @@
 import fabric.api
 
+from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
-from fab_deploy.system import check_active_deployment, service, link, unlink
+from fab_deploy.system import check_active_deployment, service
 from fab_deploy.utils import detect_os
 
 def _nginx_is_installed():

@@ -2,6 +2,7 @@ import os.path
 
 import fabric.api
 
+from fab_deploy.file import link
 from fab_deploy.package import *
 from fab_deploy.utils import detect_os, run_as
 
@@ -29,51 +30,12 @@ def make_src_dir():
 
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
-	with fabric.api.cd('/srv'):
-		if fabric.contrib.files.exists('active'):
-			fabric.api.run('unlink active')
-		fabric.api.run('ln -s %s/%s active' % (fabric.api.env.conf['SRC_DIR'],tagname))
+	link(os.path.join(fabric.api.env.conf['SRC_DIR'],tagname),'/srv/active',do_unlink=True)
 
 def check_active_deployment():
 	""" Abort if there is no active deployment """
 	if not fabric.contrib.files.exists('/srv/active/'):
 		fabric.api.abort(fabric.colors.yellow('There is no active deployment'))
-
-def link(source,dest="",use_sudo=False,do_unlink=False):
-	""" Make a symlink """
-	if dest and is_link(dest):
-		if do_unlink:
-			unlink(dest)
-		else:
-			fabric.api.warn(fabric.colors.yellow("Link %s already exists" % dest))
-	else:
-		fabric.api.warn(fabric.colors.yellow("%s already exists" % dest))
-			
-	if use_sudo:
-		fabric.api.sudo('ln -s %s %s' % (source,dest))
-	else:
-		fabric.api.run('ln -s %s %s' % (source,dest))
-
-def unlink(source, use_sudo=False):
-	""" Unlink a symlink """
-	if is_link(source):
-		if use_sudo:
-			fabric.api.sudo('unlink %s' % source)
-		else:
-			fabric.api.run('unlink %s' % source)
-
-def readlink(source):
-	""" Read a symlink """
-	if fabric.contrib.files.exists(source):
-		fabric.api.run('readlink %s' % source)
-
-def is_link(source):
-	""" Determine if a file is a symlink """
-	if fabric.contrib.files.exists(source):
-		output = fabric.api.run('readlink %s' % source)
-		return output.succeeded
-	else:
-		return False
 
 def prepare_server():
 	""" Prepares server: installs system packages. """
