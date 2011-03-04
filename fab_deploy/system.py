@@ -227,3 +227,21 @@ def ssh_add_key(pub_key_file):
 	append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
 	#append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
 
+def usage_disk():
+	""" Return disk usage """
+	run("df -kP")
+
+def usage_mem():
+	""" Return memory usage """
+	run("cat /proc/meminfo")
+
+def usage_cpu():
+	""" Return cpu usage """
+	run("cat /proc/stat")
+
+def usage_system():
+	""" Return system usage stats """
+	usage_disk()
+	usage_mem()
+	usage_system()
+

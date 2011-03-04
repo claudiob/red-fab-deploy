@@ -12,7 +12,8 @@ from fab_deploy.system import (make_src_dir, make_active,
 	rackspace_as_ec2,
 	linux_account_create, linux_account_setup, 
 	linux_account_addgroup, grant_sudo_access,
-	ssh_copy_key, ssh_add_key,)
+	ssh_copy_key, ssh_add_key,
+	usage_disk, usage_mem, usage_cpu, usage_system,)
 from fab_deploy.utils import (update_env,
 	delete_pyc, debug_env, detect_os)
 
