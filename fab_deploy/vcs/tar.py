@@ -25,11 +25,11 @@ def push(tagname):
     """
     tar_file = "/tmp/fab.%s.tar" % datetime.utcnow().strftime(
         '%Y_%m_%d_%H-%M-%S')
-    local("tar %s -czf %s /tmp/%s" % (_exclude_string(), tar_file, tagname))
-    tgz_name = '%s/%s.tar.gz' % (env.conf.SRC_DIR, env.conf.INSTANCE_NAME)
-    put(tar_file, tgz_name)
-    local("rm -f %s" % tar_file)
-    with cd(env.conf.SRC_DIR):
-        run("tar -xzf %s" % tgz_name)
-        run("rm -f %s" % tgz_name)
+    fabric.api.local("tar %s -czf %s /tmp/%s" % (_exclude_string(), tar_file, tagname))
+    tgz_name = '%s/%s.tar.gz' % (fabric.api.env.conf.SRC_DIR, fabric.api.env.conf.INSTANCE_NAME)
+    fabric.api.put(tar_file, tgz_name)
+    fabric.api.local("rm -f %s" % tar_file)
+    with fabric.api.cd(fabric.api.env.conf.SRC_DIR):
+        fabric.api.run("tar -xzf %s" % tgz_name)
+        fabric.api.run("rm -f %s" % tgz_name)
 
