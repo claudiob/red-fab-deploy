@@ -33,15 +33,18 @@ def deploy_project(tagname):
 	if fabric.contrib.files.exists(tag_dir):
 		abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 
-	vcs.export(tagname)
+	if tagname == 'trunk':
+		vcs.co(tagname)
+	else:
+		vcs.export(tagname)
 
 	with fabric.api.cd(tag_dir):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
 
-	sudo('chown -R www-data:www-data /srv')
-	sudo('chmod -R g+w /srv')
+	fabric.api.sudo('chown -R www-data:www-data /srv')
+	fabric.api.sudo('chmod -R g+w /srv')
 
 #def undeploy():
 #	""" Shuts site down. This command doesn't clean everything, e.g.
