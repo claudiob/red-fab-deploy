@@ -24,6 +24,8 @@ def make_src_dir():
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
 	with fabric.api.cd('/srv'):
+		if fabric.contrib.files.exists('active'):
+			fabric.api.run('unlink active')
 		fabric.api.run('ln -s %s/%s active' % (fabric.api.env.conf['SRC_DIR'],tagname))
 
 def prepare_server():
