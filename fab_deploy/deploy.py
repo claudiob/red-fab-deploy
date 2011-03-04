@@ -34,7 +34,7 @@ def deploy_project(tagname):
 		abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 
 	if tagname == 'trunk':
-		vcs.co(tagname)
+		vcs.push(tagname)
 	else:
 		vcs.export(tagname)
 
