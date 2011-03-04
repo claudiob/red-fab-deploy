@@ -76,7 +76,7 @@ def apache_setup_locale():
 
 @run_as('root')
 def _ports_lines():
-	with (settings(hide('stdout'))):
+	with fabric.api.settings(fabric.api.hide('stdout')):
 		ports_data = run('cat ' + APACHE_PORTS_FILE)
 	return ports_data.splitlines()
 

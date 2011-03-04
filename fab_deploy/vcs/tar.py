@@ -1,7 +1,7 @@
 from datetime import datetime
 import os.path
 
-from fabric.api import *
+import fabric.api
 
 def _exclude_string():
     excludes = ['config.py', '*.pyc', '*.pyo', '*.swp', '.svn/']

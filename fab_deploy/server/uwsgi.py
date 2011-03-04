@@ -6,8 +6,8 @@ from fab_deploy.package import package_install, package_update
 from fab_deploy.utils import detect_os
 
 def _uwsgi_is_installed():
-	with settings(hide('stderr'), warn_only=True):
-		option = run('which uwsgi')
+	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
+		option = fabric.api.run('which uwsgi')
 	return option.succeeded
 
 def uwsgi_install():

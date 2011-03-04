@@ -96,7 +96,7 @@ def install_common_software():
 
 def _user_exists(username):
 	""" Determine if a user exists """
-	with fabric.api.settings(hide('stderr'), warn_only=True):
+	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
 		output = fabric.api.run('id %s' % username)
 	return output.succeeded
 
@@ -139,7 +139,7 @@ def linux_account_create(pub_key_file):
 		fabric.api.warn(fabric.colors.yellow('The user %s already exists' % username))
 		return
 
-	with (fabric.api.settings(warn_only=True)):
+	with fabric.api.settings(warn_only=True):
 		fabric.api.sudo('adduser --disabled-password %s' % username)
 		ssh_copy_key(pub_key_file)
 
@@ -175,7 +175,7 @@ def linux_account_addgroup():
 		return
 
 	group = prompt('Enter the group name you want to add the user to:')
-	with (fabric.api.settings(warn_only=True)):
+	with fabric.api.settings(warn_only=True):
 		fabric.api.sudo('adduser %s %s' % (username,group))
 
 def grant_sudo_access():
