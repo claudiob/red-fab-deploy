@@ -29,7 +29,7 @@ def full_deploy(tagname):
 def deploy_project(tagname):
 	""" Deploys project on prepared server. """
 	make_src_dir()
-	tag_dir = os.path.join(env.conf['SRC_DIR'],tagname)
+	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname)
 	if fabric.contrib.files.exists(tag_dir):
 		abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 
@@ -47,18 +47,18 @@ def deploy_project(tagname):
 #	""" Shuts site down. This command doesn't clean everything, e.g.
 #	user data (database, backups) is preserved. """
 #
-#	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % env.hosts[0], default=False):
+#	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default=False):
 #		abort(fabric.colors.red("Aborting."))
 #
 #	@run_as('root')
 #	def wipe_web():
-#		fabric.api.run('rm -f /etc/nginx/sites-enabled/%s' % env.conf['INSTANCE_NAME'])
-#		fabric.api.run('a2dissite %s' % env.conf['INSTANCE_NAME'])
+#		fabric.api.run('rm -f /etc/nginx/sites-enabled/%s' % fabric.api.env.conf['INSTANCE_NAME'])
+#		fabric.api.run('a2dissite %s' % fabric.api.env.conf['INSTANCE_NAME'])
 #		fabric.api.run('invoke-rc.d nginx reload')
 #		fabric.api.run('invoke-rc.d apache2 reload')
 #
 #	wipe_web()
-#	fabric.api.run('rm -rf %s' % env.conf['SRC_DIR'])
+#	fabric.api.run('rm -rf %s' % fabric.api.env.conf['SRC_DIR'])
 #	for folder in ['bin', 'include', 'lib', 'src']:
-#		fabric.api.run('rm -rf %s/%s' % (env.conf['ENV_DIR'], folder))
+#		fabric.api.run('rm -rf %s/%s' % (fabric.api.env.conf['ENV_DIR'], folder))
 
