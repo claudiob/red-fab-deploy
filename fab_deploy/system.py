@@ -3,13 +3,8 @@ import os.path
 import fabric.api
 
 from fab_deploy.file import link
-from fab_deploy.package import *
+from fab_deploy.package import package_update, package_upgrade, package_install
 from fab_deploy.utils import detect_os, run_as
-
-def _get_username_password():
-	username = prompt('What is your username:')
-	password = prompt('What is your password:')
-	return username, password
 
 def service(service, command):
 	""" Give a command to a service """
@@ -19,18 +14,7 @@ def service(service, command):
 
 def set_host_name(hostname):
 	""" Set the host name on a server """
-	#sudo
 	pass
-
-def make_src_dir():
-	""" Makes the /srv/<project>/ directory and creates the correct permissions """
-	fabric.api.sudo('mkdir -p %s' % (fabric.api.env.conf['SRC_DIR']))
-	fabric.api.sudo('chown -R www-data:www-data /srv')
-	fabric.api.sudo('chmod -R g+w /srv')
-
-def make_active(tagname):
-	""" Make a tag at /srv/<project>/<tagname>  active """
-	link(os.path.join(fabric.api.env.conf['SRC_DIR'],tagname),'/srv/active',do_unlink=True)
 
 def check_active_deployment():
 	""" Abort if there is no active deployment """
@@ -231,8 +215,7 @@ def ssh_add_key(pub_key_file):
 		ssh_key = f.read()
 	
 	fabric.api.run('mkdir -p .ssh')
-	fabric.contrib.files.append('.ssh/authorized_keys', ssh_key) # Fabric 1.0
-	#fabric.contrib.files.append(ssh_key, '.ssh/authorized_keys') # Fabric 0.9.4
+	fabric.contrib.files.append('.ssh/authorized_keys', ssh_key)
 
 def usage_disk():
 	""" Return disk usage """

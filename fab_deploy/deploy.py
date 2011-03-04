@@ -2,12 +2,14 @@ import os.path
 
 import fabric.api
 
-from fab_deploy.system import prepare_server, make_src_dir, make_active
+from fab_deploy.file import link, unlink
+from fab_deploy.server import web_server_stop
+from fab_deploy.system import prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
-def full_deploy(tagname):
+def deploy_full(tagname):
 	""" 
 	Prepares server, deploys a project with a given tag name, and then makes
 	that deployment the active deployment on the server.
@@ -46,13 +48,26 @@ def deploy_project(tagname):
 	fabric.api.sudo('chown -R www-data:www-data /srv')
 	fabric.api.sudo('chmod -R g+w /srv')
 
-#def undeploy():
-#	""" Shuts site down. This command doesn't clean everything, e.g.
-#	user data (database, backups) is preserved. """
-#
-#	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default=False):
-#		abort(fabric.colors.red("Aborting."))
-#
+def make_src_dir():
+	""" Makes the /srv/<project>/ directory and creates the correct permissions """
+	fabric.api.sudo('mkdir -p %s' % (fabric.api.env.conf['SRC_DIR']))
+	fabric.api.sudo('chown -R www-data:www-data /srv')
+	fabric.api.sudo('chmod -R g+w /srv')
+
+def make_active(tagname):
+	""" Make a tag at /srv/<project>/<tagname>  active """
+	link(os.path.join(fabric.api.env.conf['SRC_DIR'],tagname),'/srv/active',do_unlink=True)
+
+def undeploy():
+	""" Shuts site down. This command doesn't clean everything, e.g.
+	user data (database, backups) is preserved. """
+
+	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default=False):
+		fabric.api.abort(fabric.colors.red("Aborting."))
+	
+	web_server_stop()
+	unlink('/srv/active')
+
 #	@run_as('root')
 #	def wipe_web():
 #		fabric.api.run('rm -f /etc/nginx/sites-enabled/%s' % fabric.api.env.conf['INSTANCE_NAME'])

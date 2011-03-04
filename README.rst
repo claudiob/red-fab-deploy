@@ -32,7 +32,7 @@ Rackspace Setup
 
 4. **If this is the first time** deploying on the server run the following::
 
-       $ fab -i deploy/[your private SSH key here] dev full_deploy:"tagname"
+       $ fab -i deploy/[your private SSH key here] dev deploy_full:"tagname"
        
    Here "tagname" is the name of the tagged version of the code you wish
    to deploy.  This code must reside in the /repo/tags/ directory.
