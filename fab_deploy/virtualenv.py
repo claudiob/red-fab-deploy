@@ -1,5 +1,7 @@
 import fabric.api
 
+from fab_deploy.system import link
+
 def pip(commands=''):
 	""" Runs pip command """
    	fabric.api.run('pip %s' % commands)
@@ -20,7 +22,7 @@ def virtualenv_create(site_packages=True):
 		fabric.api.run('virtualenv env/')
 	else:
 		fabric.api.run('virtualenv --no-site-packages env/')
-	fabric.api.run('ln -s env/bin/activate')
+	link('env/bin/activate')
 
 def virtualenv():
 	"""

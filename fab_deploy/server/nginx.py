@@ -1,11 +1,12 @@
 import fabric.api
 
 from fab_deploy.package import package_install, package_update
+from fab_deploy.system import check_active_deployment, service, link, unlink
 from fab_deploy.utils import detect_os
 
 def _nginx_is_installed():
 	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
-		output = run('dpkg-query --show nginx')
+		output = fabric.api.run('dpkg-query --show nginx')
 	return output.succeeded
 
 def nginx_install():
@@ -23,28 +24,34 @@ def nginx_install():
 	#run('rm -f /etc/nginx/sites-enabled/default')
 
 def nginx_setup():
-	""" Updates nginx config and restarts nginx """
-	if not fabric.contrib.files.exists('/srv/active/'):
-		fabric.api.warn(fabric.colors.yellow('There is no active deployment'))
-		return
+	""" Setup nginx. """
+	check_active_deployment()
 
-	if fabric.contrib.files.exists('/etc/nginx/nginx.conf.bkp'):
-		fabric.api.warn(fabric.colors.yellow('Nginx has already been set up'))
-		return
+	nginx_file = '/etc/nginx/nginx.conf'
+	unlink(nginx_file,use_sudo=True)
+	if fabric.contrib.files.exists(nginx_file):
+		fabric.api.sudo('mv %s %s.bkp' % (nginx_file,nginx_file))
 	else:
-		fabric.api.sudo('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bkp')
-		fabric.api.sudo('ln -s /srv/active/deploy/nginx.conf /etc/nginx/nginx.conf')
+		link('/srv/active/deploy/nginx.conf',nginx_file,use_sudo=True)
+
+def nginx_service(command):
+	""" Run a nginx service """
+	service('nginx',command)
+	nginx_message(command)
 
 def nginx_start():
-	""" Start Nginx. """
-	fabric.api.sudo('service nginx start')
-	fabric.api.puts(fabric.colors.green('Start nginx for %(host_string)s' % fabric.api.env))
+	""" Start Nginx """
+	nginx_service('start')
 
 def nginx_stop():
-	""" Stop Nginx. """
-	fabric.api.sudo('service nginx stop')
+	""" Stop Nginx """
+	nginx_service('stop')
 
 def nginx_restart():
-	""" Restarts Nginx. """
-	fabric.api.sudo('service nginx restart')
+	""" Restarts Nginx """
+	nginx_service('restart')
+
+def nginx_message(message):
+	""" Print a nginx message """
+	fabric.api.puts(fabric.colors.green('nginx %s for %s' % (message,fabric.api.env['host_string'])))
 

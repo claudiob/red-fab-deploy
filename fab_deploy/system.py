@@ -10,6 +10,12 @@ def _get_username_password():
 	password = prompt('What is your password:')
 	return username, password
 
+def service(service, command):
+	""" Give a command to a service """
+	if service not in ['apache','nginx','uwsgi']:
+		return
+	fabric.api.sudo('service %s %s' % (service,command))
+
 def set_host_name(hostname):
 	""" Set the host name on a server """
 	#sudo
@@ -27,6 +33,47 @@ def make_active(tagname):
 		if fabric.contrib.files.exists('active'):
 			fabric.api.run('unlink active')
 		fabric.api.run('ln -s %s/%s active' % (fabric.api.env.conf['SRC_DIR'],tagname))
+
+def check_active_deployment():
+	""" Abort if there is no active deployment """
+	if not fabric.contrib.files.exists('/srv/active/'):
+		fabric.api.abort(fabric.colors.yellow('There is no active deployment'))
+
+def link(source,dest="",use_sudo=False,do_unlink=False):
+	""" Make a symlink """
+	if dest and is_link(dest):
+		if do_unlink:
+			unlink(dest)
+		else:
+			fabric.api.warn(fabric.colors.yellow("Link %s already exists" % dest))
+	else:
+		fabric.api.warn(fabric.colors.yellow("%s already exists" % dest))
+			
+	if use_sudo:
+		fabric.api.sudo('ln -s %s %s' % (source,dest))
+	else:
+		fabric.api.run('ln -s %s %s' % (source,dest))
+
+def unlink(source, use_sudo=False):
+	""" Unlink a symlink """
+	if is_link(source):
+		if use_sudo:
+			fabric.api.sudo('unlink %s' % source)
+		else:
+			fabric.api.run('unlink %s' % source)
+
+def readlink(source):
+	""" Read a symlink """
+	if fabric.contrib.files.exists(source):
+		fabric.api.run('readlink %s' % source)
+
+def is_link(source):
+	""" Determine if a file is a symlink """
+	if fabric.contrib.files.exists(source):
+		output = fabric.api.run('readlink %s' % source)
+		return output.succeeded
+	else:
+		return False
 
 def prepare_server():
 	""" Prepares server: installs system packages. """
