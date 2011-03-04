@@ -2,7 +2,6 @@ import os.path
 
 import fabric.api
 
-from fab_deploy.server import *
 from fab_deploy.system import prepare_server, make_src_dir, make_active
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
@@ -36,7 +35,7 @@ def deploy_project(tagname):
 
 	vcs.export(tagname)
 
-	with cd(tag_dir):
+	with fabric.api.cd(tag_dir):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()

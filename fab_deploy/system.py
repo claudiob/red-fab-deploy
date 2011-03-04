@@ -23,7 +23,7 @@ def make_src_dir():
 
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
-	with cd('/srv'):
+	with fabric.api.cd('/srv'):
 		fabric.api.run('ln -s %s/%s active' % (fabric.api.env.conf['SRC_DIR'],tagname))
 
 def prepare_server():
@@ -204,7 +204,7 @@ def ssh_copy_key(pub_key_file):
 	if not fabric.contrib.console.confirm('Do you wish to copy the ssh key for %s?' % username,default=True):
 		username = prompt('Enter the username you wish to use:')
 	
-	with cd('/home/%s' % username):
+	with fabric.api.cd('/home/%s' % username):
 		ssh_add_key(pub_key_file)
 		fabric.api.sudo('chown -R %s:%s .ssh' % (username, username))
 

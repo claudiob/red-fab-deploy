@@ -1,12 +1,13 @@
-from fabric.api import *
 import os
+
+import fabric.api
 
 def init():
 	pass
 
 def up(tagname):
 	""" Update the code to the latest revision """
-	run('svn up %s' % (
+	fabric.api.run('svn up %s' % (
 		os.path.join(env.conf['SRC_DIR'], tagname)))
 
 def push(tagname):
@@ -15,7 +16,7 @@ def push(tagname):
 		dirname = os.path.join(env.conf['REPO'],tagname)
 	else:
 		dirname = os.path.join(env.conf['REPO'],env.conf['VCS_TAGS'],tagname)
-	run('svn co %s %s' % (dirname,
+	fabric.api.run('svn co %s %s' % (dirname,
 		os.path.join(env.conf['SRC_DIR'],tagname)))
 
 def export(tagname):
@@ -24,7 +25,7 @@ def export(tagname):
 		dirname = os.path.join(env.conf['REPO'],tagname)
 	else:
 		dirname = os.path.join(env.conf['REPO'],env.conf['VCS_TAGS'],tagname)
-	run('svn export %s %s' % (dirname,
+	fabric.api.run('svn export %s %s' % (dirname,
 		os.path.join(env.conf['SRC_DIR'],tagname)))
 	
 def configure():
