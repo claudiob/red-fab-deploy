@@ -3,11 +3,7 @@ import os
 import pprint
 import re
 
-from fabric.api import *
-from fabric.colors import *
-from fabric.contrib.files import upload_template
-from fabric.network import normalize, join_host_strings
-from fabric.state import _AttributeDict
+import fabric.api
 
 def _codename(distname, version, id):
 	patterns = [
@@ -21,11 +17,11 @@ def _codename(distname, version, id):
 			return name
 
 def detect_os():
-	if 'conf' in env and 'OS' in env.conf:
-		return env.conf['OS']
-	output = run('python -c "import platform; print platform.linux_distribution()"')
+	if 'conf' in fabric.api.env and 'OS' in fabric.api.env.conf:
+		return fabric.api.env.conf['OS']
+	output = fabric.api.run('python -c "import platform; print platform.linux_distribution()"')
 	name = _codename(*eval(output))
-	puts('%s detected' % name)
+	fabric.api.puts('%s detected' % name)
 	return name
 
 def run_as(user):
@@ -38,16 +34,16 @@ def run_as(user):
 
 		@run_as('root')
 		def package_update():
-			run('package update')
+			fabric.api.run('package update')
 	
 	"""
 	def decorator(func):
 		@wraps(func)
 		def inner(*args, **kwargs):
-			old_user, host, port = normalize(env.host_string)
-			env.host_string = join_host_strings(user, host, port)
+			old_user, host, port = fabric.network.normalize(fabric.api.env.host_string)
+			fabric.api.env.host_string = fabric.network.join_host_strings(user, host, port)
 			result = func(*args, **kwargs)
-			env.host_string = join_host_strings(old_user, host, port)
+			fabric.api.env.host_string = fabric.network.join_host_strings(old_user, host, port)
 			return result
 		return inner
 	return decorator
@@ -65,29 +61,29 @@ def update_env():
 		from fab_deploy import update_env
 
 		def my_site():
-			env.hosts = ['my_site@example.com']
-			env.conf = dict(
+			fabric.api.env.hosts = ['my_site@example.com']
+			fabric.api.env.conf = dict(
 				INSTANCE_NAME = 'my_site',
 			)
 			update_env()
 	"""
 	
-	assert len(env.hosts)>0, red("Must supply hosts in env.hosts.")
-	assert len(env.hosts)==1, red("Multiple hosts in env.hosts are not supported now. (%s)" % env.hosts)
-	user, host, port = normalize(env.hosts[0])
+	assert len(fabric.api.env.hosts)>0,  fabric.colors.red("Must supply hosts in env.hosts.")
+	assert len(fabric.api.env.hosts)==1, fabric.colors.red("Multiple hosts in env.hosts are not supported now. (%s)" % fabric.api.env.hosts)
+	user, host, port = fabric.network.normalize(fabric.api.env.hosts[0])
 
-	env.user = user
-	env.conf = getattr(env, 'conf', {})
+	fabric.api.env.user = user
+	fabric.api.env.conf = getattr(fabric.api.env, 'conf', {})
 	
 	if user != 'root':
 		HOME_DIR = '/home/%s' % user
 	else:
 		HOME_DIR = '/root'
 
-	if 'INSTANCE_NAME' not in env.conf:
-		env.conf['INSTANCE_NAME'] = user
+	if 'INSTANCE_NAME' not in fabric.api.env.conf:
+		fabric.api.env.conf['INSTANCE_NAME'] = user
 
-	defaults = _AttributeDict(
+	defaults = fabric.state._AttributeDict(
 		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
 		PROCESSES    = 1,
 		SERVER_ADMIN = 'example@example.com',
@@ -101,28 +97,28 @@ def update_env():
 		# these options shouldn't be set by user
 		HOME_DIR = HOME_DIR,
 		ENV_DIR  = '/srv/active/env/',
-		SRC_DIR  = '/srv/%s' % env.conf['INSTANCE_NAME'],
+		SRC_DIR  = '/srv/%s' % fabric.api.env.conf['INSTANCE_NAME'],
 		FILES    = os.path.join(os.path.dirname(__file__),'templates'),
 		USER     = user,
 	)
-	defaults.update(env.conf)
-	env.conf = defaults
+	defaults.update(fabric.api.env.conf)
+	fabric.api.env.conf = defaults
 
 	for vcs in ['svn','tar']: # expand VCS name to full import path
-		if env.conf.VCS == vcs:
-			env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
+		if fabric.api.env.conf.VCS == vcs:
+			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
 			break
 	
 	for db in ['mysql','postgresql']: # expand DB name to full import path
-		if env.conf.DB == db:
-			env.conf.DB = 'fab_deploy.db.%s' % db
+		if fabric.api.env.conf.DB == db:
+			fabric.api.env.conf.DB = 'fab_deploy.db.%s' % db
 			break
 
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
-	run("find . -name '*.pyc' -delete")
+	fabric.api.run("find . -name '*.pyc' -delete")
 
 def debug_env():
 	""" Prints env values. Useful for debugging. """
-	puts(pprint.pformat(env))
+	fabric.api.puts(pprint.pformat(fabric.api.env))
 

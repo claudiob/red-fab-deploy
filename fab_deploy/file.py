@@ -29,8 +29,11 @@ def unlink(source, use_sudo=False):
 			fabric.api.sudo('unlink %s' % source)
 		else:
 			fabric.api.run('unlink %s' % source)
+	elif fabric.contrib.files.exists(source):
+		fabric.api.warn(fabric.colors.yellow("%s already exists" % source))
+		return
 	else:
-		fabric.api.warn(fabric.colors.yellow("%s already exists" % dest))
+		fabric.api.warn(fabric.colors.yellow("%s does not exist" % source))
 		return
 
 def readlink(source):
