@@ -104,16 +104,21 @@ def update_env():
 	defaults.update(fabric.api.env.conf)
 	fabric.api.env.conf = defaults
 
-	for vcs in ['svn','tar']: # expand VCS name to full import path
-		if fabric.api.env.conf.VCS == vcs:
-			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
-			break
-	
 	for db in ['mysql','postgresql']: # expand DB name to full import path
 		if fabric.api.env.conf.DB == db:
 			fabric.api.env.conf.DB = 'fab_deploy.db.%s' % db
 			break
 
+	for server in ['apache','nginx',]: # expand server name to full import path
+		if fabric.api.env.conf.SERVER == server:
+			fabric.api.env.conf.SERVER = 'fab_deploy.server.%s' % db
+			break
+
+	for vcs in ['svn','tar']: # expand VCS name to full import path
+		if fabric.api.env.conf.VCS == vcs:
+			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
+			break
+	
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
 	fabric.api.run("find . -name '*.pyc' -delete")

@@ -126,7 +126,7 @@ def linux_account_create(pub_key_file):
 	"""
 	username = fabric.api.env.conf['USER']
 	if not fabric.contrib.console.confirm('Do you wish to create a linux account for %s?' % username,default=True):
-		username = prompt('Enter the username you wish to use:')
+		username = fabric.api.prompt('Enter the username you wish to use:')
 	
 	if _user_exists(username):
 		fabric.api.warn(fabric.colors.yellow('The user %s already exists' % username))
@@ -142,7 +142,7 @@ def linux_account_setup():
 	"""
 	username = fabric.api.env.conf['USER']
 	if not fabric.contrib.console.confirm('Do you wish to setup the linux account for %s?' % username,default=True):
-		username = prompt('Enter the username you wish to use:')
+		username = fabric.api.prompt('Enter the username you wish to use:')
 	
 	if not _user_exists(username):
 		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
@@ -161,13 +161,13 @@ def linux_account_addgroup():
 	""" Adds a linux account to a group """
 	username = fabric.api.env.conf['USER']
 	if not fabric.contrib.console.confirm('Do you wish to add a linux group account for %s?' % username,default=True):
-		username = prompt('Enter the username you wish to use:')
+		username = fabric.api.prompt('Enter the username you wish to use:')
 	
 	if not _user_exists(username):
 		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
 		return
 
-	group = prompt('Enter the group name you want to add the user to:')
+	group = fabric.api.prompt('Enter the group name you want to add the user to:')
 	with fabric.api.settings(warn_only=True):
 		fabric.api.sudo('adduser %s %s' % (username,group))
 
@@ -177,7 +177,7 @@ def grant_sudo_access():
 	"""
 	username = fabric.api.env.conf['USER']
 	if not fabric.contrib.console.confirm('Do you wish to sudo access for %s?' % username,default=True):
-		username = prompt('Enter the username you wish to use:')
+		username = fabric.api.prompt('Enter the username you wish to use:')
 	
 	if not _user_exists(username):
 		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
@@ -197,7 +197,7 @@ def ssh_copy_key(pub_key_file):
 	
 	username = fabric.api.env.conf['USER']
 	if not fabric.contrib.console.confirm('Do you wish to copy the ssh key for %s?' % username,default=True):
-		username = prompt('Enter the username you wish to use:')
+		username = fabric.api.prompt('Enter the username you wish to use:')
 	
 	with fabric.api.cd('/home/%s' % username):
 		ssh_add_key(pub_key_file)
