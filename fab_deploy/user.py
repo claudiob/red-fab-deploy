@@ -26,7 +26,7 @@ def user_exists(user):
 	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}' or 'None'
 	if the user does not exist.
 	"""
-	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout'),warn_only=True):
+	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout','running'),warn_only=True):
 		user_data = fabric.api.run("cat /etc/passwd | egrep '^%s:' ; true" % user)
 
 	if user_data:
@@ -73,7 +73,7 @@ def group_exists(name):
 	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None'
 	if the group does not exist.
 	"""
-	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout'),warn_only=True):
+	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout','running'),warn_only=True):
 		group_data = fabric.api.run("cat /etc/group | egrep '^%s:' ; true" % (name))
 	
 	if group_data:
@@ -117,7 +117,6 @@ def ssh_keygen(username):
 	assert d, fabric.colors.red("User does not exist: %s" % username)
 
 	home = d['home']
-	print 'HOME HOME %s HOME HOME' % home
 	if not fabric.contrib.files.exists(os.path.join(home, ".ssh/id_dsa.pub")):
 		fabric.api.run("mkdir -p %s" % os.path.join(home, ".ssh/"))
 		fabric.api.run("ssh-keygen -q -t dsa -f '%s' -N ''" % os.path.join(home,'.ssh/id_dsa'))

@@ -2,7 +2,8 @@ import fabric.api
 
 def link_exists(source):
 	""" Determine if a file is a symlink """
-	return fabric.api.run("test -L '%s' && echo OK ; true" % source) == "OK"
+	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout','running'),warn_only=True):
+		return fabric.api.run("test -L '%s' && echo OK ; true" % source) == "OK"
 
 def link(source,dest="",use_sudo=False,do_unlink=False):
 	""" Make a symlink """
