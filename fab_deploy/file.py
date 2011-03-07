@@ -1,13 +1,8 @@
 import fabric.api
 
-def is_link(source):
+def link_exists(source):
 	""" Determine if a file is a symlink """
-	if fabric.contrib.files.exists(source):
-		with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout'),warn_only=True):
-			output = fabric.api.run('readlink %s' % source)
-			return output.succeeded
-	else:
-		return False
+	return fabric.api.run("test -L '%s' && echo OK ; true" % source) == "OK"
 
 def link(source,dest="",use_sudo=False,do_unlink=False):
 	""" Make a symlink """
@@ -24,7 +19,7 @@ def link(source,dest="",use_sudo=False,do_unlink=False):
 
 def unlink(source, use_sudo=False):
 	""" Unlink a symlink """
-	if is_link(source):
+	if link_exists(source):
 		if use_sudo:
 			fabric.api.sudo('unlink %s' % source)
 		else:
@@ -40,4 +35,5 @@ def readlink(source):
 	""" Read a symlink """
 	if fabric.contrib.files.exists(source):
 		fabric.api.run('readlink %s' % source)
+
 
