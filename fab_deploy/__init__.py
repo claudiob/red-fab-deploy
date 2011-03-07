@@ -10,7 +10,7 @@ from fab_deploy.virtualenv import (pip, pip_install, pip_update,
 #--- Linux
 from fab_deploy.crontab import (crontab_set, crontab_add, crontab_show,
 	crontab_remove, crontab_update)
-from fab_deploy.file import is_link, link, unlink, readlink
+from fab_deploy.file import link_exists, link, unlink, readlink
 from fab_deploy.package import (package_install, package_update, package_upgrade)
 from fab_deploy.ssh import ssh_copy_key, ssh_add_key
 from fab_deploy.system import (service,
