@@ -13,7 +13,7 @@ def provider_as_ec2(user='ubuntu',group='www-data'):
 	user_create(user)
 	ssh_keygen(user)
 	ssh_get_key(user)
-	ssh_authorize(user,'%s.id_dsa' % user)
+	ssh_authorize(user,'%s.id_dsa.pub' % user)
 	user_setup(user)
 	group_user_add(group,user)
 	grant_sudo_access(user)
@@ -117,11 +117,12 @@ def ssh_keygen(username):
 	assert d, fabric.colors.red("User does not exist: %s" % username)
 
 	home = d['home']
-	if not fabric.contrib.files.exists(os.path.join(home, "/.ssh/id_dsa.pub")):
-		fabric.api.run("mkdir -p %s" % os.path.join(home, "/.ssh"))
-		fabric.api.run("ssh-keygen -q -t dsa -f '%s/.ssh/id_dsa' -N ''" % home)
-		file_attribs(home + "/.ssh/id_dsa",     owner=username, group=username)
-		file_attribs(home + "/.ssh/id_dsa.pub", owner=username, group=username)
+	print 'HOME HOME %s HOME HOME' % home
+	if not fabric.contrib.files.exists(os.path.join(home, ".ssh/id_dsa.pub")):
+		fabric.api.run("mkdir -p %s" % os.path.join(home, ".ssh/"))
+		fabric.api.run("ssh-keygen -q -t dsa -f '%s' -N ''" % os.path.join(home,'.ssh/id_dsa'))
+		file_attribs(os.path.join(home,".ssh/id_dsa"),     owner=username, group=username)
+		file_attribs(os.path.join(home,".ssh/id_dsa.pub"), owner=username, group=username)
 
 def ssh_get_key(username):
 	""" Get the DSA key pair from the server for a specific user """
@@ -143,7 +144,7 @@ def ssh_authorize(username,key):
 		fab ssh_authorize:"/home/ubuntu.id_dsa.pub"
 	"""
 	d = user_exists(username)
-	keyf = os.path.join(d['home'],'/.ssh/authorized_keys')
+	keyf = os.path.join(d['home'],'.ssh/authorized_keys')
 	
 	with open(os.path.normpath(key), 'r') as f:
 		ssh_key = f.read()
@@ -154,5 +155,5 @@ def ssh_authorize(username,key):
 	else:
 		fabric.api.put(key,keyf)
 
-	fabric.api.sudo('chown -R %s:%s %s/.ssh' % (username, username,d['home']))
+	fabric.api.sudo('chown -R %s:%s %s/.ssh' % (username, username, d['home']))
 
