@@ -1,35 +1,53 @@
 import os.path
 
 import fabric.api
+import fabric.colors
+import fabric.contrib
 
-def ssh_copy_key(pub_key_file):
-	"""
-	Adds a ssh key from passed file to user's authorized_keys on server. 
-	
-	SSH keys for user can be copied at any time::
+from fab_deploy.file import file_attribs
 
-		fab ssh_copy_key:"/home/kmike/coworker-keys/ivan.id_dsa.pub"
-	"""
-	
-	username = fabric.api.env.conf['USER']
-	if not fabric.contrib.console.confirm('Do you wish to copy the ssh key for %s?' % username,default=True):
-		username = fabric.api.prompt('Enter the username you wish to use:')
-	
-	with fabric.api.cd('/home/%s' % username):
-		ssh_add_key(pub_key_file)
-		fabric.api.sudo('chown -R %s:%s .ssh' % (username, username))
+def ssh_keygen(username):
+	""" Generates a pair of DSA keys in the user's home .ssh directory."""
+	d = user_exists(username)
+	assert d, fabric.colors.red("User does not exist: %s" % username)
 
-def ssh_add_key(pub_key_file):
+	home = d['home']
+	if not fabric.contrib.files.exists(os.path.join(home, "/.ssh/id_dsa.pub")):
+		fabric.api.run("mkdir -p %s" % os.path.join(home, "/.ssh"))
+		run("ssh-keygen -q -t dsa -f '%s/.ssh/id_dsa' -N ''" % home)
+		file_attribs(home + "/.ssh/id_dsa",     owner=username, group=username)
+		file_attribs(home + "/.ssh/id_dsa.pub", owner=username, group=username)
+
+def ssh_get_key(username):
+	""" Get the DSA key pair from the server for a specific user """
+	d = user_exists(username)
+	home = d['home']
+
+	pub_key = os.path.join(home,'.ssh/id_dsa.pub')
+	sec_key = os.path.join(home,'.ssh/id_dsa')
+
+	fabric.api.get(pub_key,local_path='%s.id_dsa.pub'%username)
+	fabric.api.get(sec_key,local_path='%s.id_dsa'%username)
+
+def ssh_authorize(username,key):
 	""" 
 	Adds a ssh key from passed file to user's authorized_keys on server. 
 	
-	SSH keys for other developers can be added at any time::
+	SSH keys can be added at any time::
 
-		fab ssh_add_key:"/home/kmike/coworker-keys/ivan.id_dsa.pub"
+		fab ssh_authorize:"/home/ubuntu.id_dsa.pub"
 	"""
-	with open(os.path.normpath(pub_key_file), 'rt') as f:
+	d = user_exists(username)
+	keyf = os.path.join(d['home'],'/.ssh/authorized_keys')
+	
+	with open(os.path.normpath(key), 'r') as f:
 		ssh_key = f.read()
 	
-	fabric.api.run('mkdir -p .ssh')
-	fabric.contrib.files.append('.ssh/authorized_keys', ssh_key)
+	if fabric.contrib.files.exists(keyf):
+		if not fabric.contrib.files.contains(keyf,ssh_key):
+			fabric.contrib.files.append(keyf, ssh_key)
+	else:
+		fabric.api.put(key,keyf)
+
+	fabric.api.sudo('chown -R %s:%s %s/.ssh' % (username, username,d['home'])
 

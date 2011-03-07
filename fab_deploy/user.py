@@ -1,99 +1,106 @@
 import fabric.api
 import fabric.colors
 
-from fab_deploy.ssh import ssh_copy_key
+from fab_deploy.ssh import ssh_keygen, ssh_copy_key
 from fab_deploy.utils import run_as
 
 @run_as('root')
-def rackspace_as_ec2(pub_key_file):
-	linux_account_create(pub_key_file)
-	linux_account_setup()
-	linux_account_addgroup()
-	grant_sudo_access()
+def provider_as_ec2(user='ubuntu',group='www-data'):
+	""" Set up a provider similar to Amazon EC2 """
+	user_create(user)
+	ssh_keygen(user)
+	ssh_get_key(user)
+	ssh_authorize(user,'%s.id_dsa' % user)
+	user_setup(user)
+	group_user_add(group,user)
+	grant_sudo_access(user)
+
+def user_exists(user):
+	""" 
+	Determine if a user exists with given user.
 	
-def linux_account_create(pub_key_file):
+	This returns the information as a dictionary
+	'{"name":<str>,"uid":<str>,"gid":<str>,"home":<str>,"shell":<str>}' or 'None'
+	if the user does not exist.
 	"""
-	Creates linux account and sets up ssh access. 
-	
-	If there is no linux account for user specified in :attr:`env.hosts`
-	then add a new linux server user, manually or using
-	
-	::
-	
-	    fab create_linux_account:"/home/<user>/.ssh/id_rsa.pub"
-	
-	You'll need the ssh public key.
+	d = fabric.api.run("cat /etc/passwd | egrep '^%s:' ; true" % user)
+	if d:
+		d = d.split(":")
+		return dict(name=d[0],uid=d[2],gid=d[3],home=d[5],shell=d[6])
+	else:
+		return None
 
-	:func:`create_linux_account<fab_deploy.system.create_linux_account>`
-	creates a new linux user and uploads provided ssh key. Test that ssh
-	login is working::
-	
-	    ssh my_site@example.com
-	
-	.. note::
-	
-	    Fabric commands should be executed in shell from the project root
-	    on local machine (not from the python console, not on server shell).
+def user_create(user, home=None, uid=None, gid=None, password=False):
+	""" 
+	Creates the user with the given user, optionally giving a specific home/uid/gid.
+
+	By default users will be created without a password.  To create users with a
+	password you must set "password" to True.
 	"""
-	username = fabric.api.env.conf['USER']
-	if not fabric.contrib.console.confirm('Do you wish to create a linux account for %s?' % username,default=True):
-		username = fabric.api.prompt('Enter the username you wish to use:')
-	
-	if _user_exists(username):
-		fabric.api.warn(fabric.colors.yellow('The user %s already exists' % username))
-		return
+	options = ["-m"]
+	if home: options.append("-d '%s'" % home)
+	if uid:  options.append("-u '%s'" % uid)
+	if gid:  options.append("-g '%s'" % gid)
+	if not password: options.append("--disabled-password")
+	fabric.api.sudo("adduser %s '%s'" % (" ".join(options), name))
 
-	with fabric.api.settings(warn_only=True):
-		fabric.api.sudo('adduser --disabled-password %s' % username)
-		ssh_copy_key(pub_key_file)
-
-def linux_account_setup():
+def user_setup(user):
 	"""
 	Copies a set of files into the home directory of a user
 	"""
-	username = fabric.api.env.conf['USER']
-	if not fabric.contrib.console.confirm('Do you wish to setup the linux account for %s?' % username,default=True):
-		username = fabric.api.prompt('Enter the username you wish to use:')
-	
-	if not _user_exists(username):
-		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
-		return
+	u = user_exists(user):
+	assert u, fabric.colors.red("User does not exist: %s" % user)
+	home = u['home']
 
-	user_home = fabric.api.env.conf['HOME_DIR']
 	templates = fabric.api.env.conf['FILES']
 	for filename in ['.bashrc','.inputrc','.screenrc','.vimrc',]:
-		put(os.path.join(templates,filename),os.path.join(user_home,filename))
+		fabric.api.put(os.path.join(templates,filename),os.path.join(home,filename))
 	
 	for path in ['.vim/filetype.vim','.vim/doc/NERD_tree.txt','.vim/plugin/NERD_tree.vim']:
-		fabric.api.run('mkdir -p %s' % os.path.join(user_home,os.path.dirname(path)))
-		fabric.api.put(os.path.join(templates,path),os.path.join(user_home,path))
+		fabric.api.run('mkdir -p %s' % os.path.join(home,os.path.dirname(path)))
+		fabric.api.put(os.path.join(templates,path),os.path.join(home,path))
 
-def linux_account_addgroup():
-	""" Adds a linux account to a group """
-	username = fabric.api.env.conf['USER']
-	if not fabric.contrib.console.confirm('Do you wish to add a linux group account for %s?' % username,default=True):
-		username = fabric.api.prompt('Enter the username you wish to use:')
-	
-	if not _user_exists(username):
-		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
-		return
-
-	group = fabric.api.prompt('Enter the group name you want to add the user to:')
-	with fabric.api.settings(warn_only=True):
-		fabric.api.sudo('adduser %s %s' % (username,group))
-
-def grant_sudo_access():
+def group_exists(name):
 	"""
-	Grants sudo access to a user
-	"""
-	username = fabric.api.env.conf['USER']
-	if not fabric.contrib.console.confirm('Do you wish to sudo access for %s?' % username,default=True):
-		username = fabric.api.prompt('Enter the username you wish to use:')
-	
-	if not _user_exists(username):
-		fabric.api.warn(fabric.colors.yellow('The user %s does not exist' % username))
-		return
+	Determine if a group exists with a given name.
 
-	text="%s\tALL=(ALL) NOPASSWD:ALL" % username
+	This returns the information as a dictionary
+	'{"name":<str>,"gid":<str>,"members":<list[str]>}' or 'None'
+	if teh group does not exist.
+	"""
+	group_data = run("cat /etc/group | egrep '^%s:' ; true" % (name))
+	if group_data:
+		name,_,gid,members = group_data.split(":",4)
+		return dict(name=name,gid=gid,members=tuple(m.strip() for m in members.split(",")))
+	else:
+		return None
+
+def group_create(name, gid=None):
+	""" Creates a group with the given name, and optionally given gid. """
+	options = []
+	if gid: options.append("-g '%s'" % gid)
+	fabric.api.sudo("addgroup %s '%s'" % (" ".join(options), name))
+
+def group_user_exists(group, user):
+	""" Determine if the given user is a member of the given group. """
+	g = group_exists(group)
+	assert g, fabric.colors.red("Group does not exist: %s" % group)
+	
+	u = user_exists(user):
+	assert u, fabric.colors.red("User does not exist: %s" % user)
+	
+	return user in g["members"]
+
+def group_user_add(group, user):
+	""" Adds the given user to the given group. """
+	if not group_user_exists(group, user):
+		fabric.api.sudo('adduser %s %s' % (user, group))
+
+def grant_sudo_access(user):
+	""" Grants sudo access to a user. """
+	u = user_exists(user):
+	assert u, fabric.colors.red("User does not exist: %s" % user)
+
+	text="%s\tALL=(ALL) NOPASSWD:ALL" % user
 	fabric.contrib.files.append('/etc/sudoers',text,use_sudo=True)
 	

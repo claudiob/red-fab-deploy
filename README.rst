@@ -25,7 +25,7 @@ Rackspace Setup
 
 3. To create the ubuntu user run the following command::
 
-       $ fab dev rackspace_as_ec2:"deploy/id_pub"
+       $ fab dev provider_as_ec2:"deploy/id_pub"
 
    and press ENTER to every question, but write *www-data* to "Enter 
    the group name you want to add the user to:"   

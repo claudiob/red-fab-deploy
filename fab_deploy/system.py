@@ -82,12 +82,6 @@ def install_common_software():
 	vcs_options = {'lenny': '-t lenny-backports'}
 	package_install(['mercurial','git-core'], vcs_options.get(os, ""))
 
-def _user_exists(username):
-	""" Determine if a user exists """
-	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
-		output = fabric.api.run('id %s' % username)
-	return output.succeeded
-
 def usage_disk():
 	""" Return disk usage """
 	fabric.api.run("df -kP")
