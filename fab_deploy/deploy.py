@@ -58,6 +58,11 @@ def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
 	link(os.path.join(fabric.api.env.conf['SRC_DIR'],tagname),'/srv/active',do_unlink=True)
 
+def check_active():
+	""" Abort if there is no active deployment """
+	if not link_exists('/srv/active/'):
+		fabric.api.abort(fabric.colors.red('There is no active deployment'))
+
 def undeploy():
 	""" Shuts site down. This command doesn't clean everything, e.g.
 	user data (database, backups) is preserved. """

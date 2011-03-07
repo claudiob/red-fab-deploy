@@ -2,7 +2,7 @@ import fabric.api
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
-from fab_deploy.system import check_active_deployment, service
+from fab_deploy.system import service
 from fab_deploy.utils import detect_os
 
 def _uwsgi_is_installed():
@@ -25,8 +25,6 @@ def uwsgi_install():
 
 def uwsgi_setup():
 	""" Setup uWSGI. """
-	check_active_deployment()
-
 	uwsgi_file = '/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'
 	unlink(uwsgi_file,use_sudo=True)
 	if fabric.contrib.files.exists(uwsgi_file):

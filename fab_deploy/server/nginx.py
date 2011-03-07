@@ -2,7 +2,7 @@ import fabric.api
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
-from fab_deploy.system import check_active_deployment, service
+from fab_deploy.system import service
 from fab_deploy.utils import detect_os
 
 def _nginx_is_installed():
@@ -26,8 +26,6 @@ def nginx_install():
 
 def nginx_setup():
 	""" Setup nginx. """
-	check_active_deployment()
-
 	nginx_file = '/etc/nginx/nginx.conf'
 	unlink(nginx_file,use_sudo=True)
 	if fabric.contrib.files.exists(nginx_file):
