@@ -13,8 +13,6 @@ from fab_deploy.file import link_exists, link, unlink, readlink
 
 from fab_deploy.package import package_install, package_update, package_upgrade
 
-from fab_deploy.ssh import ssh_keygen, ssh_get_key, ssh_authorize
-
 from fab_deploy.system import (service,
 	prepare_server, setup_backports, install_common_software, 
 	usage_disk, usage_mem, usage_cpu, usage_system,)
@@ -23,6 +21,7 @@ from fab_deploy.user import (provider_as_ec2,
 	user_exists, user_create, user_setup, 
 	group_exists, group_create, 
 	group_user_exists, group_user_add, 
+	ssh_keygen, ssh_get_key, ssh_authorize,
 	grant_sudo_access,)
 
 from fab_deploy.utils import (update_env, delete_pyc, debug_env, detect_os)
