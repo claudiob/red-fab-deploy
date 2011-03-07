@@ -43,7 +43,7 @@ def file_read(location):
 def file_attribs(location, mode=None, owner=None, group=None, recursive=False):
 	"""Updates the mode/owner/group for the remote file at the given location."""
 	recursive = recursive and "-R " or ""
-	if mode:  run("chmod %s %s '%s'" % (recursive, mode,  location))
-	if owner: run("chown %s %s '%s'" % (recursive, owner, location))
-	if group: run("chgrp %s %s '%s'" % (recursive, group, location))
+	if mode:  fabric.api.run("chmod %s %s '%s'" % (recursive, mode,  location))
+	if owner: fabric.api.run("chown %s %s '%s'" % (recursive, owner, location))
+	if group: fabric.api.run("chgrp %s %s '%s'" % (recursive, group, location))
 
