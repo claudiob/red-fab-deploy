@@ -8,6 +8,7 @@ Ubuntu 10.4 image sizes:
 	http://uec-images.ubuntu.com/lucid/current/
 """
 
+from pprint import pprint
 import os
 
 import fabric.api
@@ -16,7 +17,15 @@ import fabric.colors
 from libcloud.base import NodeImage, NodeSize
 from libcloud.types import Provider
 from libcloud.providers import get_driver
+import libcloud.security
 
+#=== SSL Security
+
+libcloud.security.VERIFY_SSL_CERT = True
+libcloud.security.CA_CERTS_PATH.append("cacert.pem")
+
+#=== Cloud Defaults
+EC2_IMAGE = 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
 		'dev1' : 'm1.small',
@@ -32,12 +41,12 @@ EC2_MACHINES = {
 
 PROVIDER_DICT = {
 	'ec2_us_west': {
-		'image'      : 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
+		'image'      : EC2_IMAGE,
 		'location'   : 'us-west-b1',
 		'machines'   : EC2_MACHINES,
 	},
 	'ec2_us_east': {
-		'image'      : 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
+		'image'      : EC2_IMAGE,
 		'location'   : 'us-east-b1',
 		'machines'   : EC2_MACHINES,
 	},
@@ -46,18 +55,20 @@ PROVIDER_DICT = {
 		'location'   : '0',  # Rackspace has only one location
 		'machines'   : {
 			'development' : {
-				'dev1' : '1', # 256MB RAM, 10GB
+				'dev1'  : '1', # 256MB  RAM, 10GB
 			},
 			'production' : {
-				'load1' : '2', # 512MB RAM, 20GB
-				'web1'  : '2', # 512MB RAM, 20GB
-				'web2'  : '2', # 512MB RAM, 20GB
+				'load1' : '2', # 512MB  RAM, 20GB
+				'web1'  : '2', # 512MB  RAM, 20GB
+				'web2'  : '2', # 512MB  RAM, 20GB
 				'dbs1'  : '3', # 1024MB RAM, 40GB
 				'dbs1'  : '3', # 1024MB RAM, 40GB
 			},
 		},
 	},
 }
+
+#=== Private Methods
 
 def _get_provider_name():
 	return fabric.api.env.conf['PROVIDER']
@@ -102,6 +113,8 @@ def _get_connection():
 	driver = _get_driver(provider)
 	return driver(access_key,secret_key)
 
+#=== AWS Specific Code
+
 def ec2_create_key(keyname):
 	""" Create a pem key on an amazon ec2 server. """
 	resp = _get_connection().ex_create_keypair(name=keyname)
@@ -114,31 +127,28 @@ def ec2_create_key(keyname):
 	f.close()
 	os.chmod(private_key, 0600)
 
+#=== List Node Instances
+
 def list_nodes():
+	""" Return a list of nodes """
 	return _get_connection().list_nodes()
 
 def list_node_images():
+	""" Return a list of node images """
 	return _get_connection().list_images()
 
 def list_node_sizes():
+	""" Return a list of node sizes """
 	return _get_connection().list_sizes()
 
 def list_node_locations():
+	""" Return a list of node locations """
 	return _get_connection().list_locations()
 
-def print_nodes():
-	print list_nodes()
-
-def print_node_images():
-	print list_node_images()
-
-def print_node_sizes():
-	print list_node_sizes()
-
-def print_node_locations():
-	print list_node_locations()
+#=== Get Node Instance
 
 def get_node(name):
+	""" Get a node by name """
 	for node in list_nodes():
 		if node.name == name: return node
 
@@ -148,7 +158,7 @@ def get_node_image(image_id):
 	If an image is not found matching the given id then a
 	default NodeImage object will be created.
 	"""
-	for image in list_images():
+	for image in list_node_images():
 		if image.id == image_id: return image
 	return NodeImage(id=image_id,name="",driver="")
 
@@ -158,7 +168,7 @@ def get_node_size(size_id):
 	If a size is not found matching the given id then a
 	default NodeSize object will be created.
 	"""
-	for size in list_sizes():
+	for size in list_node_sizes():
 		if size.id == size_id: return size
 	return NodeSize(id=size_id,name="",ram=None,disk=None,
 			bandwith=None,price=None,driver="")
@@ -169,9 +179,55 @@ def get_node_location(location_id):
 	If a location is not found matching the given id then a
 	default NodeLocation object will be created.
 	"""
-	for location in list_locations():
-		if location.availability_zone.name == location_id: return location
+	provider = _get_provider_name()
+	for location in list_node_locations():
+		if 'ec2' in provider:
+			if location.availability_zone.name == location_id: return location
+		else:
+			if location.id == location_id: return location
 	return NodeLocation(id="",availability_zone=location,name="",country="",driver="")
+
+#=== Print Singular Node Instances
+
+def print_node(name):
+	""" Pretty print a node by name """
+	pprint(get_node(name).__dict__)
+
+def print_node_image(id):
+	""" Pretty print a node image by id """
+	pprint(get_node_image(id).__dict__)
+
+def print_node_size(id):
+	""" Pretty print a node size by id """
+	pprint(get_node_size(id).__dict__)
+
+def print_node_location(id):
+	""" Pretty print a node locaiton by id """
+	pprint(get_node_location(id).__dict__)
+
+#=== Print List of Node Instances
+
+def print_nodes():
+	""" Pretty print the list of nodes """
+	for n in list_nodes():
+		pprint(n.__dict__)
+
+def print_node_images():
+	""" Pretty print the list of node images """
+	for i in list_node_images():
+		pprint(i.__dict__)
+
+def print_node_sizes():
+	""" Pretty print the list of node sizes """
+	for s in list_node_sizes():
+		pprint(s.__dict__)
+
+def print_node_locations():
+	""" Pretty print the list of node locations """
+	for l in list_node_locations():
+		pprint(l.__dict__)
+
+#=== Create and Deploy Nodes
 
 def create_node(name, **kwargs):
 	""" Create a node server """

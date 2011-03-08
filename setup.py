@@ -15,6 +15,7 @@ setup(
 
     package_data={
         'fab_deploy': [
+			'cacert.pem',
             'templates/.*',
             'templates/.vim/*.vim',
             'templates/.vim/doc/*.doc',
