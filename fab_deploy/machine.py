@@ -57,7 +57,7 @@ PROVIDER_DICT = {
 		'location'   : '0',  # Rackspace has only one location
 		'machines'   : {
 			'development' : {
-				'test-dev1'  : '1', # 256MB  RAM, 10GB
+				'dev1'  : '1', # 256MB  RAM, 10GB
 			},
 			'production' : {
 				'load1' : '2', # 512MB  RAM, 20GB
@@ -96,7 +96,7 @@ def _get_driver(provider):
 		driver = get_driver(Provider.RACKSPACE)
 	return driver
 	
-def _get_access_secret_key(provider):
+def _get_access_secret_keys(provider):
 	""" Get the access and secret keys for the given provider """
 	_provider_exists(provider)
 	if 'ec2' in provider:
@@ -111,7 +111,7 @@ def _get_connection():
 	""" Get the connection for the given provider """
 	provider = _get_provider_name()
 	_provider_exists(provider)
-	access_key, secret_key = _get_access_secret_key(provider)
+	access_key, secret_key = _get_access_secret_keys(provider)
 	driver = _get_driver(provider)
 	return driver(access_key,secret_key)
 
@@ -121,11 +121,14 @@ def _stage_exists(stage):
 	if stage not in PROVIDER['machines'].keys():
 		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
 
+def _get_machine_name(machine):
+	return '%s-%s' % (fabric.api.env.conf['INSTANCE_NAME'],machine)
+
 def _get_stage_machines(stage):
 	""" Return a list of server names for stage """
 	_stage_exists(stage)
 	PROVIDER = _get_provider_dict(_get_provider_name())
-	return PROVIDER['machines'][stage].keys()
+	return [_get_machine_name(name) for name in PROVIDER['machines'][stage].keys()]
 
 #=== AWS Specific Code
 
@@ -272,5 +275,6 @@ def deploy_nodes(stage='development',keyname=None):
 	
 	for name in PROVIDER['machines'][stage]:
 		size  = get_node_size(PROVIDER['machines'][stage][name])
+		name = _get_machine_name(name)
 		create_node(name,keyname=keyname,size=size)
 

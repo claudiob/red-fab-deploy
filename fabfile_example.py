@@ -11,7 +11,7 @@ from fab_deploy import *
 def my_site():
 	""" Default Configuration """
 	env.conf = dict(
-		INSTANCE_NAME = 'project_name',
+		INSTANCE_NAME = 'project-name', # Recommend no underscore characters
 		REPO = 'http://some.repo.com/project_name/',
 		SERVERS = {
 			'DEV'   : 'ubuntu@some.external.ip.address',
