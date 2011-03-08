@@ -126,6 +126,18 @@ def list_node_sizes():
 def list_node_locations():
 	return _get_connection().list_locations()
 
+def print_nodes():
+	print list_nodes()
+
+def print_node_images():
+	print list_node_images()
+
+def print_node_sizes():
+	print list_node_sizes()
+
+def print_node_locations():
+	print list_node_locations()
+
 def get_node(name):
 	for node in list_nodes():
 		if node.name == name: return node

@@ -1,9 +1,9 @@
 #--- Deployment
 from fab_deploy.machine import (
 	list_nodes, list_node_images, list_node_sizes, list_node_locations,
+	print_nodes, print_node_images, print_node_sizes, print_node_locations,
 	get_node, get_node_image, get_node_size, get_node_location, 
-	create_node, deploy_nodes
-	)
+	create_node, deploy_nodes)
 
 from fab_deploy.deploy import (deploy_full, deploy_project,
 	make_src_dir, make_active, undeploy)
