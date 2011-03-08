@@ -5,10 +5,10 @@ django-fab-deploy: django deployment tool
 red-fab-deploy is a collection of Fabric scripts for deploying and
 managing django projects on Debian/Ubuntu servers. License is MIT.
 
-This project is a fork of django-fab-deploy.
+This project was inspired by django-fab-deploy and cuisine.
 
-Please read the `docs <http://packages.python.org/django-fab-deploy>`
-for more info.
+Please read the `http://packages.python.org/django-fab-deploy`
+and `https://github.com/ff0000/cuisine/` for more info.
 
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace to work with these tools.
