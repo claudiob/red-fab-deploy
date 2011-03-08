@@ -17,22 +17,29 @@ from libcloud.base import NodeImage, NodeSize
 from libcloud.types.Provider import EC2_US_EAST, RACKSPACE
 from libcloud.providers import get_driver
 
+EC2_MACHINES = {
+	'development' : {
+		'dev1' : 'm1.small',
+	},
+	'production' : {
+		# Use the Amazon Elastic Load Balancer
+		'web1' : 'm1.small',
+		'web2' : 'm1.small',
+		'dbs1' : 'm1.small',
+		'dbs2' : 'm1.small',
+	},
+}
+
 PROVIDER_DICT = {
+	'ec2_us_west': {
+		'image'      : 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
+		'location'   : 'us-west-b1',
+		'machines'   : EC2_MACHINES,
+	},
 	'ec2_us_east': {
 		'image'      : 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
 		'location'   : 'us-east-b1',
-		'machines'   : {
-			'development' : {
-				'dev1' : 'm1.small',
-			},
-			'production' : {
-				# Use the Amazon Elastic Load Balancer
-				'web1' : 'm1.small',
-				'web2' : 'm1.small',
-				'dbs1' : 'm1.small',
-				'dbs2' : 'm1.small',
-			},
-		},
+		'machines'   : EC2_MACHINES,
 	},
 	'rackspace': {
 		'image'      : '49', # Ubuntu 10.04, 32-bit instance
@@ -70,7 +77,9 @@ def _get_provider_dict(provider):
 def _get_driver(provider):
 	""" Get the driver for the given provider """
 	_provider_exists(provider)
-	if 'ec2' in provider:
+	if provider == 'ec2_us_west':
+		driver = get_driver(EC2_US_WEST)
+	elif provider == 'ec2_us_east':
 		driver = get_driver(EC2_US_EAST)
 	elif provider == 'rackspace':
 		driver = get_driver(RACKSPACE)
