@@ -4,6 +4,7 @@ import pprint
 import re
 
 import fabric.api
+import fabric.colors
 
 def _codename(distname, version, id):
 	patterns = [

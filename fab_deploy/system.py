@@ -1,6 +1,7 @@
 import os.path
 
 import fabric.api
+import fabric.colors
 
 from fab_deploy.file import link_exists
 from fab_deploy.package import package_update, package_upgrade, package_install

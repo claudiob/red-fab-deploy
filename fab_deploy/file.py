@@ -1,4 +1,6 @@
 import fabric.api
+import fabric.colors
+import fabric.contrib
 
 def link_exists(source):
 	""" Determine if a file is a symlink """

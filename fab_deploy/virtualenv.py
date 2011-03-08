@@ -1,4 +1,5 @@
 import fabric.api
+import fabric.colors
 
 from fab_deploy.file import link
 

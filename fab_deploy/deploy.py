@@ -1,6 +1,8 @@
 import os.path
 
 import fabric.api
+import fabric.colors
+import fabric.contrib
 
 from fab_deploy.file import link, unlink
 from fab_deploy.server import web_server_stop

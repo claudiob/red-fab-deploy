@@ -1,4 +1,4 @@
-import fabric
+import fabric.api
 
 def _marker(marker):
 	return ' # MARKER:%s' % marker if marker else ''
