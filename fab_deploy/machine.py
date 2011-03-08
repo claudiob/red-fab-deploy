@@ -3,6 +3,7 @@ Much of this code was compiled from:
 
 http://incubator.apache.org/libcloud/getting-started.html
 http://agiletesting.blogspot.com/2010/12/using-libcloud-to-manage-instances.html
+http://agiletesting.blogspot.com/2011/01/libcloud-042-and-ssl.html
 
 Ubuntu 10.4 image sizes:
 	http://uec-images.ubuntu.com/lucid/current/
@@ -13,6 +14,7 @@ import os
 
 import fabric.api
 import fabric.colors
+import fabric.contrib
 
 from libcloud.base import NodeImage, NodeSize
 from libcloud.types import Provider
@@ -55,14 +57,14 @@ PROVIDER_DICT = {
 		'location'   : '0',  # Rackspace has only one location
 		'machines'   : {
 			'development' : {
-				'dev1'  : '1', # 256MB  RAM, 10GB
+				'test-dev1'  : '1', # 256MB  RAM, 10GB
 			},
 			'production' : {
 				'load1' : '2', # 512MB  RAM, 20GB
 				'web1'  : '2', # 512MB  RAM, 20GB
 				'web2'  : '2', # 512MB  RAM, 20GB
 				'dbs1'  : '3', # 1024MB RAM, 40GB
-				'dbs1'  : '3', # 1024MB RAM, 40GB
+				'dbs2'  : '3', # 1024MB RAM, 40GB
 			},
 		},
 	},
@@ -76,7 +78,7 @@ def _get_provider_name():
 def _provider_exists(provider):
 	""" Abort if provider does not exist """
 	if provider not in PROVIDER_DICT.keys():
-		fabric.api.abort(fabric.colors.red('Provider is %s is not available' % provider))
+		fabric.api.abort(fabric.colors.red('Provider "%s" is not available' % provider))
 
 def _get_provider_dict(provider):
 	""" Get the dictionary of provider settings """
@@ -112,6 +114,18 @@ def _get_connection():
 	access_key, secret_key = _get_access_secret_key(provider)
 	driver = _get_driver(provider)
 	return driver(access_key,secret_key)
+
+def _stage_exists(stage):
+	""" Abort if provider does not exist """
+	PROVIDER = _get_provider_dict(_get_provider_name())
+	if stage not in PROVIDER['machines'].keys():
+		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
+
+def _get_stage_machines(stage):
+	""" Return a list of server names for stage """
+	_stage_exists(stage)
+	PROVIDER = _get_provider_dict(_get_provider_name())
+	return PROVIDER['machines'][stage].keys()
 
 #=== AWS Specific Code
 
@@ -233,9 +247,8 @@ def create_node(name, **kwargs):
 	""" Create a node server """
 	PROVIDER = _get_provider_dict(_get_provider_name())
 	keyname  = kwargs.get('keyname',None)
-
 	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
-	size     = kwargs.get('size',get_node_size(PROVIDER['size']))
+	size     = kwargs.get('size','')
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
 
 	if keyname:
@@ -244,14 +257,20 @@ def create_node(name, **kwargs):
 	else:
 		node = _get_connection().create_node(name=name, 
 				image=image, size=size, location=location)
+	
+	print fabric.colors.green('Node %s successfully created' % name)
 
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
+	_stage_exists(stage)
+	if not fabric.contrib.console.confirm("Do you wish to stage %s servers on %s with the following names: %s?" % (stage, _get_provider_name(), ', '.join(_get_stage_machines(stage))), default=False):
+		fabric.api.abort(fabric.colors.red("Aborting node deployment."))
+
 	PROVIDER = _get_provider_dict(_get_provider_name())
 	if stage not in PROVIDER['machines']:
 		fabric.api.abort(fabric.colors.red('Staging settings for %s are not available' % stage))
 	
 	for name in PROVIDER['machines'][stage]:
-		size  = PROVIDER['machines'][stage][name]
+		size  = get_node_size(PROVIDER['machines'][stage][name])
 		create_node(name,keyname=keyname,size=size)
 
