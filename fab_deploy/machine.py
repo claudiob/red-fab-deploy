@@ -14,7 +14,7 @@ import fabric.api
 import fabric.colors
 
 from libcloud.base import NodeImage, NodeSize
-from libcloud.types.Provider import EC2_US_EAST, RACKSPACE
+from libcloud.types import Provider
 from libcloud.providers import get_driver
 
 EC2_MACHINES = {
@@ -59,10 +59,8 @@ PROVIDER_DICT = {
 	},
 }
 
-provider_name = fabric.api.env.conf['PROVIDER']
-
-PROVIDER = _get_provider_dict(provider_name)
-conn     = _get_connection(provider_name)
+def _get_provider_name():
+	return fabric.api.env.conf['PROVIDER']
 
 def _provider_exists(provider):
 	""" Abort if provider does not exist """
@@ -78,11 +76,11 @@ def _get_driver(provider):
 	""" Get the driver for the given provider """
 	_provider_exists(provider)
 	if provider == 'ec2_us_west':
-		driver = get_driver(EC2_US_WEST)
+		driver = get_driver(Provider.EC2_US_WEST)
 	elif provider == 'ec2_us_east':
-		driver = get_driver(EC2_US_EAST)
+		driver = get_driver(Provider.EC2_US_EAST)
 	elif provider == 'rackspace':
-		driver = get_driver(RACKSPACE)
+		driver = get_driver(Provider.RACKSPACE)
 	return driver
 	
 def _get_access_secret_key(provider):
@@ -96,8 +94,9 @@ def _get_access_secret_key(provider):
 		secret_key = fabric.api.env.conf['RACKSPACE_KEY']
 	return access_key, secret_key
 
-def _get_connection(provider):
+def _get_connection():
 	""" Get the connection for the given provider """
+	provider = _get_provider_name()
 	_provider_exists(provider)
 	access_key, secret_key = _get_access_secret_key(provider)
 	driver = _get_driver(provider)
@@ -105,7 +104,7 @@ def _get_connection(provider):
 
 def ec2_create_key(keyname):
 	""" Create a pem key on an amazon ec2 server. """
-	resp = conn.ex_create_keypair(name=keyname)
+	resp = _get_connection().ex_create_keypair(name=keyname)
 	key_material = resp.get('keyMaterial')
 	if not key_material:
 		fabric.api.abort(fabric.colors.red("Key Material was not returned"))
@@ -115,13 +114,29 @@ def ec2_create_key(keyname):
 	f.close()
 	os.chmod(private_key, 0600)
 
+def list_nodes():
+	return _get_connection().list_nodes()
+
+def list_node_images():
+	return _get_connection().list_images()
+
+def list_node_sizes():
+	return _get_connection().list_sizes()
+
+def list_node_locations():
+	return _get_connection().list_locations()
+
+def get_node(name):
+	for node in list_nodes():
+		if node.name == name: return node
+
 def get_node_image(image_id):
 	""" 
 	Return a node image from list of available images.
 	If an image is not found matching the given id then a
 	default NodeImage object will be created.
 	"""
-	for image in conn.list_images():
+	for image in list_images():
 		if image.id == image_id: return image
 	return NodeImage(id=image_id,name="",driver="")
 
@@ -131,7 +146,7 @@ def get_node_size(size_id):
 	If a size is not found matching the given id then a
 	default NodeSize object will be created.
 	"""
-	for size in conn.list_sizes():
+	for size in list_sizes():
 		if size.id == size_id: return size
 	return NodeSize(id=size_id,name="",ram=None,disk=None,
 			bandwith=None,price=None,driver="")
@@ -142,12 +157,13 @@ def get_node_location(location_id):
 	If a location is not found matching the given id then a
 	default NodeLocation object will be created.
 	"""
-	for location in con.list_locations():
+	for location in list_locations():
 		if location.availability_zone.name == location_id: return location
 	return NodeLocation(id="",availability_zone=location,name="",country="",driver="")
 
 def create_node(name, **kwargs):
 	""" Create a node server """
+	PROVIDER = _get_provider_dict(_get_provider_name())
 	keyname  = kwargs.get('keyname',None)
 
 	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
@@ -155,14 +171,15 @@ def create_node(name, **kwargs):
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
 
 	if keyname:
-		node = conn.create_node(name=name, ex_keyname=keyname, 
-				image=image, size=size, location=location, ex_keyname=keyname)
+		node = _get_connection().create_node(name=name, ex_keyname=keyname, 
+				image=image, size=size, location=location)
 	else:
-		node = conn.create_node(name=name, ex_keyname=keyname, 
+		node = _get_connection().create_node(name=name, 
 				image=image, size=size, location=location)
 
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
+	PROVIDER = _get_provider_dict(_get_provider_name())
 	if stage not in PROVIDER['machines']:
 		fabric.api.abort(fabric.colors.red('Staging settings for %s are not available' % stage))
 	

@@ -87,6 +87,7 @@ def update_env():
 	defaults = fabric.state._AttributeDict(
 		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
 		PROCESSES    = 1,
+		PROVIDER     = 'rackspace',
 		SERVER_ADMIN = 'example@example.com',
 		SERVER_NAME  = host,
 		SERVER_TYPE  = 'nginx', # Choose from 'apache' or 'nginx'
@@ -104,6 +105,7 @@ def update_env():
 	)
 	defaults.update(fabric.api.env.conf)
 	fabric.api.env.conf = defaults
+	print defaults
 
 	for db in ['mysql','postgresql']: # expand DB name to full import path
 		if fabric.api.env.conf.DB == db:
