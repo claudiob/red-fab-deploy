@@ -27,7 +27,9 @@ def postgresql_create_db():
 	"""
 	Create an empty postgresql database.
 	"""
-	pass
+	database = fabric.api.runprompt('Please enter database name:')
+	
+	fabric.api.run("createdb %s" % (database))
 
 def postgresql_create_user():
 	"""
