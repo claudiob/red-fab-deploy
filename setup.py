@@ -9,7 +9,7 @@ setup(
 		'fab_deploy.server',
 		'fab_deploy.vcs'
 		],
-	version = '0.0.1',
+	version = 'v0.0.1',
     author='RED Interactive Agency',
     author_email='geeks@ff0000.com',
 
