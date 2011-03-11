@@ -111,11 +111,6 @@ def update_env():
 			fabric.api.env.conf.DB = 'fab_deploy.db.%s' % db
 			break
 
-	for server in ['apache','nginx',]: # expand server name to full import path
-		if fabric.api.env.conf.SERVER_TYPE == server:
-			fabric.api.env.conf.SERVER_TYPE = 'fab_deploy.server.%s' % db
-			break
-
 	for vcs in ['svn','tar']: # expand VCS name to full import path
 		if fabric.api.env.conf.VCS == vcs:
 			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs

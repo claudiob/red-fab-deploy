@@ -12,7 +12,7 @@ def web_server_setup():
 	if fabric.api.env.conf['SERVER_TYPE'] == 'apache':
 		apache_install()
 		apache_setup()
-	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':	
+	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':
 		nginx_install()
 		nginx_setup()
 		uwsgi_install()
