@@ -105,7 +105,6 @@ def update_env():
 	)
 	defaults.update(fabric.api.env.conf)
 	fabric.api.env.conf = defaults
-	print defaults
 
 	for db in ['mysql','postgresql']: # expand DB name to full import path
 		if fabric.api.env.conf.DB == db:
