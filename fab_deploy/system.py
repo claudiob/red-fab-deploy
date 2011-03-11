@@ -49,7 +49,6 @@ def install_common_software():
 		'libcurl3-dev',
 		'libjpeg-dev',
 		'libssl-dev',
-		'memcached',
 		'psmisc',
 		'python2.6',
 		'python2.6-dev',
