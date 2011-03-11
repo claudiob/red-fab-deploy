@@ -7,20 +7,20 @@ def link_exists(source):
 	with fabric.api.settings(fabric.api.hide('warnings','stderr','stdout','running'),warn_only=True):
 		return fabric.api.run("test -L '%s' && echo OK ; true" % source) == "OK"
 
-def link(source,dest="",use_sudo=False,do_unlink=False):
+def link(source,dest="",use_sudo=False,do_unlink=False,silent=False):
 	""" Make a symlink """
 	if do_unlink:
 		if dest:
-			unlink(dest, use_sudo=use_sudo)
+			unlink(dest, use_sudo=use_sudo,silent=silent)
 		else:
-			unlink(source, use_sudo=use_sudo)
+			unlink(source, use_sudo=use_sudo,silent=silent)
 			
 	if use_sudo:
 		fabric.api.sudo('ln -s %s %s' % (source,dest))
 	else:
 		fabric.api.run('ln -s %s %s' % (source,dest))
 
-def unlink(source, use_sudo=False):
+def unlink(source, use_sudo=False,silent=False):
 	""" Unlink a symlink """
 	if link_exists(source):
 		if use_sudo:
@@ -28,11 +28,13 @@ def unlink(source, use_sudo=False):
 		else:
 			fabric.api.run('unlink %s' % source)
 	elif fabric.contrib.files.exists(source):
-		fabric.api.warn(fabric.colors.yellow("%s already exists" % source))
-		return
+		if not silent:
+			fabric.api.warn(fabric.colors.yellow("%s already exists" % source))
+			return
 	else:
-		fabric.api.warn(fabric.colors.yellow("%s does not exist" % source))
-		return
+		if not silent:
+			fabric.api.warn(fabric.colors.yellow("%s does not exist" % source))
+			return
 
 def readlink(source):
 	""" Read a symlink """
