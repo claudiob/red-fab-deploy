@@ -30,7 +30,7 @@ setup(
     description = """ Code deployment tool """,
 
     long_description = open('README.rst').read(),
-    install_requires = ['fabric', 'libcloud'],
+    install_requires = ['fabric', 'apache-libcloud'],
 
     classifiers = (
         'Development Status :: 3 - Alpha',
