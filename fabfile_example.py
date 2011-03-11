@@ -27,21 +27,21 @@ def my_site():
 
 	env.roledefs = {
         'devservers'  : [
-            env.conf['SERVERS']['DEV']       
+            env.conf['SERVERS']['DEV'],
             ],
         'loadservers' : [
-            env.conf['SERVERS']['LOAD1']     
+            env.conf['SERVERS']['LOAD1'],     
             ],
         'webservers'  : [
-            env.conf['SERVERS']['WEB1']      
-            env.conf['SERVERS']['WEB2']      
+            env.conf['SERVERS']['WEB1'],
+            env.conf['SERVERS']['WEB2'],
             ],
         'dbservers'   : [
-            env.conf['SERVERS']['DB1']       
-            env.conf['SERVERS']['DB2']       
+            env.conf['SERVERS']['DB1'],
+            env.conf['SERVERS']['DB2'],
             ],
         'developers'  : [
-            env.conf['SERVERS']['CHRIS']       
+            env.conf['SERVERS']['CHRIS'],      
             ],
 	}
 
@@ -73,7 +73,7 @@ def dev():
 	env.hosts = [env.conf['SERVERS']['DEV']]
 	update_env()
 
-def chris()
+def chris():
 	env.hosts = [env.conf['SERVERS']['CHRIS']]
 	update_env()
 
