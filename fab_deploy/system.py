@@ -26,12 +26,14 @@ def setup_backports():
 	""" Adds backports repo to apt sources. """
 	os = detect_os()
 	backports = {
-		'lenny': 'http://backports.debian.org/debian-backports lenny-backports main contrib non-free',
-		'squeeze': 'http://backports.debian.org/debian-backports squeeze-backports main contrib non-free',
+		'lenny'    : 'http://backports.debian.org/debian-backports lenny-backports main contrib non-free',
+		'squeeze'  : 'http://backports.debian.org/debian-backports squeeze-backports main contrib non-free',
+		'lucid'    : 'http://archive.ubuntu.com/ubuntu lucid-backports main universe multiverse restricted',
+		'maverick' : 'http://archive.ubuntu.com/ubuntu maverick-backports main universe multiverse restricted',
 	}
 
-	if os not in backports:
-		fabric.api.warn(fabric.colors.yellow("Backports are not available for %s" % os))
+	if os in backports:
+		fabric.api.puts(fabric.colors.green("Installing available backports for %s" % os))
 		return
 
 	fabric.api.run("echo 'deb %s' > /etc/apt/sources.list.d/backports.sources.list" % backports[os])
@@ -71,7 +73,7 @@ def install_common_software():
 
 	os = detect_os()
 	if os not in extra_packages:
-		abort(fabric.colors.red('Your OS (%s) is currently unsupported.' % os))
+		fabric.api.abort(fabric.colors.red('Your OS (%s) is currently unsupported.' % os))
 	
 	with fabric.api.settings(warn_only=True):
 		package_update()
