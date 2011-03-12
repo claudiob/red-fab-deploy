@@ -27,7 +27,7 @@ libcloud.security.VERIFY_SSL_CERT = True
 libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 
 #=== Cloud Defaults
-EC2_IMAGE = 'ami-9a8b79f3', # Ubuntu 10.04, 32-bit instance
+EC2_IMAGE = 'ami-9a8b79f3' # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
 		'dev1' : 'm1.small',
@@ -44,12 +44,12 @@ EC2_MACHINES = {
 PROVIDER_DICT = {
 	'ec2_us_west': {
 		'image'      : EC2_IMAGE,
-		'location'   : 'us-west-b1',
+		'location'   : 'us-west-1b',
 		'machines'   : EC2_MACHINES,
 	},
 	'ec2_us_east': {
 		'image'      : EC2_IMAGE,
-		'location'   : 'us-east-b1',
+		'location'   : 'us-east-1b',
 		'machines'   : EC2_MACHINES,
 	},
 	'rackspace': {
@@ -100,11 +100,17 @@ def _get_access_secret_keys(provider):
 	""" Get the access and secret keys for the given provider """
 	_provider_exists(provider)
 	if 'ec2' in provider:
-		access_key = fabric.api.env.conf['AWS_ACCESS_KEY_ID']
-		secret_key = fabric.api.env.conf['AWS_SECRET_ACCESS_KEY']
+		if 'AWS_ACCESS_KEY_ID' in fabric.api.env.conf and 'AWS_SECRET_ACCESS_KEY' in fabric.api.env.conf:
+			access_key = fabric.api.env.conf['AWS_ACCESS_KEY_ID']
+			secret_key = fabric.api.env.conf['AWS_SECRET_ACCESS_KEY']
+		else:
+			fabric.api.abort(fabric.colors.red('Must have AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in env'))
 	elif provider == 'rackspace':
-		access_key = fabric.api.env.conf['RACKSPACE_USER']
-		secret_key = fabric.api.env.conf['RACKSPACE_KEY']
+		if 'RACKSPACE_USER' in fabric.api.env.conf and 'RACKSPACE_KEY' in fabric.api.env.conf:
+			access_key = fabric.api.env.conf['RACKSPACE_USER']
+			secret_key = fabric.api.env.conf['RACKSPACE_KEY']
+		else:
+			fabric.api.abort(fabric.colors.red('Must have RACKSPACE_USER and RACKSPACE_KEY in env'))
 	return access_key, secret_key
 
 def _get_connection():
@@ -253,7 +259,7 @@ def create_node(name, **kwargs):
 	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
 	size     = kwargs.get('size','')
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
-
+	
 	if keyname:
 		node = _get_connection().create_node(name=name, ex_keyname=keyname, 
 				image=image, size=size, location=location)
