@@ -11,6 +11,42 @@ and `cuisine <https://github.com/ff0000/cuisine/>`.
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
 
+Cloud Server Setup
+==================
+
+These steps will help you deploy cloud servers:
+
+1. Currently you can deploy to either rackspace or amazon cloud servers using
+   libcloud.  In your env.conf place the following::
+
+   PROVIDER = 'rackspace' # or 'amazon'
+
+2. If you are using Amazon put the following in your env.conf::
+
+       AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
+       AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
+
+    If you are using Rackspace put the following in your env.conf::
+
+       RACKSPACE_USER = 'yourrackspaceclouduser',
+       RACKSPACE_KEY  = 'yourrackspacecloudkey',
+
+3. You can now run any commands to get information your your cloud servers.
+
+4. If you are deploying on amazon you need to run the following before you deploy::
+
+   fab ec2_create_key:"yourkeyname"
+
+5. To deploy a development node run the following command::
+
+        fab deploy_nodes:"development"
+    
+    or for production::
+
+        fab deploy_nodes:"production"
+
+6. Your cloud servers should now be operational.
+
 Rackspace Setup
 ===============
 
