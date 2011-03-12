@@ -6,7 +6,7 @@ from fab_deploy.system import service
 from fab_deploy.utils import detect_os
 
 def _nginx_is_installed():
-	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
+	with fabric.api.settings(fabric.api.hide('running','stdout','stderr'), warn_only=True):
 		output = fabric.api.run('dpkg-query --show nginx')
 	return output.succeeded
 
@@ -35,6 +35,10 @@ def nginx_setup():
 
 def nginx_service(command):
 	""" Run a nginx service """
+	if not _nginx_is_installed():
+		fabric.api.warn(fabric.colors.yellow('Nginx must be installed'))
+		return
+
 	service('nginx',command)
 	nginx_message(command)
 

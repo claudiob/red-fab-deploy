@@ -6,7 +6,7 @@ from fab_deploy.system import service
 from fab_deploy.utils import detect_os
 
 def _uwsgi_is_installed():
-	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
+	with fabric.api.settings(fabric.api.hide('running','stdout','stderr'), warn_only=True):
 		option = fabric.api.run('which uwsgi')
 	return option.succeeded
 
@@ -34,6 +34,9 @@ def uwsgi_setup():
 
 def uwsgi_service(command):
 	""" Run a uWSGI service """
+	if not _uwsgi_is_installed():
+		fabric.api.abort(fabric.colors.yellow('uWSGI must be installed'))
+		return
 	service('uwsgi-python2.6',command)
 	uwsgi_message(command)
 
