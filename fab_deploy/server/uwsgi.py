@@ -12,13 +12,13 @@ def _uwsgi_is_installed():
 
 def uwsgi_install():
 	""" Install uWSGI. """
-	#if _uwsgi_is_installed():
-	#	fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
-	#	return
+	if _uwsgi_is_installed():
+		fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
+		return
 
+	# TODO: Deprecated because of problems with apt-get
 	#os = detect_os()
 	#options = {'lenny': '-t lenny-backports'}
-
 	#fabric.api.sudo('add-apt-repository ppa:uwsgi/release')
 	#package_update()
 	#package_install('uwsgi', options.get(os,''))
