@@ -27,11 +27,10 @@ def nginx_install():
 def nginx_setup():
 	""" Setup nginx. """
 	nginx_file = '/etc/nginx/nginx.conf'
-	unlink(nginx_file,use_sudo=True)
+	unlink(nginx_file,use_sudo=True,silent=True)
 	if fabric.contrib.files.exists(nginx_file):
 		fabric.api.sudo('mv %s %s.bkp' % (nginx_file,nginx_file))
-	else:
-		link('/srv/active/deploy/nginx.conf',nginx_file,use_sudo=True)
+	link('/srv/active/deploy/nginx.conf',nginx_file,use_sudo=True)
 
 def nginx_service(command):
 	""" Run a nginx service """
