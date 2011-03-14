@@ -24,18 +24,23 @@ def deploy_full(tagname):
 	
 	"""
 	os_sys = detect_os()
-	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default=False):
-		abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
+	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
+		fabric.api.abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
 	deploy_project(tagname)
 	make_active(tagname)
 
-def deploy_project(tagname):
+def deploy_project(tagname, force = False):
 	""" Deploys project on prepared server. """
 	make_src_dir()
-	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname)
+	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)
 	if fabric.contrib.files.exists(tag_dir):
-		abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
+		if force:
+			fabric.api.warn(fabric.colors.yellow('Removing directory %s and all its contents.' % tag_dir))
+			fabric.api.sudo('rm -rf %s' % tag_dir)
+		else:
+			fabric.api.abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
+
 
 	if tagname == 'trunk':
 		vcs.push(tagname)
@@ -47,18 +52,16 @@ def deploy_project(tagname):
 		with virtualenv():
 			pip_install()
 
-	fabric.api.sudo('chown -R www-data:www-data /srv')
-	fabric.api.sudo('chmod -R g+w /srv')
+	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
 
 def make_src_dir():
 	""" Makes the /srv/<project>/ directory and creates the correct permissions """
 	fabric.api.sudo('mkdir -p %s' % (fabric.api.env.conf['SRC_DIR']))
-	fabric.api.sudo('chown -R www-data:www-data /srv')
-	fabric.api.sudo('chmod -R g+w /srv')
+	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
 
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
-	link(os.path.join(fabric.api.env.conf['SRC_DIR'],tagname),'/srv/active',do_unlink=True)
+	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname), '/srv/active', do_unlink = True)
 
 def check_active():
 	""" Abort if there is no active deployment """
@@ -69,9 +72,9 @@ def undeploy():
 	""" Shuts site down. This command doesn't clean everything, e.g.
 	user data (database, backups) is preserved. """
 
-	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default=False):
+	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default = False):
 		fabric.api.abort(fabric.colors.red("Aborting."))
-	
+
 	web_server_stop()
 	unlink('/srv/active')
 

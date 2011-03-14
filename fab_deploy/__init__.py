@@ -1,7 +1,7 @@
 #--- Deployment
 from fab_deploy.machine import (
 	list_nodes, list_node_images, list_node_sizes, list_node_locations,
-	get_node, get_node_image, get_node_size, get_node_location, 
+	get_node, get_node_image, get_node_size, get_node_location,
 	print_node, print_node_image, print_node_size, print_node_location,
 	print_nodes, print_node_images, print_node_sizes, print_node_locations,
 	create_node, deploy_nodes)
@@ -9,7 +9,7 @@ from fab_deploy.machine import (
 from fab_deploy.deploy import (deploy_full, deploy_project,
 	make_src_dir, make_active, undeploy)
 
-from fab_deploy.virtualenv import (pip, pip_install, pip_update, 
+from fab_deploy.virtualenv import (pip, pip_install, pip_update,
 	virtualenv_create, virtualenv)
 
 #--- Linux
@@ -18,23 +18,24 @@ from fab_deploy.crontab import (crontab_set, crontab_add, crontab_show,
 
 from fab_deploy.file import link_exists, link, unlink, readlink
 
-from fab_deploy.package import package_install, package_update, package_upgrade
+from fab_deploy.package import package_install, package_update, package_upgrade, \
+	package_add_repository
 
 from fab_deploy.system import (service,
-	prepare_server, setup_backports, install_common_software, 
+	prepare_server, setup_backports, install_common_software,
 	usage_disk, usage_mem, usage_cpu, usage_system,)
 
 from fab_deploy.user import (provider_as_ec2,
-	user_exists, user_create, user_setup, 
-	group_exists, group_create, 
-	group_user_exists, group_user_add, 
+	user_exists, user_create, user_setup,
+	group_exists, group_create,
+	group_user_exists, group_user_add,
 	ssh_keygen, ssh_get_key, ssh_authorize,
 	grant_sudo_access,)
 
 from fab_deploy.utils import (update_env, delete_pyc, debug_env, detect_os)
 
 #--- Django
-from fab_deploy.django_commands import (migrate, manage, syncdb, 
+from fab_deploy.django_commands import (migrate, manage, syncdb,
 	compress, test)
 
 #--- Media

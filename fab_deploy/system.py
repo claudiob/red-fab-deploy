@@ -9,9 +9,9 @@ from fab_deploy.utils import detect_os
 
 def service(service, command):
 	""" Give a command to a service """
-	if service not in ['apache','nginx','uwsgi']:
+	if service not in ['apache', 'nginx', 'uwsgi']:
 		return
-	fabric.api.sudo('service %s %s' % (service,command))
+	fabric.api.sudo('service %s %s' % (service, command))
 
 def set_host_name(hostname):
 	""" Set the host name on a server """
@@ -35,7 +35,7 @@ def setup_backports():
 		return
 
 	fabric.api.run("echo 'deb %s' > /etc/apt/sources.list.d/backports.sources.list" % backports[os])
-	with fabric.api.settings(warn_only=True):
+	with fabric.api.settings(warn_only = True):
 		package_update()
 		package_upgrade()
 
@@ -73,15 +73,15 @@ def install_common_software():
 	os = detect_os()
 	if os not in extra_packages:
 		abort(fabric.colors.red('Your OS (%s) is currently unsupported.' % os))
-	
-	with fabric.api.settings(warn_only=True):
+
+	with fabric.api.settings(warn_only = True):
 		package_update()
 		package_upgrade()
 
 	package_install(common_packages + extra_packages[os])
 
 	vcs_options = {'lenny': '-t lenny-backports'}
-	package_install(['mercurial','git-core'], vcs_options.get(os, ""))
+	package_install(['mercurial', 'git-core'], vcs_options.get(os, ""))
 
 def usage_disk():
 	""" Return disk usage """
