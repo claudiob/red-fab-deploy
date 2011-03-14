@@ -41,11 +41,15 @@ def deploy_project(tagname, force = False):
 		else:
 			fabric.api.abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 
-
 	if tagname == 'trunk':
 		vcs.push(tagname)
 	else:
-		vcs.export(tagname)
+		with fabric.api.lcd('/tmp'):
+			vcs.export(tagname, local = True)
+		fabric.contrib.project.rsync_project(
+			local_dir = os.path.join('/tmp', tagname),
+			remote_dir = fabric.api.env.conf['SRC_DIR'])
+		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 
 	with fabric.api.cd(tag_dir):
 		virtualenv_create()
@@ -61,7 +65,8 @@ def make_src_dir():
 
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
-	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname), '/srv/active', do_unlink = True)
+	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname),
+			'/srv/active', do_unlink = True, silent = True)
 
 def check_active():
 	""" Abort if there is no active deployment """

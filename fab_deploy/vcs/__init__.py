@@ -8,17 +8,17 @@ def get_vcs():
 def init():
 	get_vcs().init()
 
-def up(tagname):
+def up(tagname,local=False):
 	""" Runs vcs ``update`` command on server """
-	get_vcs().up(tagname)
+	get_vcs().up(tagname,local)
 
-def push(tagname):
+def push(tagname,local=False):
 	""" Runs vcs ``checkout`` command on server """
-	get_vcs().push(tagname)
+	get_vcs().push(tagname,local)
 
-def export(tagname):
+def export(tagname,local=False):
 	""" Runs vcs ``export`` command on server """
-	get_vcs().export(tagname)
+	get_vcs().export(tagname,local)
 
 def configure():
 	get_vcs().configure()

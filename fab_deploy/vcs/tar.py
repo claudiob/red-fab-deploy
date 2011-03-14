@@ -10,7 +10,7 @@ def _exclude_string():
         exclude_string =  "-X .excludes %s" % exclude_string
     return exclude_string
 
-def push(tagname):
+def push(tagname,**kwargs):
     """
     Upload the current project to a remote system, tar/gzipping during the move.
     Files listed at :file:`<project root>/.exclude` file wouldn't be uploaded
