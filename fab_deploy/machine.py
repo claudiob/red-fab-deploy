@@ -266,7 +266,12 @@ def create_node(name, **kwargs):
 	else:
 		node = _get_connection().create_node(name=name, 
 				image=image, size=size, location=location)
-	
+	    
+    # TODO: This does not work until libcloud 0.5.0
+    #if 'ec2' in _get_provider_name():
+    #   tags = {'name':name,}
+    #   _get_connection().ex_create_tags(node,tags)
+
 	print fabric.colors.green('Node %s successfully created' % name)
 
 def deploy_nodes(stage='development',keyname=None):
