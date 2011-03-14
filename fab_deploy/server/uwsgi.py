@@ -16,14 +16,14 @@ def uwsgi_install():
 	#	fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
 	#	return
 
-	os = detect_os()
-	options = {'lenny': '-t lenny-backports'}
+	#os = detect_os()
+	#options = {'lenny': '-t lenny-backports'}
 
 	#fabric.api.sudo('add-apt-repository ppa:uwsgi/release')
 	#package_update()
 	#package_install('uwsgi', options.get(os,''))
 
-	package_install('libxml2-dev')
+	package_install('libxml2','libxml2-dev')
 	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
 def uwsgi_setup():
