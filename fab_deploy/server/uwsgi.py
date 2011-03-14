@@ -1,4 +1,5 @@
 import fabric.api
+import fabric.contrib
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
@@ -16,45 +17,46 @@ def uwsgi_install():
 		fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
 		return
 
-	# TODO: Deprecated because of problems with apt-get
-	#os = detect_os()
-	#options = {'lenny': '-t lenny-backports'}
-	#fabric.api.sudo('add-apt-repository ppa:uwsgi/release')
-	#package_update()
-	#package_install('uwsgi', options.get(os,''))
-
 	package_install('libxml2','libxml2-dev')
 	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
 def uwsgi_setup():
 	""" Setup uWSGI. """
-	#uwsgi_file = '/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'
-	uwsgi_file = '/etc/uwsgi-python/apps-enabled/uwsgi.ini'
-	unlink(uwsgi_file, use_sudo = True)
+
+	fabric.api.sudo('mkdir -p /etc/uwsgi')
+	fabric.api.sudo('mkdir -p /var/log/uwsgi')
+	fabric.api.sudo('touch /var/log/uwsgi/errors.log')
+	fabric.api.sudo('chown www-data:www-data -R /var/log/uwsgi')
+
+	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
+	unlink(uwsgi_file, use_sudo = True, silent=True)
 	if fabric.contrib.files.exists(uwsgi_file):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
-	else:
-		link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
-
-def uwsgi_service(command):
-	""" Run a uWSGI service """
-	if not _uwsgi_is_installed():
-		fabric.api.abort(fabric.colors.yellow('uWSGI must be installed'))
-		return
-	service('uwsgi-python2.6', command)
-	uwsgi_message(command)
+	link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
 
 def uwsgi_start():
 	""" Start uwsgi sockets """
-	uwsgi_service('start')
+	if not _uwsgi_is_installed():
+		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
+		return
+
+	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini')
+	uwsgi_message('Start')
 
 def uwsgi_stop():
 	""" Stop uwsgi sockets """
-	uwsgi_service('stop')
+	if not _uwsgi_is_installed():
+		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
+		return
+
+	fabric.api.sudo('pkill -9 uwsgi')
+	uwsgi_message('Stop')
 
 def uwsgi_restart():
 	""" Restarts the uwsgi sockets """
-	uwsgi_service('restart')
+	uwsgi_stop()
+	uwsgi_start()
+	uwsgi_message('Restarted')
 
 def uwsgi_message(message):
 	""" Print a uWSGI message """
