@@ -150,6 +150,32 @@ def ec2_create_key(keyname):
 	f.close()
 	os.chmod(private_key, 0600)
 
+def ec2_authorize_port(name,protocol,fromport,toport):
+
+	if protocol not in ['tcp','udp','icmp']:
+		fabric.api.abort(fabric.colors.red('Protocol must be one of tcp, udp, or icmp'))
+	
+	if int(fromport) < -1 or int(toport) > 65535 or int(fromport) > int(toport):
+		fabric.api.abort(fabric.colors.red('Ports must fall between 0 and 65535 (fromport <= toport)'))
+		
+	results = []
+	params = {'Action': 'AuthorizeSecurityGroupIngress',
+			'GroupName': name,
+			'IpProtocol': protocol,
+			'FromPort': fromport,
+			'ToPort': toport,
+			'CidrIp': '0.0.0.0/0'}
+
+	try:
+		result.append(
+			_get_connection().request(self.path, params=params.copy()).object
+		)
+	except Exception, e:
+		if e.args[0].find("InvalidPermission.Duplicate") == -1:
+			raise e
+
+	return results
+	
 #=== List Node Instances
 
 def list_nodes():

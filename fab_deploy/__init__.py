@@ -1,6 +1,6 @@
 #--- Deployment
 from fab_deploy.machine import (
-	ec2_create_key,
+	ec2_create_key, ec2_authorize_port,
 	print_node, print_node_image, print_node_size, print_node_location,
 	print_nodes, print_node_images, print_node_sizes, print_node_locations,
 	create_node, deploy_nodes)
