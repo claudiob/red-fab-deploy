@@ -22,28 +22,28 @@ These steps will help you deploy cloud servers:
 1. Currently you can deploy to either rackspace or amazon cloud servers using
    libcloud.  In your env.conf place the following::
 
-   PROVIDER = 'amazon'
+    PROVIDER = 'amazon'
 
 2. Place the access keys in your env.conf::
 
-   AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
-   AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
+    AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
+    AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
 
 3. You can now run any commands to get information your your cloud servers.
 
 4. When deploying on amazon you must create a security key::
 
-   fab ec2_create_key:"yourkeyname"
+    fab ec2_create_key:"yourkeyname"
 
 5. You cannot get ssh access unless you add ports to the default security group::
 
-   fab ec2_authorize_port:"default,tcp,22"
-   fab ec2_authorize_port:"default,tcp,80"
+    fab ec2_authorize_port:"default,tcp,22"
+    fab ec2_authorize_port:"default,tcp,80"
 
 6. To deploy development or production nodes run one of the following commands::
 
-   fab deploy_nodes:"development"
-   fab deploy_nodes:"production"
+    fab deploy_nodes:"development"
+    fab deploy_nodes:"production"
 
 7. Your cloud servers should now be operational.
 
@@ -55,19 +55,19 @@ These steps will help you deploy cloud servers:
 1. Currently you can deploy to either rackspace or amazon cloud servers using
    libcloud.  In your env.conf place the following::
 
-   PROVIDER = 'rackspace'
+    PROVIDER = 'rackspace'
 
 2. Place the access keys in your env.conf::
 
-   RACKSPACE_USER = 'yourrackspaceclouduser',
-   RACKSPACE_KEY  = 'yourrackspacecloudkey',
+    RACKSPACE_USER = 'yourrackspaceclouduser',
+    RACKSPACE_KEY  = 'yourrackspacecloudkey',
 
 3. You can now run any commands to get information your your cloud servers.
 
 4. To deploy development or production nodes run one of the following commands::
 
-   fab deploy_nodes:"development"
-   fab deploy_nodes:"production"
+    fab deploy_nodes:"development"
+    fab deploy_nodes:"production"
 
 5. Your cloud servers should now be operational.
 
