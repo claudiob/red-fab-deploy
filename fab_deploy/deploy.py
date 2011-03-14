@@ -4,12 +4,29 @@ import fabric.api
 import fabric.colors
 import fabric.contrib
 
+from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
-from fab_deploy.server import web_server_stop
+from fab_deploy.machine import deploy_nodes,ec2_create_key,ec2_authorize_port
+from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
+
+def go(stage="development",tagname="trunk",keyname='aws.ubuntu'):
+	""" A convenience method to deploy everything to run a project """
+
+	ec2_create_key(keyname)
+	ec2_authorize_port('default','tcp','22')
+	ec2_authorize_port('default','tcp','80')
+	deploy_nodes(stage,keyname)
+	deploy_full(tagname)
+	web_server_setup()
+	mysql_install()
+	mysql_create_user()
+	mysql_create_db()
+	syncdb()
+	web_server_start()
 
 def deploy_full(tagname):
 	""" 
