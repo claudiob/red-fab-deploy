@@ -100,14 +100,14 @@ def mysql_dump():
 	user     = fabric.api.prompt('Please enter username:')
 	database = fabric.api.prompt('Please enter database name:')
 	
-	run('mysqldump -u%s -p %s > %s' % (user, database,
+	fabric.api.run('mysqldump -u%s -p %s > %s' % (user, database,
 		os.path.join(dir, '%s-%s.sql' % (database, now))))
 
 def mysql_load(filename):
 	""" Load MySQL Database with 'mysql DATABASENAME < filename.sql' """
 	user     = fabric.api.prompt('Please enter username:')
 	database = fabric.api.prompt('Please enter database name:')
-	run('mysql %s -u%s -p < %s' % (database, user, filename))
+	fabric.api.run('mysql %s -u%s -p < %s' % (database, user, filename))
 
 def mysql_backup():
 	""" Backup the database """
