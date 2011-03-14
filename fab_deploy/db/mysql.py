@@ -109,6 +109,10 @@ def mysql_load(filename):
 	database = fabric.api.prompt('Please enter database name:')
 	fabric.api.run('mysql %s -u%s -p < %s' % (database, user, filename))
 
+def list_sql_files():
+	""" List available sql files in active project """
+	fabric.api.run('ls /srv/active/sql')
+
 def mysql_backup():
 	""" Backup the database """
 	fabric.api.run('automysqlbackup')
