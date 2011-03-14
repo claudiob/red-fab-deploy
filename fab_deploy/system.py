@@ -48,6 +48,7 @@ def install_common_software():
 		'build-essential',
 		'curl',
 		'gcc',
+		'ipython',
 		'libcurl3-dev',
 		'libjpeg-dev',
 		'libssl-dev',
