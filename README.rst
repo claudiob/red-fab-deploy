@@ -14,38 +14,62 @@ there are steps to set up Rackspace and other hosts to work with these tools.
 Cloud Server Setup
 ==================
 
+Amazon Deployment
+*****************
+
 These steps will help you deploy cloud servers:
 
 1. Currently you can deploy to either rackspace or amazon cloud servers using
    libcloud.  In your env.conf place the following::
 
-   PROVIDER = 'rackspace' # or 'amazon'
+   PROVIDER = 'amazon'
 
-2. If you are using Amazon put the following in your env.conf::
+2. Place the access keys in your env.conf::
 
-       AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
-       AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
-
-    If you are using Rackspace put the following in your env.conf::
-
-       RACKSPACE_USER = 'yourrackspaceclouduser',
-       RACKSPACE_KEY  = 'yourrackspacecloudkey',
+   AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
+   AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
 
 3. You can now run any commands to get information your your cloud servers.
 
-4. If you are deploying on amazon you need to run the following before you deploy::
+4. When deploying on amazon you must create a security key::
 
    fab ec2_create_key:"yourkeyname"
 
-5. To deploy a development node run the following command::
+5. You cannot get ssh access unless you add ports to the default security group::
 
-        fab deploy_nodes:"development"
-    
-    or for production::
+   fab ec2_authorize_port:"default,tcp,22"
+   fab ec2_authorize_port:"default,tcp,80"
 
-        fab deploy_nodes:"production"
+6. To deploy development or production nodes run one of the following commands::
 
-6. Your cloud servers should now be operational.
+   fab deploy_nodes:"development"
+   fab deploy_nodes:"production"
+
+7. Your cloud servers should now be operational.
+
+Rackspace Deployment
+********************
+
+These steps will help you deploy cloud servers:
+
+1. Currently you can deploy to either rackspace or amazon cloud servers using
+   libcloud.  In your env.conf place the following::
+
+   PROVIDER = 'rackspace'
+
+2. Place the access keys in your env.conf::
+
+   RACKSPACE_USER = 'yourrackspaceclouduser',
+   RACKSPACE_KEY  = 'yourrackspacecloudkey',
+
+3. You can now run any commands to get information your your cloud servers.
+
+4. To deploy development or production nodes run one of the following commands::
+
+   fab deploy_nodes:"development"
+   fab deploy_nodes:"production"
+
+5. Your cloud servers should now be operational.
 
 Rackspace Setup
 ===============
