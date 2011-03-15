@@ -64,40 +64,28 @@ def update_env():
 		def my_site():
 			fabric.api.env.hosts = ['my_site@example.com']
 			fabric.api.env.conf = dict(
-				INSTANCE_NAME = 'my_site',
+				INSTANCE_NAME = 'projectname',
+				PROVIDER = 'ec2_us_east',
+				REPO = 'http://some.repo.com/projectname/',
 			)
 			update_env()
 	"""
 	
-	assert len(fabric.api.env.hosts)>0,  fabric.colors.red("Must supply hosts in env.hosts.")
-	assert len(fabric.api.env.hosts)==1, fabric.colors.red("Multiple hosts in env.hosts are not supported now. (%s)" % fabric.api.env.hosts)
-	user, host, port = fabric.network.normalize(fabric.api.env.hosts[0])
-
-	fabric.api.env.user = user
 	fabric.api.env.conf = getattr(fabric.api.env, 'conf', {})
 	
-	if user != 'root':
-		HOME_DIR = '/home/%s' % user
-	else:
-		HOME_DIR = '/root'
-
-	if 'INSTANCE_NAME' not in fabric.api.env.conf:
-		fabric.api.env.conf['INSTANCE_NAME'] = user
-
 	defaults = fabric.state._AttributeDict(
-		DB           = 'mysql',     # Choose from 'mysql' or 'postgresql'
-		DB_PASSWD    = 'password',  # DB root user password, please replace
-		PROVIDER     = 'rackspace', # use 'rackspace','ec2_us_east', or 'ec2_us_west'
-		SERVER_TYPE  = 'nginx',     # Choose from 'apache' or 'nginx'
-		VCS          = 'svn',
-		VCS_TAGS     = 'tags',
+		DB            = 'mysql',       # Choose from 'mysql' or 'postgresql'
+		DB_PASSWD     = 'password',    # DB root user password, please replace
+		INSTANCE_NAME = 'projectname', # This should be the project name
+		PROVIDER      = 'ec2_us_east', # use 'rackspace','ec2_us_east', or 'ec2_us_west'
+		SERVER_TYPE   = 'nginx',       # Choose from 'apache' or 'nginx'
+		VCS           = 'svn',         # Currently only svn works
+		VCS_TAGS      = 'tags',        # Could be 'tags' or 'branches' in svn
 
 		# these options shouldn't be set by user
-		HOME_DIR = HOME_DIR,
 		ENV_DIR  = '/srv/active/env/',
 		SRC_DIR  = '/srv/%s' % fabric.api.env.conf['INSTANCE_NAME'],
 		FILES    = os.path.join(os.path.dirname(__file__),'templates'),
-		USER     = user,
 	)
 	defaults.update(fabric.api.env.conf)
 	fabric.api.env.conf = defaults

@@ -26,6 +26,7 @@ PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or
 
 2. To set up your AWS account you must run the following::
 
+    $ fab generate_config
     $ fab go
 
 This sets up your config file, creates a default ec2 key file, authorizes port 22 with
@@ -53,7 +54,8 @@ Production
 
 Production is almost identical to development, except for the following::
 
-    $ fab go
+    $ fab generate_config
+    $ fab go:production
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
 

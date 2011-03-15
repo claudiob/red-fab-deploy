@@ -27,9 +27,6 @@ def go(stage="development",keyname='aws.ubuntu'):
 	ports on your ec2 instance.
 	"""
 
-	# Generate the config file
-	generate_config()
-
 	# Setup keys and authorize ports
 	ec2_create_key(keyname)
 	ec2_authorize_port('default','tcp','22')
@@ -50,13 +47,12 @@ def go_setup(stage="development"):
 	for name in PROVIDER['machines'][stage]: 
 		node_dict = PROVIDER['machines'][stage][name]
 		host = node_dict['public_ip'][0]
-	
 		if host == fabric.api.env.host:
 			prepare_server()
 			for service in node_dict['services']:
 				if service == 'nginx':
 					nginx_install()
-					nginx_setup()
+					nginx_setup(stage=stage)
 				elif service == 'uwsgi':
 					uwsgi_install()
 					uwsgi_setup()
