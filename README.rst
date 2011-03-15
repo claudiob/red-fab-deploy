@@ -11,6 +11,52 @@ and `cuisine <https://github.com/ff0000/cuisine/>`.
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
 
+Advanced AWS Setup
+==================
+
+Development
+***********
+
+There now exists a set of advanced tools for streamlining the setup of 
+cloud servers and project deployment.  Follow these steps:
+
+1. Ensure you have the following in your fabfile conf settings: INSTANCE_NAME,
+PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or 
+(RACKSPACE_USER, RACKSPACE_KEY).
+
+2. To set up your AWS account you must run the following::
+
+    $ fab go
+
+This sets up your config file, creates a default ec2 key file, authorizes port 22 with
+the default security group, and then deploys 1 development node server to your account.
+
+2. You must wait until all your instances have spawned before going further.  This could take 
+up to 5 minutes.
+
+3. To install all the correct software on your new development node run the following::
+
+    $ fab -i deploy/[your private SSH key here] set_hosts go_setup
+
+This will grab all the development node ip addresses, set them as hosts, and then run
+a software setup package on each of the servers based on the generated config file.
+
+4. Next you want to deploy to the development server by running the following::
+
+    $ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+
+This will put the trunk of your repo onto each machine with server software and make it active.
+Be aware that this will remove any current version of trunk that is currently deployed.
+
+Production
+**********
+
+Production is almost identical to development, except for the following::
+
+    $ fab go
+    $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
+    $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+
 Cloud Server Setup
 ==================
 

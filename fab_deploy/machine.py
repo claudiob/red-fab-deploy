@@ -22,10 +22,6 @@ from libcloud.types import Provider
 from libcloud.providers import get_driver
 import libcloud.security
 
-from fab_deploy.db import *
-from fab_deploy.server import *
-from fab_deploy.system import prepare_server
-
 #=== SSL Security
 
 libcloud.security.VERIFY_SSL_CERT = True
@@ -112,12 +108,12 @@ def write_conf(node_dict):
 	f.write(obj)
 	f.close()
 
-def generate_config(provider):
+def generate_config(provider='ec2_us_east'):
 	""" Generate a default json config file for your provider """
 	_provider_exists(provider)
 	if os.path.exists(CONF_FILE):
 		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (CONF_FILE), default=False):
-			fabric.api.abort(fabric.colors.red("Aborting conf generation."))
+			fabric.api.abort(fabric.colors.red("Aborting config file generation."))
 	
 	write_conf(PROVIDER_DICT[provider])
 
@@ -131,7 +127,7 @@ def _provider_exists(provider):
 	if provider not in PROVIDER_DICT.keys():
 		fabric.api.abort(fabric.colors.red('Provider "%s" is not available' % provider))
 
-def _get_provider_dict():
+def get_provider_dict():
 	""" Get the dictionary of provider settings """
 	return json.loads(open(CONF_FILE,'r').read())
 
@@ -171,16 +167,16 @@ def _get_connection():
 	driver = _get_driver(provider)
 	return driver(access_key,secret_key)
 
-def _stage_exists(stage):
+def stage_exists(stage):
 	""" Abort if provider does not exist """
-	PROVIDER = _get_provider_dict()
+	PROVIDER = get_provider_dict()
 	if stage not in PROVIDER['machines'].keys():
 		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
 
 def _get_stage_machines(stage):
 	""" Return a list of server names for stage """
-	_stage_exists(stage)
-	PROVIDER = _get_provider_dict()
+	stage_exists(stage)
+	PROVIDER = get_provider_dict()
 	return [name for name in PROVIDER['machines'][stage].keys()]
 
 #=== AWS Specific Code
@@ -328,7 +324,7 @@ def print_node_locations():
 
 def create_node(name, **kwargs):
 	""" Create a node server """
-	PROVIDER = _get_provider_dict()
+	PROVIDER = get_provider_dict()
 	keyname  = kwargs.get('keyname',None)
 	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
 	size     = kwargs.get('size','')
@@ -351,14 +347,14 @@ def create_node(name, **kwargs):
 
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
-	_stage_exists(stage)
+	stage_exists(stage)
 	if not keyname:
 		fabric.api.abort(fabric.colors.red("Must supply valid keyname."))
 
 	if not fabric.contrib.console.confirm("Do you wish to stage %s servers on %s with the following names: %s?" % (stage, _get_provider_name(), ', '.join(_get_stage_machines(stage))), default=False):
 		fabric.api.abort(fabric.colors.red("Aborting node deployment."))
 
-	PROVIDER = _get_provider_dict()
+	PROVIDER = get_provider_dict()
 	for name in PROVIDER['machines'][stage]:
 		node_dict = PROVIDER['machines'][stage][name]
 		if 'uuid' not in node_dict or not node_dict['uuid']:
@@ -375,7 +371,7 @@ def update_nodes():
 
 	# TODO: Should wait and restart if not updated
 
-	PROVIDER = _get_provider_dict()
+	PROVIDER = get_provider_dict()
 	for stage in PROVIDER['machines']:
 		for name in PROVIDER['machines'][stage]:
 			if 'uuid' in PROVIDER['machines'][stage][name]:
@@ -391,28 +387,3 @@ def update_nodes():
 
 	write_conf(PROVIDER)
 
-def setup_nodes(stage='development'):
-	_stage_exists(stage)
-
-	PROVIDER = _get_provider_dict()
-	for name in PROVIDER['machines'][stage]:
-		node_dict = PROVIDER['machines'][stage][name]
-		
-		user = 'ubuntu'
-		host = node_dict['public_ip'][0]
-		host_string = '%s@%s' % (user,host)
-	
-		if host == fabric.api.env.host:
-			prepare_server()
-			for service in node_dict['services']:
-				if service == 'nginx':
-					nginx_install()
-					nginx_setup()
-				elif service == 'uwsgi':
-					uwsgi_install()
-					uwsgi_setup()
-				elif service == 'mysql':
-					mysql_install()
-				elif service in ['apache','postgresql']:
-					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
-				

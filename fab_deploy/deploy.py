@@ -4,10 +4,13 @@ import fabric.api
 import fabric.colors
 import fabric.contrib
 
+from fab_deploy.db import *
 from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
-from fab_deploy.machine import (ec2_create_key,ec2_authorize_port,
+from fab_deploy.machine import (get_provider_dict, stage_exists,
+	ec2_create_key,ec2_authorize_port,
 	deploy_nodes,update_nodes,setup_nodes)
+from fab_deploy.server import *
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import detect_os, run_as
@@ -23,6 +26,9 @@ def go(stage="development",keyname='aws.ubuntu'):
 	ports on your ec2 instance.
 	"""
 
+	# Generate the config file
+	generate_config()
+
 	# Setup keys and authorize ports
 	ec2_create_key(keyname)
 	ec2_authorize_port('default','tcp','22')
@@ -30,49 +36,70 @@ def go(stage="development",keyname='aws.ubuntu'):
 	# Deploy the nodes for the given stage
 	deploy_nodes(stage,keyname)
 
-def go_start(stage="development",tagname="trunk"):
+def go_setup(stage="development"):
 	"""
-	Use this to setup the nodes, deploy the project, and start the webserver
+	Install the correct services on each machine
 	
-	$ fab -i deploy/[[ YOUR SSH KEY ]] set_hosts go_start
+    $ fab -i deploy/[your private SSH key here] set_hosts go_setup
 	"""
 	# Setup all the nodes
 	update_nodes()
-	setup_nodes(stage=stage)
-
-	# Deploy and start the project
-	# TODO: Only do this step on servers with nginx and uwsgi
-	deploy_project(tagname)
-	syncdb()
-	web_server_start()
-
-def deploy_full(tagname):
-	""" 
-	Prepares server, deploys a project with a given tag name, and then makes
-	that deployment the active deployment on the server.
-
-	This step is a convenience step and should only be called once when a server
-	is set up for the first time.
 	
-	Before running this command you'll want to run
-	fab_deploy.system.create_linux_account and set up an account.
+	stage_exists(stage)
+	PROVIDER = get_provider_dict()
+	for name in PROVIDER['machines'][stage]: 
+		node_dict = PROVIDER['machines'][stage][name]
+		host = node_dict['public_ip'][0]
 	
+		if host == fabric.api.env.host:
+			prepare_server()
+			for service in node_dict['services']:
+				if service == 'nginx':
+					nginx_install()
+					nginx_setup()
+				elif service == 'uwsgi':
+					uwsgi_install()
+					uwsgi_setup()
+				elif service == 'mysql':
+					mysql_install()
+				elif service in ['apache','postgresql']:
+					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
+
+def go_deploy(stage="development",tagname="trunk"):
 	"""
-	os_sys = detect_os()
-	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
-		fabric.api.abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
-	prepare_server()
-	deploy_project(tagname)
+	Deploy project and make active on any machine with server software
+	
+    $ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+	"""
+	stage_exists(stage)
+	PROVIDER = get_provider_dict()
+	for name in PROVIDER['machines'][stage]: 
+		node_dict = PROVIDER['machines'][stage][name]
+		host = node_dict['public_ip'][0]
+	
+		if host == fabric.api.env.host:
+			service = node_dict['services']
+			if list(set(['nginx','uwsgi','apache']) & set(node_dict['services'])):
+				deploy_full(tagname,force=True)
+				
+def deploy_full(tagname, force=False):
+	""" 
+	Deploys a project with a given tag name, and then makes
+	that deployment the active deployment on the server.
+	"""
+	deploy_project(tagname, force=force)
 	make_active(tagname)
 
 def deploy_project(tagname, force=False):
-	""" Deploys project on prepared server. """
+	""" 
+	Deploys a project with a given tag name. 
+	"""
 	make_src_dir()
 	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)
 	if fabric.contrib.files.exists(tag_dir):
 		if force:
 			fabric.api.warn(fabric.colors.yellow('Removing directory %s and all its contents.' % tag_dir))
-			fabric.api.sudo('rm -rf %s' % tag_dir)
+			fabric.api.run('rm -rf %s' % tag_dir)
 		else:
 			fabric.api.abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 

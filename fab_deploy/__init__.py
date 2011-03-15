@@ -5,7 +5,8 @@ from fab_deploy.machine import (generate_config,
 	print_nodes, print_node_images, print_node_sizes, print_node_locations,
 	create_node, deploy_nodes, update_nodes, setup_nodes)
 
-from fab_deploy.deploy import (deploy_full, deploy_project,
+from fab_deploy.deploy import (go, go_setup, go_deploy,
+	deploy_full, deploy_project,
 	make_src_dir, make_active, undeploy)
 
 from fab_deploy.virtualenv import (pip, pip_install, pip_update,
