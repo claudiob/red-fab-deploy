@@ -9,7 +9,7 @@ from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
 from fab_deploy.machine import (get_provider_dict, stage_exists,
 	ec2_create_key,ec2_authorize_port,
-	deploy_nodes,update_nodes,setup_nodes)
+	deploy_nodes,update_nodes)
 from fab_deploy.server import *
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import prepare_server
