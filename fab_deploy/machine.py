@@ -30,18 +30,31 @@ libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 #=== CONF Defaults
 CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
 
+SERVER = ['nginx','uwsgi']
+DB     = ['mysql',]
+
 #=== Cloud Defaults
 EC2_IMAGE = 'ami-9a8b79f3' # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
-		'dev1' : {'size':'m1.small',},
+		'dev1' : {
+			'services': SERVER + DB,
+			'size':'m1.small',},
 	},
 	'production' : {
 		# Use the Amazon Elastic Load Balancer
-		'web1' : {'size':'m1.small',},
-		'web2' : {'size':'m1.small',},
-		'dbs1' : {'size':'m1.small',},
-		'dbs2' : {'size':'m1.small',},
+		'web1' : {
+			'services': SERVER,
+			'size':'m1.small',},
+		'web2' : {
+			'services': SERVER,
+			'size':'m1.small',},
+		'dbs1' : {
+			'services': DB,
+			'size':'m1.small',},
+		'dbs2' : {
+			'services': DB,
+			'size':'m1.small',},
 	},
 }
 
@@ -61,14 +74,26 @@ PROVIDER_DICT = {
 		'location'   : '0',  # Rackspace has only one location
 		'machines'   : {
 			'development' : {
-				'dev1'  : {'size':'1',}, # 256MB  RAM, 10GB
+				'dev1'  : {
+					'services': SERVER + DB,
+					'size':'1',}, # 256MB  RAM, 10GB
 			},
 			'production' : {
-				'load1' : {'size':'2',}, # 512MB  RAM, 20GB
-				'web1'  : {'size':'2',}, # 512MB  RAM, 20GB
-				'web2'  : {'size':'2',}, # 512MB  RAM, 20GB
-				'dbs1'  : {'size':'3',}, # 1024MB RAM, 40GB
-				'dbs2'  : {'size':'3',}, # 1024MB RAM, 40GB
+				'load1' : {
+					'services': ['nginx'],
+					'size':'2',}, # 512MB  RAM, 20GB
+				'web1'  : {
+					'services': ['uwsgi'],
+					'size':'2',}, # 512MB  RAM, 20GB
+				'web2'  : {
+					'services': ['uwsgi'],
+					'size':'2',}, # 512MB  RAM, 20GB
+				'dbs1'  : {
+					'services': DB,
+					'size':'3',}, # 1024MB RAM, 40GB
+				'dbs2'  : {
+					'services': DB,
+					'size':'3',}, # 1024MB RAM, 40GB
 			},
 		},
 	},
@@ -348,8 +373,12 @@ def update_nodes():
 				uuid = PROVIDER['machines'][stage][name]['uuid']
 				for node in list_nodes():
 					if node.__dict__['uuid'] == uuid:
-						PROVIDER['machines'][stage][name].update(node.__dict__)
-						del PROVIDER['machines'][stage][name]['driver']
+						info = {
+							'id'         : node.__dict__['id'],
+							'private_ip' : node.__dict__['private_ip'],
+							'public_ip'  : node.__dict__['public_ip'],
+						}
+						PROVIDER['machines'][stage][name].update(info)
 
 	write_conf(PROVIDER)
 
