@@ -22,25 +22,19 @@ def uwsgi_install():
 
 def uwsgi_setup():
 	""" Setup uWSGI. """
-
-	fabric.api.sudo('mkdir -p /etc/uwsgi')
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')
 	fabric.api.sudo('touch /var/log/uwsgi/errors.log')
 	fabric.api.sudo('chown www-data:www-data -R /var/log/uwsgi')
 
-	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
-	unlink(uwsgi_file, use_sudo = True, silent=True)
-	if fabric.contrib.files.exists(uwsgi_file):
-		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
-	link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
-
-def uwsgi_start():
+def uwsgi_start(stage=''):
 	""" Start uwsgi sockets """
 	if not _uwsgi_is_installed():
 		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
 		return
 
-	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini')
+	if stage:
+		stage = '.%s' % stage
+	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini%s' % stage)
 	uwsgi_message('Start')
 
 def uwsgi_stop():
@@ -52,10 +46,10 @@ def uwsgi_stop():
 	fabric.api.sudo('pkill -9 uwsgi')
 	uwsgi_message('Stop')
 
-def uwsgi_restart():
+def uwsgi_restart(stage=''):
 	""" Restarts the uwsgi sockets """
 	uwsgi_stop()
-	uwsgi_start()
+	uwsgi_start(stage=stage)
 	uwsgi_message('Restarted')
 
 def uwsgi_message(message):

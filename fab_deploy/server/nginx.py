@@ -22,15 +22,16 @@ def nginx_install():
 	fabric.api.sudo('add-apt-repository ppa:nginx/stable')
 	package_update()
 	package_install(['nginx','libxml2','libxml2-dev'], options.get(os,''))
-	#run('rm -f /etc/nginx/sites-enabled/default')
 
-def nginx_setup():
+def nginx_setup(stage=''):
 	""" Setup nginx. """
 	nginx_file = '/etc/nginx/nginx.conf'
-	unlink(nginx_file,use_sudo=True,silent=True)
 	if fabric.contrib.files.exists(nginx_file):
 		fabric.api.sudo('mv %s %s.bkp' % (nginx_file,nginx_file))
-	link('/srv/active/deploy/nginx.conf',nginx_file,use_sudo=True)
+	if stage:
+		stage = '.%s' % stage
+	link('/srv/active/deploy/nginx.conf%s' % stage, dest=nginx_file,
+		use_sudo=True, do_unlink=True, silent=True)
 
 def nginx_service(command):
 	""" Run a nginx service """
