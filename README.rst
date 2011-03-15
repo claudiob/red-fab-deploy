@@ -5,11 +5,34 @@ django-fab-deploy: django deployment tool
 red-fab-deploy is a collection of Fabric scripts for deploying and
 managing django projects on Debian/Ubuntu servers. License is MIT.
 
+This project is specifically targeted at deploying websites built using
+the `pypeton <https://github.com/ff0000/pypeton>` project creation tool.
+Basically this means you must follow the same folder and file layout as
+found in that tool.
+
 This project was inspired by `django-fab-deploy <http://packages.python.org/django-fab-deploy>`
 and `cuisine <https://github.com/ff0000/cuisine/>`.
 
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
+
+Important Notes
+===============
+
+Configuration files for apache, nginx, and uwsgi must follow a very common naming
+convention.  These files all should be found in the /deploy/ folder in side of
+the project.  Simply put, the files must end in '.<stage>', where <stage> can be
+'production, 'staging', or 'development'.  You can choose the names of your stages
+for your individual project, but they must conform to the stages found in the 
+generated config file.
+
+For example, the nginx.conf file for production will be named 'nginx.conf.production',
+whereas the nginx.conf file for development will be named 'nginx.conf.development'.
+If these two files are the same then it's recommended that you write one file named
+'nginx.conf' and check in symlinks 'nginx.conf.<stage>' into the same folder.
+
+Following this convention will make deployment much less of a hassle and hopefully
+will prevent the need to log into the servers.
 
 Advanced AWS Setup
 ==================
@@ -58,6 +81,10 @@ Production is almost identical to development, except for the following::
     $ fab go:production
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+
+NOTE: If you already have generated a config for deployment DO NOT generate another config file.
+This is very important as you may overwrite the original and lose the information you have inside
+of it.  Furthermore, you'll want to check in the config file into your repository.
 
 Cloud Server Setup
 ==================
