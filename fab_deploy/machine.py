@@ -374,12 +374,12 @@ def update_nodes():
 	PROVIDER = get_provider_dict()
 	for stage in PROVIDER['machines']:
 		for name in PROVIDER['machines'][stage]:
-			if 'uuid' in PROVIDER['machines'][stage][name]:
-				uuid = PROVIDER['machines'][stage][name]['uuid']
+			if 'id' in PROVIDER['machines'][stage][name]:
+				id = PROVIDER['machines'][stage][name]['id']
 				for node in list_nodes():
-					if node.__dict__['uuid'] == uuid:
+					if node.__dict__['id'] == id:
 						info = {
-							'id'         : node.__dict__['id'],
+							'uuid'       : node.__dict__['uuid'],
 							'private_ip' : node.__dict__['private_ip'],
 							'public_ip'  : node.__dict__['public_ip'],
 						}
