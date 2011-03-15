@@ -1,4 +1,5 @@
 import os.path
+import time
 
 import fabric.api
 import fabric.colors
@@ -7,7 +8,7 @@ import fabric.contrib
 from fab_deploy.db import *
 from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
-from fab_deploy.machine import (get_provider_dict, stage_exists,
+from fab_deploy.machine import (generate_config, get_provider_dict, stage_exists,
 	ec2_create_key,ec2_authorize_port,
 	deploy_nodes,update_nodes)
 from fab_deploy.server import *
@@ -35,16 +36,15 @@ def go(stage="development",keyname='aws.ubuntu'):
 
 	# Deploy the nodes for the given stage
 	deploy_nodes(stage,keyname)
-
+	time.sleep(30)
+	update_nodes()
+	
 def go_setup(stage="development"):
 	"""
 	Install the correct services on each machine
 	
     $ fab -i deploy/[your private SSH key here] set_hosts go_setup
 	"""
-	# Setup all the nodes
-	update_nodes()
-	
 	stage_exists(stage)
 	PROVIDER = get_provider_dict()
 	for name in PROVIDER['machines'][stage]: 
