@@ -9,6 +9,7 @@ Ubuntu 10.4 image sizes:
 	http://uec-images.ubuntu.com/lucid/current/
 """
 
+import json
 from pprint import pprint
 import os
 
@@ -26,18 +27,21 @@ import libcloud.security
 libcloud.security.VERIFY_SSL_CERT = True
 libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 
+#=== CONF Defaults
+CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
+
 #=== Cloud Defaults
 EC2_IMAGE = 'ami-9a8b79f3' # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
-		'dev1' : 'm1.small',
+		'dev1' : {'size':'m1.small',},
 	},
 	'production' : {
 		# Use the Amazon Elastic Load Balancer
-		'web1' : 'm1.small',
-		'web2' : 'm1.small',
-		'dbs1' : 'm1.small',
-		'dbs2' : 'm1.small',
+		'web1' : {'size':'m1.small',},
+		'web2' : {'size':'m1.small',},
+		'dbs1' : {'size':'m1.small',},
+		'dbs2' : {'size':'m1.small',},
 	},
 }
 
@@ -57,18 +61,36 @@ PROVIDER_DICT = {
 		'location'   : '0',  # Rackspace has only one location
 		'machines'   : {
 			'development' : {
-				'dev1'  : '1', # 256MB  RAM, 10GB
+				'dev1'  : {'size':'1',}, # 256MB  RAM, 10GB
 			},
 			'production' : {
-				'load1' : '2', # 512MB  RAM, 20GB
-				'web1'  : '2', # 512MB  RAM, 20GB
-				'web2'  : '2', # 512MB  RAM, 20GB
-				'dbs1'  : '3', # 1024MB RAM, 40GB
-				'dbs2'  : '3', # 1024MB RAM, 40GB
+				'load1' : {'size':'2',}, # 512MB  RAM, 20GB
+				'web1'  : {'size':'2',}, # 512MB  RAM, 20GB
+				'web2'  : {'size':'2',}, # 512MB  RAM, 20GB
+				'dbs1'  : {'size':'3',}, # 1024MB RAM, 40GB
+				'dbs2'  : {'size':'3',}, # 1024MB RAM, 40GB
 			},
 		},
 	},
 }
+
+#=== Conf File
+
+def write_conf(node_dict):
+	""" Overwrite the conf file with dictionary values """
+	obj = json.dumps(node_dict, sort_keys=True, indent=4)
+	f = open(CONF_FILE,'w')
+	f.write(obj)
+	f.close()
+
+def generate_config(provider):
+	""" Generate a default json config file for your provider """
+	_provider_exists(provider)
+	if os.path.exists(CONF_FILE):
+		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (CONF_FILE), default=False):
+			fabric.api.abort(fabric.colors.red("Aborting conf generation."))
+	
+	write_conf(PROVIDER_DICT[provider])
 
 #=== Private Methods
 
@@ -80,10 +102,9 @@ def _provider_exists(provider):
 	if provider not in PROVIDER_DICT.keys():
 		fabric.api.abort(fabric.colors.red('Provider "%s" is not available' % provider))
 
-def _get_provider_dict(provider):
+def _get_provider_dict():
 	""" Get the dictionary of provider settings """
-	_provider_exists(provider)
-	return PROVIDER_DICT[provider]
+	return json.loads(open(CONF_FILE,'r').read())
 
 def _get_driver(provider):
 	""" Get the driver for the given provider """
@@ -123,18 +144,15 @@ def _get_connection():
 
 def _stage_exists(stage):
 	""" Abort if provider does not exist """
-	PROVIDER = _get_provider_dict(_get_provider_name())
+	PROVIDER = _get_provider_dict()
 	if stage not in PROVIDER['machines'].keys():
 		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
-
-def _get_machine_name(machine):
-	return '%s-%s' % (fabric.api.env.conf['INSTANCE_NAME'],machine)
 
 def _get_stage_machines(stage):
 	""" Return a list of server names for stage """
 	_stage_exists(stage)
-	PROVIDER = _get_provider_dict(_get_provider_name())
-	return [_get_machine_name(name) for name in PROVIDER['machines'][stage].keys()]
+	PROVIDER = _get_provider_dict()
+	return [name for name in PROVIDER['machines'][stage].keys()]
 
 #=== AWS Specific Code
 
@@ -281,7 +299,7 @@ def print_node_locations():
 
 def create_node(name, **kwargs):
 	""" Create a node server """
-	PROVIDER = _get_provider_dict(_get_provider_name())
+	PROVIDER = _get_provider_dict()
 	keyname  = kwargs.get('keyname',None)
 	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
 	size     = kwargs.get('size','')
@@ -300,6 +318,7 @@ def create_node(name, **kwargs):
     #   _get_connection().ex_create_tags(node,tags)
 
 	print fabric.colors.green('Node %s successfully created' % name)
+	return node
 
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
@@ -307,12 +326,30 @@ def deploy_nodes(stage='development',keyname=None):
 	if not fabric.contrib.console.confirm("Do you wish to stage %s servers on %s with the following names: %s?" % (stage, _get_provider_name(), ', '.join(_get_stage_machines(stage))), default=False):
 		fabric.api.abort(fabric.colors.red("Aborting node deployment."))
 
-	PROVIDER = _get_provider_dict(_get_provider_name())
-	if stage not in PROVIDER['machines']:
-		fabric.api.abort(fabric.colors.red('Staging settings for %s are not available' % stage))
-	
+	PROVIDER = _get_provider_dict()
 	for name in PROVIDER['machines'][stage]:
-		size  = get_node_size(PROVIDER['machines'][stage][name])
-		name = _get_machine_name(name)
-		create_node(name,keyname=keyname,size=size)
+		node_dict = PROVIDER['machines'][stage][name]
+		if 'uuid' not in node_dict or not node_dict['uuid']:
+			size  = get_node_size(node_dict['size'])
+			node = create_node(name,keyname=keyname,size=size)
+			node_dict.update({'uuid' : node.uuid,})
+			PROVIDER['machines'][stage][name] = node_dict
+		else:
+			fabric.api.warn(fabric.colors.yellow("%s machine %s already exists" % (stage,name)))
+	
+	write_conf(PROVIDER)
+
+def update_nodes():
+
+	PROVIDER = _get_provider_dict()
+	for stage in PROVIDER['machines']:
+		for name in PROVIDER['machines'][stage]:
+			if 'uuid' in PROVIDER['machines'][stage][name]:
+				uuid = PROVIDER['machines'][stage][name]['uuid']
+				for node in list_nodes():
+					if node.__dict__['uuid'] == uuid:
+						PROVIDER['machines'][stage][name].update(node.__dict__)
+						del PROVIDER['machines'][stage][name]['driver']
+
+	write_conf(PROVIDER)
 
