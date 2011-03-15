@@ -6,25 +6,43 @@ import fabric.contrib
 
 from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
-from fab_deploy.machine import deploy_nodes,ec2_create_key,ec2_authorize_port
+from fab_deploy.machine import (ec2_create_key,ec2_authorize_port,
+	deploy_nodes,update_nodes,setup_nodes)
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
-def go(stage="development",tagname="trunk",keyname='aws.ubuntu'):
-	""" A convenience method to deploy everything to run a project """
+def go(stage="development",keyname='aws.ubuntu'):
+	""" 
+	A convenience method to prepare AWS servers.
+	
+	Use this to create keys, authorize ports, and deploy nodes.
+	DO NOT use this step if you've already created keys and opened
+	ports on your ec2 instance.
+	"""
 
+	# Setup keys and authorize ports
 	ec2_create_key(keyname)
 	ec2_authorize_port('default','tcp','22')
-	ec2_authorize_port('default','tcp','80')
+
+	# Deploy the nodes for the given stage
 	deploy_nodes(stage,keyname)
-	deploy_full(tagname)
-	web_server_setup()
-	mysql_install()
-	mysql_create_user()
-	mysql_create_db()
+
+def go_start(stage="development",tagname="trunk"):
+	"""
+	Use this to setup the nodes, deploy the project, and start the webserver
+	
+	$ fab -i deploy/[[ YOUR SSH KEY ]] set_hosts go_start
+	"""
+	# Setup all the nodes
+	update_nodes()
+	setup_nodes(stage=stage)
+
+	# Deploy and start the project
+	# TODO: Only do this step on servers with nginx and uwsgi
+	deploy_project(tagname)
 	syncdb()
 	web_server_start()
 
@@ -47,7 +65,7 @@ def deploy_full(tagname):
 	deploy_project(tagname)
 	make_active(tagname)
 
-def deploy_project(tagname, force = False):
+def deploy_project(tagname, force=False):
 	""" Deploys project on prepared server. """
 	make_src_dir()
 	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)

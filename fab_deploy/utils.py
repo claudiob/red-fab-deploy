@@ -85,14 +85,10 @@ def update_env():
 		fabric.api.env.conf['INSTANCE_NAME'] = user
 
 	defaults = fabric.state._AttributeDict(
-		DB           = 'mysql', # Choose from 'mysql' or 'postgresql'
-		PROCESSES    = 1,
-		PROVIDER     = 'rackspace',
-		SERVER_ADMIN = 'example@example.com',
-		SERVER_NAME  = host,
-		SERVER_TYPE  = 'nginx', # Choose from 'apache' or 'nginx'
-		SRV_INT      = host,
-		THREADS      = 15,
+		DB           = 'mysql',     # Choose from 'mysql' or 'postgresql'
+		DB_PASSWD    = 'password',  # DB root user password, please replace
+		PROVIDER     = 'rackspace', # use 'rackspace','ec2_us_east', or 'ec2_us_west'
+		SERVER_TYPE  = 'nginx',     # Choose from 'apache' or 'nginx'
 		VCS          = 'svn',
 		VCS_TAGS     = 'tags',
 
@@ -106,12 +102,8 @@ def update_env():
 	defaults.update(fabric.api.env.conf)
 	fabric.api.env.conf = defaults
 
-	for db in ['mysql','postgresql']: # expand DB name to full import path
-		if fabric.api.env.conf.DB == db:
-			fabric.api.env.conf.DB = 'fab_deploy.db.%s' % db
-			break
-
-	for vcs in ['svn','tar']: # expand VCS name to full import path
+	# expand VCS name to full import path
+	for vcs in ['svn','tar']: 
 		if fabric.api.env.conf.VCS == vcs:
 			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
 			break

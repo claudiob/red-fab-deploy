@@ -52,6 +52,7 @@ def install_common_software():
 		'libcurl3-dev',
 		'libjpeg-dev',
 		'libssl-dev',
+		'ntp',
 		'psmisc',
 		'python2.6',
 		'python2.6-dev',

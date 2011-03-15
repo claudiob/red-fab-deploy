@@ -38,7 +38,6 @@ These steps will help you deploy cloud servers:
 5. You cannot get ssh access unless you add ports to the default security group::
 
     fab ec2_authorize_port:"default,tcp,22"
-    fab ec2_authorize_port:"default,tcp,80"
 
 6. To deploy development or production nodes run one of the following commands::
 

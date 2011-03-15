@@ -22,6 +22,10 @@ from libcloud.types import Provider
 from libcloud.providers import get_driver
 import libcloud.security
 
+from fab_deploy.db import *
+from fab_deploy.server import *
+from fab_deploy.system import prepare_server
+
 #=== SSL Security
 
 libcloud.security.VERIFY_SSL_CERT = True
@@ -348,6 +352,9 @@ def create_node(name, **kwargs):
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
 	_stage_exists(stage)
+	if not keyname:
+		fabric.api.abort(fabric.colors.red("Must supply valid keyname."))
+
 	if not fabric.contrib.console.confirm("Do you wish to stage %s servers on %s with the following names: %s?" % (stage, _get_provider_name(), ', '.join(_get_stage_machines(stage))), default=False):
 		fabric.api.abort(fabric.colors.red("Aborting node deployment."))
 
@@ -366,6 +373,8 @@ def deploy_nodes(stage='development',keyname=None):
 
 def update_nodes():
 
+	# TODO: Should wait and restart if not updated
+
 	PROVIDER = _get_provider_dict()
 	for stage in PROVIDER['machines']:
 		for name in PROVIDER['machines'][stage]:
@@ -382,3 +391,28 @@ def update_nodes():
 
 	write_conf(PROVIDER)
 
+def setup_nodes(stage='development'):
+	_stage_exists(stage)
+
+	PROVIDER = _get_provider_dict()
+	for name in PROVIDER['machines'][stage]:
+		node_dict = PROVIDER['machines'][stage][name]
+		
+		user = 'ubuntu'
+		host = node_dict['public_ip'][0]
+		host_string = '%s@%s' % (user,host)
+	
+		if host == fabric.api.env.host:
+			prepare_server()
+			for service in node_dict['services']:
+				if service == 'nginx':
+					nginx_install()
+					nginx_setup()
+				elif service == 'uwsgi':
+					uwsgi_install()
+					uwsgi_setup()
+				elif service == 'mysql':
+					mysql_install()
+				elif service in ['apache','postgresql']:
+					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
+				

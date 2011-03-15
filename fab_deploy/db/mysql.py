@@ -25,7 +25,11 @@ def mysql_install():
 	package_install('debconf-utils')
 	
 	# get the password
-	passwd = fabric.api.prompt('Please enter MySQL root password:')
+	passwd = ''
+	if 'DB_PASSWD' in fabric.api.env.conf:
+		passwd = fabric.api.env.conf['DB_PASSWD']
+	else:
+		passwd = fabric.api.prompt('Please enter MySQL root password:')
 	
 	# get the correct version for installation
 	mysql_versions = {

@@ -3,7 +3,7 @@ from fab_deploy.machine import (generate_config,
 	ec2_create_key, ec2_authorize_port,
 	print_node, print_node_image, print_node_size, print_node_location,
 	print_nodes, print_node_images, print_node_sizes, print_node_locations,
-	create_node, deploy_nodes, update_nodes)
+	create_node, deploy_nodes, update_nodes, setup_nodes)
 
 from fab_deploy.deploy import (deploy_full, deploy_project,
 	make_src_dir, make_active, undeploy)

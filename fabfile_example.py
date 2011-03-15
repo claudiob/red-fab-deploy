@@ -3,6 +3,8 @@ fab deployment script
 ====================================
 
 """
+import json
+
 from fabric.api import *
 from fabric.contrib.project import *
 
@@ -46,6 +48,19 @@ def my_site():
 	}
 
 my_site()
+
+#--- Set all available hosts
+def set_hosts(stage='development'): 
+    hosts = []
+    PROVIDER = json.loads(open('fabric.conf','r').read()) 
+    if stage in PROVIDER['machines']:
+        for name in PROVIDER['machines'][stage]: 
+            node_dict = PROVIDER['machines'][stage][name]
+            public_ip = node_dict['public_ip']
+            for ip in public_ip:            
+                hosts.append('ubuntu@%s' % ip)  
+    env.hosts = hosts
+    update_env()
 
 #--- Roledefs
 def devservers():
