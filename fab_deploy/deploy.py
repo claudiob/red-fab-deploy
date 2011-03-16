@@ -1,27 +1,87 @@
 import os.path
+import time
 
 import fabric.api
 import fabric.colors
 import fabric.contrib
 
+from fab_deploy.db import *
+from fab_deploy.django_commands import syncdb
 from fab_deploy.file import link, unlink
-from fab_deploy.server import web_server_stop
+from fab_deploy.machine import (generate_config, get_provider_dict, stage_exists,
+	ec2_create_key, ec2_authorize_port,
+	deploy_nodes, update_nodes)
+from fab_deploy.server import *
+from fab_deploy.server import web_server_setup, web_server_start, web_server_stop
 from fab_deploy.system import prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
-def deploy_full(tagname):
+def go(stage = "development", keyname = 'aws.ubuntu'):
 	""" 
-	Prepares server, deploys a project with a given tag name, and then makes
-	that deployment the active deployment on the server.
+	A convenience method to prepare AWS servers.
+	
+	Use this to create keys, authorize ports, and deploy nodes.
+	DO NOT use this step if you've already created keys and opened
+	ports on your ec2 instance.
+	"""
 
-	This step is a convenience step and should only be called once when a server
-	is set up for the first time.
+	# Setup keys and authorize ports
+	ec2_create_key(keyname)
+	ec2_authorize_port('default', 'tcp', '22')
+
+	# Deploy the nodes for the given stage
+	deploy_nodes(stage, keyname)
+	time.sleep(30)
+	update_nodes()
+
+def go_setup(stage = "development"):
+	"""
+	Install the correct services on each machine
 	
-	Before running this command you'll want to run
-	fab_deploy.system.create_linux_account and set up an account.
+    $ fab -i deploy/[your private SSH key here] set_hosts go_setup
+	"""
+	stage_exists(stage)
+	PROVIDER = get_provider_dict()
+	for name in PROVIDER['machines'][stage]:
+		node_dict = PROVIDER['machines'][stage][name]
+		host = node_dict['public_ip'][0]
+		if host == fabric.api.env.host:
+			prepare_server()
+			for service in node_dict['services']:
+				if service == 'nginx':
+					nginx_install()
+					nginx_setup(stage = stage)
+				elif service == 'uwsgi':
+					uwsgi_install()
+					uwsgi_setup()
+				elif service == 'mysql':
+					mysql_install()
+				elif service in ['apache', 'postgresql']:
+					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
+
+def go_deploy(stage = "development", tagname = "trunk"):
+	"""
+	Deploy project and make active on any machine with server software
 	
+    $ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+	"""
+	stage_exists(stage)
+	PROVIDER = get_provider_dict()
+	for name in PROVIDER['machines'][stage]:
+		node_dict = PROVIDER['machines'][stage][name]
+		host = node_dict['public_ip'][0]
+
+		if host == fabric.api.env.host:
+			service = node_dict['services']
+			if list(set(['nginx', 'uwsgi', 'apache']) & set(node_dict['services'])):
+				deploy_full(tagname, force = True)
+
+def deploy_full(tagname, force = False):
+	""" 
+	Deploys a project with a given tag name, and then makes
+	that deployment the active deployment on the server.
 	"""
 	os_sys = detect_os()
 	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
@@ -37,7 +97,7 @@ def deploy_project(tagname, force = False):
 	if fabric.contrib.files.exists(tag_dir):
 		if force:
 			fabric.api.warn(fabric.colors.yellow('Removing directory %s and all its contents.' % tag_dir))
-			fabric.api.sudo('rm -rf %s' % tag_dir)
+			fabric.api.run('rm -rf %s' % tag_dir)
 		else:
 			fabric.api.abort(fabric.colors.red('Tagged directory already exists: %s' % tagname))
 

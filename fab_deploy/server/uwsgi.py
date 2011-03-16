@@ -1,4 +1,5 @@
 import fabric.api
+import fabric.contrib
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
@@ -12,18 +13,11 @@ def _uwsgi_is_installed():
 
 def uwsgi_install():
 	""" Install uWSGI. """
-	#if _uwsgi_is_installed():
-	#	fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
-	#	return
+	if _uwsgi_is_installed():
+		fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
+		return
 
-	os = detect_os()
-	options = {'lenny': '-t lenny-backports'}
-
-	#fabric.api.sudo('add-apt-repository ppa:uwsgi/release')
-	#package_update()
-	#package_install('uwsgi', options.get(os,''))
-
-	package_install('libxml2-dev')
+	package_install('libxml2','libxml2-dev')
 	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
 def uwsgi_setup():
@@ -49,22 +43,30 @@ def uwsgi_setup():
 def uwsgi_service(command):
 	""" Run a uWSGI service """
 	if not _uwsgi_is_installed():
-		fabric.api.abort(fabric.colors.yellow('uWSGI must be installed'))
+		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
 		return
 	service('uwsgi', command)
 	uwsgi_message(command)
 
-def uwsgi_start():
-	""" Start uwsgi sockets """
-	uwsgi_service('start')
+	if stage:
+		stage = '.%s' % stage
+	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini%s' % stage)
+	uwsgi_message('Start')
 
 def uwsgi_stop():
 	""" Stop uwsgi sockets """
-	uwsgi_service('stop')
+	if not _uwsgi_is_installed():
+		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
+		return
 
-def uwsgi_restart():
+	fabric.api.sudo('pkill -9 uwsgi')
+	uwsgi_message('Stop')
+
+def uwsgi_restart(stage=''):
 	""" Restarts the uwsgi sockets """
-	uwsgi_service('restart')
+	uwsgi_stop()
+	uwsgi_start(stage=stage)
+	uwsgi_message('Restarted')
 
 def uwsgi_message(message):
 	""" Print a uWSGI message """

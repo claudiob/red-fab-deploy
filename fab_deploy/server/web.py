@@ -7,24 +7,24 @@ from fab_deploy.server.nginx import (nginx_install, nginx_setup,
 from fab_deploy.server.uwsgi import (uwsgi_install, uwsgi_setup,
 	uwsgi_start, uwsgi_stop, uwsgi_restart, )
 
-def web_server_setup():
+def web_server_setup(stage=''):
 	""" Sets up a web server. """
 	if fabric.api.env.conf['SERVER_TYPE'] == 'apache':
 		apache_install()
 		apache_setup()
 	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':
 		nginx_install()
-		nginx_setup()
+		nginx_setup(stage=stage)
 		uwsgi_install()
 		uwsgi_setup()
 
-def web_server_start():
+def web_server_start(stage=''):
 	""" Starts up a web server. """
 	if fabric.api.env.conf['SERVER_TYPE'] == 'apache':
 		apache_start()
 	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':	
 		nginx_start()
-		uwsgi_start()
+		uwsgi_start(stage=stage)
 
 def web_server_stop():
 	""" Stops the web server. """
@@ -42,10 +42,10 @@ def web_server_restart():
 		nginx_restart()
 		uwsgi_restart()
 
-def web_server_touch():
+def web_server_touch(stage=''):
 	""" Touches the web server causing reload. """
 	if fabric.api.env.conf['SERVER_TYPE'] == 'apache':
 		apache_touch_wsgi()
 	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':
-		uwsgi_restart()
+		uwsgi_restart(stage=stage)
 

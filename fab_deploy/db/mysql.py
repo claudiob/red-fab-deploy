@@ -25,7 +25,11 @@ def mysql_install():
 	package_install('debconf-utils')
 	
 	# get the password
-	passwd = fabric.api.runprompt('Please enter MySQL root password:')
+	passwd = ''
+	if 'DB_PASSWD' in fabric.api.env.conf:
+		passwd = fabric.api.env.conf['DB_PASSWD']
+	else:
+		passwd = fabric.api.prompt('Please enter MySQL root password:')
 	
 	# get the correct version for installation
 	mysql_versions = {
@@ -41,9 +45,9 @@ def mysql_install():
 		"mysql-server-%s mysql-server/root_password_again password %s" % (version,passwd),
 	]
 
-	fabric.api.run("echo '%s' | debconf-set-selections" % "\n".join(debconf_defaults))
+	fabric.api.sudo("echo '%s' | debconf-set-selections" % "\n".join(debconf_defaults))
 
-	fabric.api.runwarn(fabric.colors.yellow('The password for mysql "root" user will be set to "%s"' % passwd))
+	fabric.api.warn(fabric.colors.yellow('The password for mysql "root" user will be set to "%s"' % passwd))
 
 	common_packages = [
 		'automysqlbackup',
@@ -69,25 +73,25 @@ def mysql_create_db():
 	"""
 	Creates an empty mysql database. 
 	"""
-	user     = fabric.api.runprompt('Please enter username:')
-	database = fabric.api.runprompt('Please enter database name:')
+	user     = fabric.api.prompt('Please enter username:')
+	database = fabric.api.prompt('Please enter database name:')
 	
 	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
 	mysql_execute('CREATE DATABASE %s %s;' % (database, params), user)
 
 def mysql_create_user():
 	""" Create a new mysql user. """
-	user         = fabric.api.runprompt('Please enter username:')
-	new_user     = fabric.api.runprompt('Please enter new username:')
-	new_password = fabric.api.runprompt('Please enter new password for %s:' % new_user)
+	user         = fabric.api.prompt('Please enter username:')
+	new_user     = fabric.api.prompt('Please enter new username:')
+	new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
 
 	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";""" % 
 		(new_user, new_password), user)
 
 def mysql_drop_user():
 	""" Drop a mysql user. """
-	user      = fabric.api.runprompt('Please enter username:')
-	drop_user = fabric.api.runprompt('Please enter username to drop:')
+	user      = fabric.api.prompt('Please enter username:')
+	drop_user = fabric.api.prompt('Please enter username to drop:')
 
 	mysql_execute("DROP USER %s;" % (drop_user), user)
 
@@ -97,17 +101,21 @@ def mysql_dump():
 	fabric.api.run('mkdir -p %s' % dir)
 	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
 	
-	user     = fabric.api.runprompt('Please enter username:')
-	database = fabric.api.runprompt('Please enter database name:')
+	user     = fabric.api.prompt('Please enter username:')
+	database = fabric.api.prompt('Please enter database name:')
 	
-	run('mysqldump -u%s -p %s > %s' % (user, database,
+	fabric.api.run('mysqldump -u%s -p %s > %s' % (user, database,
 		os.path.join(dir, '%s-%s.sql' % (database, now))))
 
 def mysql_load(filename):
 	""" Load MySQL Database with 'mysql DATABASENAME < filename.sql' """
-	user     = fabric.api.runprompt('Please enter username:')
-	database = fabric.api.runprompt('Please enter database name:')
-	run('mysql %s -u%s -p < %s' % (database, user, filename))
+	user     = fabric.api.prompt('Please enter username:')
+	database = fabric.api.prompt('Please enter database name:')
+	fabric.api.run('mysql %s -u%s -p < %s' % (database, user, filename))
+
+def list_sql_files():
+	""" List available sql files in active project """
+	fabric.api.run('ls /srv/active/sql')
 
 def mysql_backup():
 	""" Backup the database """

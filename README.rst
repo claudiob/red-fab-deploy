@@ -5,47 +5,145 @@ django-fab-deploy: django deployment tool
 red-fab-deploy is a collection of Fabric scripts for deploying and
 managing django projects on Debian/Ubuntu servers. License is MIT.
 
+This project is specifically targeted at deploying websites built using
+the `pypeton <https://github.com/ff0000/pypeton>` project creation tool.
+Basically this means you must follow the same folder and file layout as
+found in that tool.
+
 This project was inspired by `django-fab-deploy <http://packages.python.org/django-fab-deploy>`
 and `cuisine <https://github.com/ff0000/cuisine/>`.
 
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
 
+Important Notes
+===============
+
+Configuration files for apache, nginx, and uwsgi must follow a very common naming
+convention.  These files all should be found in the /deploy/ folder in side of
+the project.  Simply put, the files must end in '.<stage>', where <stage> can be
+'production, 'staging', or 'development'.  You can choose the names of your stages
+for your individual project, but they must conform to the stages found in the 
+generated config file.
+
+For example, the nginx.conf file for production will be named 'nginx.conf.production',
+whereas the nginx.conf file for development will be named 'nginx.conf.development'.
+If these two files are the same then it's recommended that you write one file named
+'nginx.conf' and check in symlinks 'nginx.conf.<stage>' into the same folder.
+
+Following this convention will make deployment much less of a hassle and hopefully
+will prevent the need to log into the servers.
+
+Advanced AWS Setup
+==================
+
+Development
+***********
+
+There now exists a set of advanced tools for streamlining the setup of 
+cloud servers and project deployment.  Follow these steps:
+
+1. Ensure you have the following in your fabfile conf settings: INSTANCE_NAME,
+PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or 
+(RACKSPACE_USER, RACKSPACE_KEY).
+
+2. To set up your AWS account you must run the following::
+
+    $ fab generate_config
+    $ fab go
+
+This sets up your config file, creates a default ec2 key file, authorizes port 22 with
+the default security group, and then deploys 1 development node server to your account.
+
+2. You must wait until all your instances have spawned before going further.  This could take 
+up to 5 minutes.
+
+3. To install all the correct software on your new development node run the following::
+
+    $ fab -i deploy/[your private SSH key here] set_hosts go_setup
+
+This will grab all the development node ip addresses, set them as hosts, and then run
+a software setup package on each of the servers based on the generated config file.
+
+4. Next you want to deploy to the development server by running the following::
+
+    $ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+
+This will put the trunk of your repo onto each machine with server software and make it active.
+Be aware that this will remove any current version of trunk that is currently deployed.
+
+Production
+**********
+
+Production is almost identical to development, except for the following::
+
+    $ fab generate_config
+    $ fab go:production
+    $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
+    $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+
+NOTE: If you already have generated a config for deployment DO NOT generate another config file.
+This is very important as you may overwrite the original and lose the information you have inside
+of it.  Furthermore, you'll want to check in the config file into your repository.
+
 Cloud Server Setup
 ==================
+
+Amazon Deployment
+*****************
 
 These steps will help you deploy cloud servers:
 
 1. Currently you can deploy to either rackspace or amazon cloud servers using
    libcloud.  In your env.conf place the following::
 
-   PROVIDER = 'rackspace' # or 'amazon'
+    PROVIDER = 'amazon'
 
-2. If you are using Amazon put the following in your env.conf::
+2. Place the access keys in your env.conf::
 
-       AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
-       AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
-
-    If you are using Rackspace put the following in your env.conf::
-
-       RACKSPACE_USER = 'yourrackspaceclouduser',
-       RACKSPACE_KEY  = 'yourrackspacecloudkey',
+    AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
+    AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
 
 3. You can now run any commands to get information your your cloud servers.
 
-4. If you are deploying on amazon you need to run the following before you deploy::
+4. When deploying on amazon you must create a security key::
 
-   fab ec2_create_key:"yourkeyname"
+    fab ec2_create_key:"yourkeyname"
 
-5. To deploy a development node run the following command::
+5. You cannot get ssh access unless you add ports to the default security group::
 
-        fab deploy_nodes:"development"
-    
-    or for production::
+    fab ec2_authorize_port:"default,tcp,22"
 
-        fab deploy_nodes:"production"
+6. To deploy development or production nodes run one of the following commands::
 
-6. Your cloud servers should now be operational.
+    fab deploy_nodes:"development"
+    fab deploy_nodes:"production"
+
+7. Your cloud servers should now be operational.
+
+Rackspace Deployment
+********************
+
+These steps will help you deploy cloud servers:
+
+1. Currently you can deploy to either rackspace or amazon cloud servers using
+   libcloud.  In your env.conf place the following::
+
+    PROVIDER = 'rackspace'
+
+2. Place the access keys in your env.conf::
+
+    RACKSPACE_USER = 'yourrackspaceclouduser',
+    RACKSPACE_KEY  = 'yourrackspacecloudkey',
+
+3. You can now run any commands to get information your your cloud servers.
+
+4. To deploy development or production nodes run one of the following commands::
+
+    fab deploy_nodes:"development"
+    fab deploy_nodes:"production"
+
+5. Your cloud servers should now be operational.
 
 Rackspace Setup
 ===============
