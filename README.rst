@@ -79,6 +79,7 @@ Production is almost identical to development, except for the following::
 
     $ fab generate_config
     $ fab go:production
+    $ fab update_nodes
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
     $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
 

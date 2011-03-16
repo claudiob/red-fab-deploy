@@ -116,6 +116,7 @@ def generate_config(provider='ec2_us_east'):
 			fabric.api.abort(fabric.colors.red("Aborting config file generation."))
 	
 	write_conf(PROVIDER_DICT[provider])
+	print fabric.colors.green('Successfully generated config file %s' % CONF_FILE)
 
 #=== Private Methods
 

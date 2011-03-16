@@ -34,7 +34,7 @@ def go(stage="development",keyname='aws.ubuntu'):
 
 	# Deploy the nodes for the given stage
 	deploy_nodes(stage,keyname)
-	time.sleep(30)
+	time.sleep(60)
 	update_nodes()
 	
 def go_setup(stage="development"):
