@@ -84,7 +84,7 @@ def update_env():
 
 		# these options shouldn't be set by user
 		ENV_DIR  = '/srv/active/env/',
-		SRC_DIR  = '/srv/%s' % fabric.api.env.conf['INSTANCE_NAME'],
+		SRC_DIR  = os.path.join('/srv', fabric.api.env.conf['INSTANCE_NAME']),
 		FILES    = os.path.join(os.path.dirname(__file__),'templates'),
 	)
 	defaults.update(fabric.api.env.conf)

@@ -13,7 +13,7 @@ from fab_deploy.machine import (generate_config, get_provider_dict, stage_exists
 	deploy_nodes,update_nodes)
 from fab_deploy.server import *
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
-from fab_deploy.system import prepare_server
+from fab_deploy.system import get_hostname, set_hostname, prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
@@ -30,6 +30,7 @@ def go(stage="development",keyname='aws.ubuntu'):
 	# Setup keys and authorize ports
 	ec2_create_key(keyname)
 	ec2_authorize_port('default','tcp','22')
+	ec2_authorize_port('default','tcp','80')
 
 	# Deploy the nodes for the given stage
 	deploy_nodes(stage,keyname)
@@ -48,6 +49,7 @@ def go_setup(stage="development"):
 		node_dict = PROVIDER['machines'][stage][name]
 		host = node_dict['public_ip'][0]
 		if host == fabric.api.env.host:
+			set_hostname(name)
 			prepare_server()
 			for service in node_dict['services']:
 				if service == 'nginx':
@@ -77,6 +79,14 @@ def go_deploy(stage="development",tagname="trunk"):
 			service = node_dict['services']
 			if list(set(['nginx','uwsgi','apache']) & set(node_dict['services'])):
 				deploy_full(tagname,force=True)
+	
+	# Link the hostname to the <stage>.py file
+	hostname = get_hostname()
+	host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/hosts')
+	if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
+		link(os.path.join(host_dir,'%s.py' % stage), 
+			dest=os.path.join(host_dir,'%s.py' % hostname),
+			do_unlink=True, silent=True)
 				
 def deploy_full(tagname, force=False):
 	""" 
@@ -115,7 +125,7 @@ def deploy_project(tagname, force=False):
 		virtualenv_create()
 		with virtualenv():
 			pip_install()
-
+	
 	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
 
 def make_src_dir():

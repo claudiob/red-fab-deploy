@@ -21,7 +21,7 @@ from fab_deploy.file import link_exists, link, unlink, readlink
 from fab_deploy.package import package_install, package_update, package_upgrade, \
 	package_add_repository
 
-from fab_deploy.system import (service,
+from fab_deploy.system import (service, set_hostname, get_hostname,
 	prepare_server, setup_backports, install_common_software,
 	usage_disk, usage_mem, usage_cpu, usage_system,)
 

@@ -13,9 +13,15 @@ def service(service, command):
 		return
 	fabric.api.sudo('service %s %s' % (service, command))
 
-def set_host_name(hostname):
+def set_hostname(hostname):
 	""" Set the host name on a server """
-	pass
+	fabric.api.sudo('hostname %s' % hostname)
+	host_text = '127.0.0.1 %s' % hostname
+	fabric.contrib.files.append('/etc/hosts',host_text,use_sudo=True)
+
+def get_hostname():
+	""" Get the host name on a server """
+	return fabric.api.run('hostname')
 
 def prepare_server():
 	""" Prepares server: installs system packages. """
