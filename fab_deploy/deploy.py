@@ -60,6 +60,7 @@ def go_setup(stage="development"):
 					uwsgi_setup()
 				elif service == 'mysql':
 					mysql_install()
+					mysql_setup()
 				elif service in ['apache','postgresql']:
 					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
 

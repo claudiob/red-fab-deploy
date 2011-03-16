@@ -13,6 +13,11 @@ def service(service, command):
 		return
 	fabric.api.sudo('service %s %s' % (service, command))
 
+def get_internal_ip():
+	""" Returns the internal IP address """
+	command = """ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'"""
+	return fabric.api.run(command)
+
 def set_hostname(hostname):
 	""" Set the host name on a server """
 	fabric.api.sudo('hostname %s' % hostname)

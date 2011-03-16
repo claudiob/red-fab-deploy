@@ -3,6 +3,7 @@ from datetime import datetime
 import fabric.api
 
 from fab_deploy.package import package_install
+from fab_deploy.system import get_internal_ip
 from fab_deploy.utils import detect_os
 
 def _mysql_is_installed():
@@ -62,6 +63,19 @@ def mysql_install():
 		'maverick': ['libmysqlclient-dev',],
 	}
 	package_install(common_packages + extra_packages[os])
+
+def mysql_setup():
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
+	if not fabric.contrib.files.contains(mysql_conf, after):
+		
+		mysql_conf = '/etc/mysql/my.cnf'
+		before = "bind-address[[:space:]]*=[[:space:]]*127.0.0.1"
+		after  = "bind-address = %s" % get_internal_ip()
+		fabric.contrib.files.sed(mysql_conf,before,after,
+			use_sudo=True, backup='.bkp')
 
 def mysql_execute(sql, user='', password=''):
 	"""
