@@ -102,11 +102,13 @@ def deploy_project(tagname, force=False):
 	if tagname == 'trunk':
 		vcs.push(tagname)
 	else:
+		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 		with fabric.api.lcd('/tmp'):
 			vcs.export(tagname, local = True)
 		fabric.contrib.project.rsync_project(
 			local_dir = os.path.join('/tmp', tagname),
-			remote_dir = fabric.api.env.conf['SRC_DIR'])
+			remote_dir = fabric.api.env.conf['SRC_DIR'],
+			extra_opts='--links')
 		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 
 	with fabric.api.cd(tag_dir):

@@ -29,7 +29,7 @@ def uwsgi_setup():
 def uwsgi_start(stage=''):
 	""" Start uwsgi sockets """
 	if not _uwsgi_is_installed():
-		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
+		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
 		return
 
 	if stage:
@@ -40,10 +40,11 @@ def uwsgi_start(stage=''):
 def uwsgi_stop():
 	""" Stop uwsgi sockets """
 	if not _uwsgi_is_installed():
-		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
+		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
 		return
 
-	fabric.api.sudo('pkill -9 uwsgi')
+	with fabric.api.settings(warn_only=True):
+		fabric.api.sudo('pkill -9 uwsgi')
 	uwsgi_message('Stop')
 
 def uwsgi_restart(stage=''):
