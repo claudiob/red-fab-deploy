@@ -12,9 +12,9 @@ def _nginx_is_installed():
 
 def nginx_install():
 	""" Install nginx. """
-	if _nginx_is_installed():
-		fabric.api.warn(fabric.colors.yellow('Nginx is already installed'))
-		return
+#	if _nginx_is_installed():
+#		fabric.api.warn(fabric.colors.yellow('Nginx is already installed'))
+#		return
 
 	os = detect_os()
 	options = {'lenny': '-t lenny-backports'}

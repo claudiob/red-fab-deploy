@@ -27,12 +27,12 @@ def deploy_full(tagname):
 	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
 		fabric.api.abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
+	make_src_dir()
 	deploy_project(tagname)
 	make_active(tagname)
 
 def deploy_project(tagname, force = False):
 	""" Deploys project on prepared server. """
-	make_src_dir()
 	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)
 	if fabric.contrib.files.exists(tag_dir):
 		if force:
@@ -56,7 +56,7 @@ def deploy_project(tagname, force = False):
 		with virtualenv():
 			pip_install()
 
-	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
+	#fabric.api.sudo('chown -R ubuntu:ubuntu /srv/nbc_b2b')
 
 def make_src_dir():
 	""" Makes the /srv/<project>/ directory and creates the correct permissions """
@@ -67,6 +67,8 @@ def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
 	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname),
 			'/srv/active', do_unlink = True, silent = True)
+	uwsgi_service_script = '/etc/init.d/uwsgi'
+	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
 
 def check_active():
 	""" Abort if there is no active deployment """
