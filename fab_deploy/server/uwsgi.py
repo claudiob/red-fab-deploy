@@ -37,7 +37,8 @@ def uwsgi_setup():
 	link('/srv/active/deploy/uwsgi_init.sh', uwsgi_service_script, use_sudo = True)
 	#fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')
-	fabric.api.sudo('chmod a+w /var/log/uwsgi')
+	fabric.api.sudo('mkdir -p /var/log/uwsgi/errors.log')
+	fabric.api.sudo('chmod -R a+w /var/log/uwsgi')
 
 
 def uwsgi_service(command):
@@ -48,25 +49,14 @@ def uwsgi_service(command):
 	service('uwsgi', command)
 	uwsgi_message(command)
 
-	if stage:
-		stage = '.%s' % stage
-	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini%s' % stage)
-	uwsgi_message('Start')
+def uwsgi_start():
+	uwsgi_service('start')
 
 def uwsgi_stop():
-	""" Stop uwsgi sockets """
-	if not _uwsgi_is_installed():
-		fabric.api.abort(fabric.colors.red('uWSGI must be installed'))
-		return
-
-	fabric.api.sudo('pkill -9 uwsgi')
-	uwsgi_message('Stop')
+	uwsgi_service('stop')
 
 def uwsgi_restart(stage=''):
-	""" Restarts the uwsgi sockets """
-	uwsgi_stop()
-	uwsgi_start(stage=stage)
-	uwsgi_message('Restarted')
+	uwsgi_service('restart')
 
 def uwsgi_message(message):
 	""" Print a uWSGI message """
