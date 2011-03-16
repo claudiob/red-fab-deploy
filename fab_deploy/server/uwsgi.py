@@ -49,6 +49,10 @@ def uwsgi_stop():
 
 def uwsgi_restart(stage=''):
 	""" Restarts the uwsgi sockets """
+	if not _uwsgi_is_installed():
+		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
+		return
+
 	uwsgi_stop()
 	uwsgi_start(stage=stage)
 	uwsgi_message('Restarted')
