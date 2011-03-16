@@ -360,7 +360,7 @@ def deploy_nodes(stage='development',keyname=None):
 		if 'uuid' not in node_dict or not node_dict['uuid']:
 			size  = get_node_size(node_dict['size'])
 			node = create_node(name,keyname=keyname,size=size)
-			node_dict.update({'uuid' : node.uuid,})
+			node_dict.update({'id': node.id, 'uuid' : node.uuid,})
 			PROVIDER['machines'][stage][name] = node_dict
 		else:
 			fabric.api.warn(fabric.colors.yellow("%s machine %s already exists" % (stage,name)))
