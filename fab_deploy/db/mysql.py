@@ -13,7 +13,7 @@ def _mysql_is_installed():
 def mysql_install():
 	""" Installs MySQL """
 	if _mysql_is_installed():
-		fabric.api.runwarn(fabric.colors.yellow('MySQL is already installed.'))
+		fabric.api.warn(fabric.colors.yellow('MySQL is already installed.'))
 		return
 
 	# Ensure mysql won't ask for a password on installation
@@ -73,6 +73,10 @@ def mysql_create_db():
 	"""
 	Creates an empty mysql database. 
 	"""
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	user     = fabric.api.prompt('Please enter username:')
 	database = fabric.api.prompt('Please enter database name:')
 	
@@ -81,6 +85,10 @@ def mysql_create_db():
 
 def mysql_create_user():
 	""" Create a new mysql user. """
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	user         = fabric.api.prompt('Please enter username:')
 	new_user     = fabric.api.prompt('Please enter new username:')
 	new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
@@ -90,6 +98,10 @@ def mysql_create_user():
 
 def mysql_drop_user():
 	""" Drop a mysql user. """
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	user      = fabric.api.prompt('Please enter username:')
 	drop_user = fabric.api.prompt('Please enter username to drop:')
 
@@ -97,6 +109,10 @@ def mysql_drop_user():
 
 def mysql_dump():
 	""" Runs mysqldump. Result is stored at /srv/active/sql/ """
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	dir = '/srv/active/sql/'
 	fabric.api.run('mkdir -p %s' % dir)
 	now = datetime.now().strftime("%Y.%m.%d-%H.%M")
@@ -109,6 +125,10 @@ def mysql_dump():
 
 def mysql_load(filename):
 	""" Load MySQL Database with 'mysql DATABASENAME < filename.sql' """
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	user     = fabric.api.prompt('Please enter username:')
 	database = fabric.api.prompt('Please enter database name:')
 	fabric.api.run('mysql %s -u%s -p < %s' % (database, user, filename))
@@ -119,5 +139,9 @@ def list_sql_files():
 
 def mysql_backup():
 	""" Backup the database """
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
 	fabric.api.run('automysqlbackup')
 
