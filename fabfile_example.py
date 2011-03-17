@@ -3,7 +3,7 @@ fab deployment script
 ====================================
 
 """
-import json
+import json, os
 
 from fabric.api import *
 import fabric.colors
@@ -15,6 +15,7 @@ def my_site():
 	env.conf = dict(
         #AWS_ACCESS_KEY_ID     = '',
         #AWS_SECRET_ACCESS_KEY = '',
+		CONF_FILE = os.path.join(os.getcwd(),'fabric.conf'),
 		INSTANCE_NAME = 'projectname', # Recommend no underscore characters
         PROVIDER = 'ec2_us_east',
         #RACKSPACE_USER = '',     

@@ -27,6 +27,9 @@ def set_hostname(hostname):
 	host_text = "127.0.0.1 %s" % hostname
 	if not fabric.contrib.files.contains('/etc/hosts',host_text,use_sudo=True):
 		# TODO: Figure out why fabric.contrib.files.append doesn't work here
+		# It's likely that append wants a list of strings, so giving simply
+		# a string means it will interpret it as a list of characters, which
+		# is the opposite of what you'd want.
 		fabric.api.sudo('echo "%s" >> /etc/hosts' % host_text)
 	
 	if hostname != get_hostname():

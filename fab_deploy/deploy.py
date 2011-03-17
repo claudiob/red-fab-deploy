@@ -51,7 +51,8 @@ def go_setup(stage="development"):
 		if host == fabric.api.env.host:
 			set_hostname(name)
 			prepare_server()
-			for service in node_dict['services']:
+			for service in node_dict['services'].keys():
+				settings = node_dict['services'][service]
 				if service == 'nginx':
 					nginx_install()
 					nginx_setup(stage=stage)
@@ -60,7 +61,7 @@ def go_setup(stage="development"):
 					uwsgi_setup()
 				elif service == 'mysql':
 					mysql_install()
-					mysql_setup()
+					mysql_setup(stage=stage,**settings)
 				elif service in ['apache','postgresql']:
 					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
 

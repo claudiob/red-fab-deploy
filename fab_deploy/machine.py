@@ -28,17 +28,24 @@ libcloud.security.VERIFY_SSL_CERT = True
 libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 
 #=== CONF Defaults
-CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
+#CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
 
-SERVER = ['nginx','uwsgi']
-DB     = ['mysql',]
+SERVER = {'nginx':{},'uwsgi':{}}
+DB     = {
+	'mysql': {
+		'name'        :'dbname',     # not default
+		'user'        :'dbuser',     # not root
+		'password'    :'dbpassword', # not root
+		#'slave'       :'db1',        # reference to master database
+	},
+}
 
 #=== Cloud Defaults
 EC2_IMAGE = 'ami-9a8b79f3' # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
 		'dev1' : {
-			'services': SERVER + DB,
+			'services': dict(SERVER, **DB),
 			'size':'m1.small',},
 	},
 	'production' : {
@@ -75,7 +82,7 @@ PROVIDER_DICT = {
 		'machines'   : {
 			'development' : {
 				'dev1'  : {
-					'services': SERVER + DB,
+					'services': dict(SERVER, **DB),
 					'size':'1',}, # 256MB  RAM, 10GB
 			},
 			'production' : {
@@ -101,22 +108,25 @@ PROVIDER_DICT = {
 
 #=== Conf File
 
-def write_conf(node_dict):
+def write_conf(node_dict,filename=''):
+	if not filename:
+		filename = fabric.api.env.conf['CONF_FILE']
 	""" Overwrite the conf file with dictionary values """
 	obj = json.dumps(node_dict, sort_keys=True, indent=4)
-	f = open(CONF_FILE,'w')
+	f = open(filename,'w')
 	f.write(obj)
 	f.close()
 
 def generate_config(provider='ec2_us_east'):
 	""" Generate a default json config file for your provider """
 	_provider_exists(provider)
-	if os.path.exists(CONF_FILE):
-		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (CONF_FILE), default=False):
-			fabric.api.abort(fabric.colors.red("Aborting config file generation."))
-	
-	write_conf(PROVIDER_DICT[provider])
-	print fabric.colors.green('Successfully generated config file %s' % CONF_FILE)
+	conf_file = fabric.api.env.conf['CONF_FILE']
+	if os.path.exists(conf_file):
+		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (conf_file), default=False):
+			conf_file = os.path.join(os.getcwd(),fabric.api.prompt('Enter a new filename:'))
+
+	write_conf(PROVIDER_DICT[provider],filename=conf_file)
+	print fabric.colors.green('Successfully generated config file %s' % conf_file)
 
 #=== Private Methods
 
@@ -130,7 +140,8 @@ def _provider_exists(provider):
 
 def get_provider_dict():
 	""" Get the dictionary of provider settings """
-	return json.loads(open(CONF_FILE,'r').read())
+	conf_file = fabric.api.env.conf['CONF_FILE']
+	return json.loads(open(conf_file,'r').read())
 
 def _get_driver(provider):
 	""" Get the driver for the given provider """
