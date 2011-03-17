@@ -12,7 +12,7 @@ def _mysql_is_installed():
 		output = fabric.api.run('mysql --version')
 	return output.succeeded
 	
-def mysql_install(passwd=None):
+def mysql_install():
 	""" Installs MySQL """
 	if _mysql_is_installed():
 		fabric.api.warn(fabric.colors.yellow('MySQL is already installed.'))
@@ -27,11 +27,10 @@ def mysql_install(passwd=None):
 	package_install('debconf-utils')
 	
 	# get the password
-	if not passwd:
-		if 'DB_PASSWD' in fabric.api.env.conf:
-			passwd = fabric.api.env.conf['DB_PASSWD']
-		else:
-			passwd = fabric.api.prompt('Please enter MySQL root password:')
+	if 'DB_PASSWD' in fabric.api.env.conf:
+		passwd = fabric.api.env.conf['DB_PASSWD']
+	else:
+		passwd = fabric.api.prompt('Please enter MySQL root password:')
 	
 	# get the correct version for installation
 	mysql_versions = {
@@ -86,6 +85,11 @@ def mysql_setup(**kwargs):
 		fabric.contrib.files.sed(mysql_conf,before,after,
 			use_sudo=True, backup='.bkp')
 	
+	# The root password for setup
+	root_passwd = ''
+	if 'DB_PASSWD' in fabric.api.env.conf:
+		root_passwd = fabric.api.env.conf['DB_PASSWD']
+
 	# Get Parameters
 	stage    = kwargs.get('stage',None)
 	name     = kwargs.get('name',None)
@@ -105,11 +109,13 @@ def mysql_setup(**kwargs):
 
 	# Create the database user
 	if user and password:
-		mysql_create_user(user='root',new_user=user,new_password=password)
+		mysql_create_user(user='root',passord=root_passwd,
+				new_user=user,new_password=password)
 
 	# Create the database
 	if name:
-		mysql_create_db(user='root',database=name)
+		mysql_create_db(user='root',password=root_passwd, 
+				database=name)
 
 def mysql_execute(sql, user='', password=''):
 	"""
@@ -117,7 +123,7 @@ def mysql_execute(sql, user='', password=''):
 	"""
 	return fabric.api.run("echo '%s' | mysql -u%s -p%s" % (sql, user, password))
 
-def mysql_create_db(user='',database=''):
+def mysql_create_db(user='',password='',database=''):
 	"""
 	Creates an empty mysql database. 
 	"""
@@ -131,9 +137,9 @@ def mysql_create_db(user='',database=''):
 		database = fabric.api.prompt('Please enter database name:')
 	
 	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
-	mysql_execute('CREATE DATABASE %s %s;' % (database, params), user)
+	mysql_execute('CREATE DATABASE %s %s;' % (database, params), user, password)
 
-def mysql_create_user(user='',new_user='',new_password=''):
+def mysql_create_user(user='',password='',new_user='',new_password=''):
 	""" Create a new mysql user. """
 	if not _mysql_is_installed():
 		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
@@ -147,7 +153,7 @@ def mysql_create_user(user='',new_user='',new_password=''):
 		new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
 
 	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";""" % 
-		(new_user, new_password), user)
+		(new_user, new_password), user, password)
 
 def mysql_drop_user():
 	""" Drop a mysql user. """
