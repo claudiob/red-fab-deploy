@@ -72,6 +72,7 @@ def install_common_software():
 		'python2.6',
 		'python2.6-dev',
 		'python-imaging',
+		'python-mysqldb',
 		'python-pip',
 		'python-setuptools',
 		'python-software-properties',
