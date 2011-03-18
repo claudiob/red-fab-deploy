@@ -1,5 +1,2 @@
-#red-fab-deploy
 -e git+git://github.com/bitprophet/fabric.git#egg=fabric
-
-#apache-libcloud
 -e git+git://github.com/apache/libcloud.git#egg=libcloud

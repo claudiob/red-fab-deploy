@@ -55,9 +55,6 @@ setup(
     long_description = open('README.rst').read(),
     install_requires = parse_requirements('requirements.txt'),#['fabric', 'apache-libcloud'],
 	dependency_links = parse_dependency_links('requirements.txt'),
-	#[
-	#	'https://github.com/ff0000/red-fab-deploy/tarball/master#egg=libcloud',
-	#],
 
     classifiers = (
         'Development Status :: 3 - Alpha',
