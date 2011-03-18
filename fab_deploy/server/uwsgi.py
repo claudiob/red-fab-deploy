@@ -1,5 +1,6 @@
 import fabric.api
 import fabric.contrib
+import os
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
@@ -31,7 +32,7 @@ def uwsgi_setup():
 	unlink(uwsgi_service_script, use_sudo = True)
 	if fabric.contrib.files.exists(uwsgi_service_script):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_service_script, uwsgi_service_script))
-	put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo = True)
+	fabric.api.put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo = True)
 	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
 
 	# INI File
