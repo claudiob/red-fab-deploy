@@ -16,11 +16,11 @@ there are steps to set up Rackspace and other hosts to work with these tools.
 
 ## Installation
 
-IMPORTANT: red-fab-deploy will only work if you install the following packages::
+IMPORTANT: red-fab-deploy will only work if you install the following packages:
     
-    $ pip install -e git+git://github.com/bitprophet/fabric.git#egg=fabric
-    $ pip install -e git+git://github.com/apache/libcloud.git#egg=libcloud
-    $ pip install -e git+git://github.com/ff0000/red-fab-deploy.git
+	$ pip install -e git+git://github.com/bitprophet/fabric.git#egg=fabric
+	$ pip install -e git+git://github.com/apache/libcloud.git#egg=libcloud
+	$ pip install -e git+git://github.com/ff0000/red-fab-deploy.git
 
 Be aware that the dependencies are Fabric>=1.0 and apache-libcloud>=0.4.3.  These
 packages are at the cutting edge and without them you will see things break.
@@ -53,11 +53,11 @@ cloud servers and project deployment.  Follow these steps:
 PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or 
 (RACKSPACE_USER, RACKSPACE_KEY).
 
-2. To set up your AWS account you must run the following::
+2. To set up your AWS account you must run the following:
 
-    fab generate_config
-    fab go:development
-    fab update_nodes # might need to wait a minute and run this
+	$ fab generate_config
+	$ fab go:development
+	$ fab update_nodes # might need to wait a minute and run this
 
 This sets up your config file, creates a default ec2 key file, authorizes port 22 with
 the default security group, and then deploys 1 development node server to your account.
@@ -67,20 +67,20 @@ up to 5 minutes.
 
 3. If you are running Rackspace you'll need these commands::
 
-    fab ssh_local_keygen:"rackspace.development"
-    fab set_hosts:development,root provider_as_ec2:username=ubuntu
-    fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
+	$ fab ssh_local_keygen:"rackspace.development"
+	$ fab set_hosts:development,root provider_as_ec2:username=ubuntu
+	$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
 
 4. To install all the correct software on your new development node run the following::
 
-    fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
+	$ fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
 
 This will grab all the development node ip addresses, set them as hosts, and then run
 a software setup package on each of the servers based on the generated config file.
 
 5. Next you want to deploy to the development server by running the following::
 
-    fab -i deploy/[your private SSH key here] set_hosts go_deploy
+	$ fab -i deploy/[your private SSH key here] set_hosts go_deploy
 
 This will put the trunk of your repo onto each machine with server software and make it active.
 Be aware that this will remove any current version of trunk that is currently deployed.
@@ -89,14 +89,14 @@ Be aware that this will remove any current version of trunk that is currently de
 
 Production is almost identical to development, except for the following::
 
-    fab generate_config # Do not overwrite an earlier file
-    fab go:production
-    fab update_nodes # might need to wait a minute and run this
-    fab ssh_local_keygen:"rackspace.production"
-    fab set_hosts:production,root provider_as_ec2:username=ubuntu
-    fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
-    fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
-    fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+	$ fab generate_config # Do not overwrite an earlier file
+	$ fab go:production
+	$ fab update_nodes # might need to wait a minute and run this
+	$ fab ssh_local_keygen:"rackspace.production"
+	$ fab set_hosts:production,root provider_as_ec2:username=ubuntu
+	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
+	$ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
+	$ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
 
 NOTE: If you already have generated a config for deployment DO NOT generate another config file.
 This is very important as you may overwrite the original and lose the information you have inside
@@ -111,7 +111,7 @@ These steps will help you deploy cloud servers:
 1. Currently you can deploy to either rackspace or amazon cloud servers using
    libcloud.  In your env.conf place the following::
 
-    PROVIDER = 'amazon'
+	PROVIDER = 'amazon'
 
 2. Place the access keys in your env.conf::
 
