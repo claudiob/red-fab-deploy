@@ -23,26 +23,24 @@ def uwsgi_install():
 
 def uwsgi_setup(stage=''):
 	""" Setup uWSGI. """
-	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
-	uwsgi_service_script = '/etc/init.d/uwsgi'
 	
-	fabric.api.sudo('mkdir -p /etc/uwsgi')
-
 	# Service script
-	unlink(uwsgi_service_script, use_sudo = True)
+	uwsgi_service_script = '/etc/init.d/uwsgi'
 	if fabric.contrib.files.exists(uwsgi_service_script):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_service_script, uwsgi_service_script))
-	fabric.api.put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo = True)
+	fabric.api.put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo=True)
 	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
+	fabric.api.sudo('chown root:root %s' % uwsgi_service_script)
 
 	# INI File
-	unlink(uwsgi_file, use_sudo = True)
+	fabric.api.sudo('mkdir -p /etc/uwsgi')
+	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
+	unlink(uwsgi_file, use_sudo=True)
 	if fabric.contrib.files.exists(uwsgi_file):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
 	if stage:
 		stage = '.%s' % stage
 	link('/srv/active/deploy/uwsgi%s.ini' % stage, uwsgi_file, use_sudo = True)
-
 
 	# Log File
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')
