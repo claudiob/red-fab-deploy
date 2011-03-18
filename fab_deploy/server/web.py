@@ -40,6 +40,7 @@ def web_server_restart():
 		apache_restart()
 	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':
 		nginx_restart()
+		uwsgi_restart()
 
 def web_server_touch(stage=''):
 	""" Touches the web server causing reload. """

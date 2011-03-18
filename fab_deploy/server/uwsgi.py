@@ -22,40 +22,41 @@ def uwsgi_install():
 
 def uwsgi_setup():
 	""" Setup uWSGI. """
-	fabric.api.sudo('mkdir -p /var/log/uwsgi')
-	fabric.api.sudo('touch /var/log/uwsgi/errors.log')
-	fabric.api.sudo('chown www-data:www-data -R /var/log/uwsgi')
+	#uwsgi_file = '/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'
+	fabric.api.sudo('mkdir -p /etc/uwsgi')
 
-def uwsgi_start(stage=''):
-	""" Start uwsgi sockets """
+	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
+	unlink(uwsgi_file, use_sudo = True)
+	if fabric.contrib.files.exists(uwsgi_file):
+		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
+	else:
+		link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
+
+	uwsgi_service_script = '/etc/init.d/uwsgi'
+	unlink(uwsgi_service_script, use_sudo = True)
+	link('/srv/active/deploy/uwsgi_init.sh', uwsgi_service_script, use_sudo = True)
+	#fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
+	fabric.api.sudo('mkdir -p /var/log/uwsgi')
+	fabric.api.sudo('mkdir -p /var/log/uwsgi/errors.log')
+	fabric.api.sudo('chmod -R a+w /var/log/uwsgi')
+
+
+def uwsgi_service(command):
+	""" Run a uWSGI service """
 	if not _uwsgi_is_installed():
 		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
 		return
+	service('uwsgi', command)
+	uwsgi_message(command)
 
-	if stage:
-		stage = '.%s' % stage
-	fabric.api.sudo('uwsgi --ini /srv/active/deploy/uwsgi.ini%s' % stage)
-	uwsgi_message('Start')
+def uwsgi_start():
+	uwsgi_service('start')
 
 def uwsgi_stop():
-	""" Stop uwsgi sockets """
-	if not _uwsgi_is_installed():
-		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
-		return
+	uwsgi_service('stop')
 
-	with fabric.api.settings(warn_only=True):
-		fabric.api.sudo('pkill -9 uwsgi')
-	uwsgi_message('Stop')
-
-def uwsgi_restart(stage=''):
-	""" Restarts the uwsgi sockets """
-	if not _uwsgi_is_installed():
-		fabric.api.warn(fabric.colors.yellow('uWSGI must be installed'))
-		return
-
-	uwsgi_stop()
-	uwsgi_start(stage=stage)
-	uwsgi_message('Restarted')
+def uwsgi_restart():
+	uwsgi_service('restart')
 
 def uwsgi_message(message):
 	""" Print a uWSGI message """
