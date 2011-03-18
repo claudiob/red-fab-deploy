@@ -22,24 +22,28 @@ def uwsgi_install():
 
 def uwsgi_setup():
 	""" Setup uWSGI. """
-	#uwsgi_file = '/etc/uwsgi/uwsgi-python2.6/uwsgi.ini'
+	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
+	uwsgi_service_script = '/etc/init.d/uwsgi'
+	
 	fabric.api.sudo('mkdir -p /etc/uwsgi')
 
-	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
+	# Service script
+	unlink(uwsgi_service_script, use_sudo = True)
+	if fabric.contrib.files.exists(uwsgi_service_script):
+		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_service_script, uwsgi_service_script))
+	put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo = True)
+	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
+
+	# INI File
 	unlink(uwsgi_file, use_sudo = True)
 	if fabric.contrib.files.exists(uwsgi_file):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
-	else:
-		link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
+	link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
 
-	uwsgi_service_script = '/etc/init.d/uwsgi'
-	unlink(uwsgi_service_script, use_sudo = True)
-	link('/srv/active/deploy/uwsgi_init.sh', uwsgi_service_script, use_sudo = True)
-	#fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
+	# Log File
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')
-	fabric.api.sudo('mkdir -p /var/log/uwsgi/errors.log')
+	fabric.api.sudo('touch /var/log/uwsgi/errors.log')
 	fabric.api.sudo('chmod -R a+w /var/log/uwsgi')
-
 
 def uwsgi_service(command):
 	""" Run a uWSGI service """
