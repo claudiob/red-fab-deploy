@@ -2,6 +2,11 @@
 from distutils.core import setup
 import re
 
+"""
+Some methods were grabbed from:
+http://cburgmer.posterous.com/pip-requirementstxt-and-setuppy
+
+"""
 def parse_requirements(file_name):
 	requirements = []
 	for line in open(file_name, 'r').read().split('\n'):
