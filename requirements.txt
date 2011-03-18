@@ -1,4 +1,3 @@
-red-fab-deploy
--e git+git://github.com/bitprophet/fabric.git#egg=fabric
-
+fabric==1.0
 apache-libcloud
+-e git+git://github.com/ff0000/pycolors2.git#egg=pycolors
