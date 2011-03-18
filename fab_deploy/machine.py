@@ -19,7 +19,7 @@ import fabric.contrib
 
 from libcloud.base import NodeImage, NodeSize
 from libcloud.types import Provider
-from libcloud.providers import get_driver
+from libcloud.compute.providers import get_driver
 import libcloud.security
 
 #=== SSL Security
@@ -352,9 +352,11 @@ def create_node(name, **kwargs):
 		_get_connection().ex_create_tags(node,tags)
 
 	else:
-		pubkey = open(keyname,'r').read()
-		from libcloud.compute.base import NodeAuthSSHKey
-		key = NodeAuthSSHKey(pubkey)
+		if keyname:
+			pubkey = open(keyname,'r').read()
+			from libcloud.compute.base import NodeAuthSSHKey
+			key = NodeAuthSSHKey(pubkey)
+		else: key=None
 		node = _get_connection().create_node(name=name, auth=key,
 				image=image, size=size, location=location)
 	    
@@ -364,8 +366,8 @@ def create_node(name, **kwargs):
 def deploy_nodes(stage='development',keyname=None):
 	""" Deploy nodes based on stage type """
 	stage_exists(stage)
-	if not keyname:
-		fabric.api.abort(fabric.colors.red("Must supply valid keyname."))
+	#if not keyname:
+	#	fabric.api.abort(fabric.colors.red("Must supply valid keyname."))
 
 	if not fabric.contrib.console.confirm("Do you wish to stage %s servers on %s with the following names: %s?" % (stage, _get_provider_name(), ', '.join(_get_stage_machines(stage))), default=False):
 		fabric.api.abort(fabric.colors.red("Aborting node deployment."))
