@@ -65,20 +65,20 @@ the default security group, and then deploys 1 development node server to your a
 2. You must wait until all your instances have spawned before going further.  This could take 
 up to 5 minutes.
 
-3. If you are running Rackspace you'll need these commands::
+3. If you are running Rackspace you'll need these commands:
 
 	$ fab ssh_local_keygen:"rackspace.development"
 	$ fab set_hosts:development,root provider_as_ec2:username=ubuntu
 	$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
 
-4. To install all the correct software on your new development node run the following::
+4. To install all the correct software on your new development node run the following:
 
 	$ fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
 
 This will grab all the development node ip addresses, set them as hosts, and then run
 a software setup package on each of the servers based on the generated config file.
 
-5. Next you want to deploy to the development server by running the following::
+5. Next you want to deploy to the development server by running the following:
 
 	$ fab -i deploy/[your private SSH key here] set_hosts go_deploy
 
@@ -87,7 +87,7 @@ Be aware that this will remove any current version of trunk that is currently de
 
 ### Production
 
-Production is almost identical to development, except for the following::
+Production is almost identical to development, except for the following:
 
 	$ fab generate_config # Do not overwrite an earlier file
 	$ fab go:production
