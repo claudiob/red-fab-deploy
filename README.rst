@@ -16,6 +16,18 @@ and `cuisine <https://github.com/ff0000/cuisine/>`.
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
 
+Installation
+============
+
+IMPORTANT: red-fab-deploy will only work if you install the following packages::
+    
+    $ pip install -e git+git://github.com/bitprophet/fabric.git#egg=fabric
+    $ pip install -e git+git://github.com/apache/libcloud.git#egg=libcloud
+    $ pip install -e git+git://github.com/ff0000/red-fab-deploy.git
+
+Be aware that the dependencies are Fabric>=1.0 and apache-libcloud>=0.4.3.  These
+packages are at the cutting edge and without them you will see things break.
+
 Important Notes
 ===============
 

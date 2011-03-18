@@ -347,9 +347,9 @@ def create_node(name, **kwargs):
 		node = _get_connection().create_node(name=name, ex_keyname=keyname, 
 				image=image, size=size, location=location)
     	
-		# TODO: This does not work until libcloud 0.5.0
-    	#tags = {'name':name,}
-    	#_get_connection().ex_create_tags(node,tags)
+		# TODO: This does not work until libcloud 0.4.3
+		tags = {'name':name,}
+		_get_connection().ex_create_tags(node,tags)
 
 	else:
 		pubkey = open(keyname,'r').read()

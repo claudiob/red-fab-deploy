@@ -44,3 +44,8 @@ def set_hosts(stage='development'):
     env.hosts = hosts
     update_env()
 
+#--- Set up individual hosts
+def example():
+	env.hosts = ['127.0.0.1',]
+	update_env()
+
