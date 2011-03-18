@@ -348,8 +348,8 @@ def create_node(name, **kwargs):
 				image=image, size=size, location=location)
     	
 		# TODO: This does not work until libcloud 0.4.3
-    	tags = {'name':name,}
-    	_get_connection().ex_create_tags(node,tags)
+		tags = {'name':name,}
+		_get_connection().ex_create_tags(node,tags)
 
 	else:
 		pubkey = open(keyname,'r').read()
