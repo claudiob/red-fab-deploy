@@ -30,7 +30,7 @@ from fab_deploy.user import (provider_as_ec2,
 	user_exists, user_create, user_setup,
 	group_exists, group_create,
 	group_user_exists, group_user_add,
-	ssh_keygen, ssh_get_key, ssh_authorize,
+	ssh_keygen, ssh_local_keygen, ssh_get_key, ssh_authorize,
 	grant_sudo_access,)
 
 from fab_deploy.utils import (update_env, delete_pyc, debug_env, detect_os)

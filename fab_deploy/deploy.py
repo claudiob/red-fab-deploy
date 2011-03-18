@@ -15,10 +15,11 @@ from fab_deploy.server import *
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import get_hostname, set_hostname, prepare_server
 from fab_deploy.utils import detect_os, run_as
+from fab_deploy.user import provider_as_ec2, ssh_local_keygen
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
-def go(stage="development",keyname='aws.ubuntu'):
+def go(stage="development",keyname='ubuntu'):
 	""" 
 	A convenience method to prepare AWS servers.
 	
@@ -28,12 +29,21 @@ def go(stage="development",keyname='aws.ubuntu'):
 	"""
 
 	# Setup keys and authorize ports
-	ec2_create_key(keyname)
-	ec2_authorize_port('default','tcp','22')
-	ec2_authorize_port('default','tcp','80')
+	provider = fabric.api.env.conf['PROVIDER']
+	keyname = '%s.%s' % (provider,keyname)
+	if 'ec2' in provider:
+		ec2_create_key(keyname)
+		ec2_authorize_port('default','tcp','22')
+		ec2_authorize_port('default','tcp','80')
 
-	# Deploy the nodes for the given stage
-	deploy_nodes(stage,keyname)
+		# Deploy the nodes for the given stage
+		deploy_nodes(stage,keyname)
+	elif 'rackspace' == provider:
+		ssh_local_keygen(keyname)
+		deploy_nodes(stage,'%s.pub'%keyname)
+		#provider_as_ec2()
+
+	fabric.api.warn(fabric.colors.yellow('Wait 60 seconds for nodes to deploy'))
 	time.sleep(60)
 	update_nodes()
 	
