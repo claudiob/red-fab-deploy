@@ -66,7 +66,7 @@ def go_setup(stage = "development"):
 					nginx_setup(stage = stage)
 				elif service == 'uwsgi':
 					uwsgi_install()
-					uwsgi_setup()
+					uwsgi_setup(stage = stage)
 				elif service == 'mysql':
 					mysql_install()
 					mysql_setup(stage=stage,**settings)

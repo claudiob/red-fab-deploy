@@ -30,7 +30,7 @@ def nginx_setup(stage=''):
 		fabric.api.sudo('mv %s %s.bkp' % (nginx_file,nginx_file))
 	if stage:
 		stage = '.%s' % stage
-	link('/srv/active/deploy/nginx.conf%s' % stage, dest=nginx_file,
+	link('/srv/active/deploy/nginx%s.conf' % stage, dest=nginx_file,
 		use_sudo=True, do_unlink=True, silent=True)
 
 def nginx_service(command):
