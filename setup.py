@@ -30,7 +30,10 @@ setup(
     description = """ Code deployment tool """,
 
     long_description = open('README.rst').read(),
-    install_requires = ['fabric', 'apache-libcloud'],
+    install_requires = ['fabric', 'apache-libcloud>=0.4.3'],
+	dependency_links = [
+		'https://github.com/ff0000/red-fab-deploy/tarball/master#egg=libcloud',
+	],
 
     classifiers = (
         'Development Status :: 3 - Alpha',
