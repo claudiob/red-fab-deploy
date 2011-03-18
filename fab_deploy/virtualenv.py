@@ -8,12 +8,12 @@ def pip(commands=''):
    	fabric.api.run('pip %s' % commands)
 
 def pip_install(what='requirements', options=''):
-	""" Installs pip requirements listed in ``deploy/<file>.txt`` file. """
-	fabric.api.run('pip install %s -r deploy/%s.txt' % (options,what))
+	""" Installs pip requirements listed in ``<file>.txt`` file. """
+	fabric.api.run('pip install %s -r %s.txt' % (options,what))
 
 def pip_update(what='requirements', options=''):
-	""" Updates pip requirements listed in ``deploy/<file>.txt`` file. """
-   	fabric.api.run('pip install %s -U -r deploy/%s.txt' % (options,what))
+	""" Updates pip requirements listed in ``<file>.txt`` file. """
+   	fabric.api.run('pip install %s -U -r %s.txt' % (options,what))
 
 def virtualenv_create(site_packages=True):
 	""" 
