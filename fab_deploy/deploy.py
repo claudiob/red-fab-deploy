@@ -72,8 +72,15 @@ def go_setup(stage = "development"):
 				elif service == 'mysql':
 					mysql_install()
 					mysql_setup(stage=stage,**settings)
-				elif service in ['apache','postgresql']:
+				elif service == 'postgresql':
+					postgresql_install(node_dict, stage=stage, **settings)
+					postgresql_setup(node_dict, stage=stage, **settings)
+				elif service == 'postgresql-client':
+					postgresql_client_install()
+				elif service in ['apache']:
 					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
+				else:
+					fabric.api.warn('%s is not an available service' % service)
 
 def go_deploy(stage = "development", tagname = "trunk"):
 	"""

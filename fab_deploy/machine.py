@@ -339,7 +339,7 @@ def create_node(name, **kwargs):
 	""" Create a node server """
 	PROVIDER = get_provider_dict()
 	keyname  = kwargs.get('keyname',None)
-	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
+	image    = kwargs.get('image') or get_node_image(PROVIDER['image'])
 	size     = kwargs.get('size','')
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
 	
@@ -375,7 +375,7 @@ def deploy_nodes(stage='development',keyname=None):
 		node_dict = PROVIDER['machines'][stage][name]
 		if 'uuid' not in node_dict or not node_dict['uuid']:
 			size = get_node_size(node_dict['size'])
-			node = create_node(name,keyname=keyname,size=size)
+			node = create_node(name,keyname=keyname,size=size,image=node_dict.get('image'))
 			node_dict.update({'id': node.id, 'uuid' : node.uuid,})
 			PROVIDER['machines'][stage][name] = node_dict
 		else:
