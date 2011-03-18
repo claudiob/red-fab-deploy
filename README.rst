@@ -62,7 +62,7 @@ PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or
 2. To set up your AWS account you must run the following::
 
     $ fab generate_config
-    $ fab go
+    $ fab go:development
     $ fab update_nodes # might need to wait a minute and run this
 
 This sets up your config file, creates a default ec2 key file, authorizes port 22 with
@@ -73,7 +73,10 @@ up to 5 minutes.
 
 3. To install all the correct software on your new development node run the following::
 
-    $ fab -i deploy/[your private SSH key here] set_hosts go_setup
+    $ fab provider_as_ec2
+    $ fab ssh_local_keygen:"rackspace.development"
+    $ fab set_hosts:development ssh_authorize:key="rackspace.development.pub"
+    $ fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
 
 This will grab all the development node ip addresses, set them as hosts, and then run
 a software setup package on each of the servers based on the generated config file.

@@ -5,18 +5,26 @@ import fabric.colors
 import fabric.contrib
 
 from fab_deploy.file import file_attribs
+from fab_deploy.machine import get_provider_dict
 from fab_deploy.utils import run_as
 
 @run_as('root')
 def provider_as_ec2(user='ubuntu',group='www-data'):
 	""" Set up a provider similar to Amazon EC2 """
 	user_create(user)
-	ssh_keygen(user)
-	ssh_get_key(user)
-	ssh_authorize(user,'%s.id_dsa.pub' % user)
 	user_setup(user)
 	group_user_add(group,user)
 	grant_sudo_access(user)
+
+@run_as('root')
+def generate_keys(keyname=None):
+	pubkey = '%s.pub' % keyname
+	if keyname:
+		ssh_local_keygen(keyname)
+	else:
+		ssh_keygen(user)
+		ssh_get_key(user)
+	ssh_authorize(user,pubkey)
 
 def user_exists(user):
 	""" 

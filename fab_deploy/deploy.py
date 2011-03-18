@@ -19,7 +19,7 @@ from fab_deploy.user import provider_as_ec2, ssh_local_keygen
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
-def go(stage = "development", keyname = 'aws.ubuntu'):
+def go(stage="development", keyname='ec2.development'):
 	""" 
 	A convenience method to prepare AWS servers.
 	
@@ -39,9 +39,7 @@ def go(stage = "development", keyname = 'aws.ubuntu'):
 		# Deploy the nodes for the given stage
 		deploy_nodes(stage,keyname)
 	elif 'rackspace' == provider:
-		ssh_local_keygen(keyname)
-		deploy_nodes(stage,'%s.pub'%keyname)
-		#provider_as_ec2()
+		deploy_nodes(stage)
 
 	fabric.api.warn(fabric.colors.yellow('Wait 60 seconds for nodes to deploy'))
 	time.sleep(60)
