@@ -123,6 +123,12 @@ def ssh_keygen(username):
 		file_attribs(os.path.join(home,".ssh/id_dsa"),     owner=username, group=username)
 		file_attribs(os.path.join(home,".ssh/id_dsa.pub"), owner=username, group=username)
 
+def ssh_local_keygen(keyname):
+	""" Generates a pair of DSA keys in the local directory."""
+	fabric.api.local("ssh-keygen -q -t dsa -f '%s' -N ''" % keyname)
+	file_attribs(keyname, mode="0400", local=True)
+	file_attribs('%s.pub'%keyname, mode="0400", local=True)
+
 def ssh_get_key(username):
 	""" Get the DSA key pair from the server for a specific user """
 	d = user_exists(username)
@@ -133,6 +139,9 @@ def ssh_get_key(username):
 
 	fabric.api.get(pub_key,local_path='%s.id_dsa.pub'%username)
 	fabric.api.get(sec_key,local_path='%s.id_dsa'%username)
+
+	file_attribs('%s.id_dsa.pub'%username,mode='0400',local=True)
+	file_attribs('%s.id_dsa'%username,mode='0400',local=True)
 
 def ssh_authorize(username,key):
 	""" 

@@ -13,15 +13,27 @@ def service(service, command):
 		return
 	fabric.api.sudo('service %s %s' % (service, command))
 
-def set_hostname(hostname):
-	""" Set the host name on a server """
-	fabric.api.sudo('hostname %s' % hostname)
-	host_text = '127.0.0.1 %s' % hostname
-	fabric.contrib.files.append('/etc/hosts',host_text,use_sudo=True)
+def get_internal_ip():
+	""" Returns the internal IP address """
+	command = """ifconfig eth0 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'"""
+	return fabric.api.run(command)
 
 def get_hostname():
 	""" Get the host name on a server """
 	return fabric.api.run('hostname')
+
+def set_hostname(hostname):
+	""" Set the host name on a server """
+	host_text = "127.0.0.1 %s" % hostname
+	if not fabric.contrib.files.contains('/etc/hosts',host_text,use_sudo=True):
+		# TODO: Figure out why fabric.contrib.files.append doesn't work here
+		# It's likely that append wants a list of strings, so giving simply
+		# a string means it will interpret it as a list of characters, which
+		# is the opposite of what you'd want.
+		fabric.api.sudo('echo "%s" >> /etc/hosts' % host_text)
+	
+	if hostname != get_hostname():
+		fabric.api.sudo('hostname %s' % hostname)
 
 def prepare_server():
 	""" Prepares server: installs system packages. """
@@ -63,6 +75,7 @@ def install_common_software():
 		'python2.6',
 		'python2.6-dev',
 		'python-imaging',
+		'python-mysqldb',
 		'python-pip',
 		'python-setuptools',
 		'python-software-properties',

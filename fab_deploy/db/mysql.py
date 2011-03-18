@@ -2,7 +2,9 @@ from datetime import datetime
 
 import fabric.api
 
+from fab_deploy.machine import get_provider_dict
 from fab_deploy.package import package_install
+from fab_deploy.system import get_internal_ip
 from fab_deploy.utils import detect_os
 
 def _mysql_is_installed():
@@ -25,7 +27,6 @@ def mysql_install():
 	package_install('debconf-utils')
 	
 	# get the password
-	passwd = ''
 	if 'DB_PASSWD' in fabric.api.env.conf:
 		passwd = fabric.api.env.conf['DB_PASSWD']
 	else:
@@ -63,13 +64,66 @@ def mysql_install():
 	}
 	package_install(common_packages + extra_packages[os])
 
+def mysql_setup(**kwargs):
+	"""
+	Method to set up mysql
+	
+	This method takes kwargs that can define the stage, the
+	name of the database to create, the user and password to enable,
+	or the slave database record.  In the case of slave it will look
+	up the record from the conf file.
+	"""
+	if not _mysql_is_installed():
+		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
+		return
+
+	# Set up the mysql conf file
+	mysql_conf = '/etc/mysql/my.cnf'
+	before = "bind-address[[:space:]]*=[[:space:]]*127.0.0.1"
+	after  = "bind-address = %s" % get_internal_ip()
+	if not fabric.contrib.files.contains(mysql_conf, after):
+		fabric.contrib.files.sed(mysql_conf,before,after,
+			use_sudo=True, backup='.bkp')
+	
+	# The root password for setup
+	root_passwd = ''
+	if 'DB_PASSWD' in fabric.api.env.conf:
+		root_passwd = fabric.api.env.conf['DB_PASSWD']
+
+	# Get Parameters
+	stage    = kwargs.get('stage',None)
+	name     = kwargs.get('name',None)
+	user     = kwargs.get('user',None)
+	password = kwargs.get('password',None)
+	slave    = kwargs.get('slave',None)
+	
+	# If the slave parameter exists then this should do a conf file lookup
+	# and return values for name, user and password to use in setup
+	if slave:
+		PROVIDER = get_provider_dict()
+		if slave in PROVIDER['machines'][stage]:
+			settings = PROVIDER['machines'][stage][slave]['services']['mysql']
+			name     = settings.get('name',None)
+			user     = settings.get('user',None)
+			password = settings.get('password',None)
+
+	# Create the database user
+	if user and password:
+		mysql_create_user(user='root',passord=root_passwd,
+				new_user=user,new_password=password)
+
+	# Create the database
+	if name:
+		mysql_create_db(user='root',password=root_passwd, 
+				database=name)
+
 def mysql_execute(sql, user='', password=''):
 	"""
 	Executes passed sql command using mysql shell.
 	"""
 	return fabric.api.run("echo '%s' | mysql -u%s -p%s" % (sql, user, password))
 
-def mysql_create_db():
+def mysql_create_db(user='',password='',database=''):
 	"""
 	Creates an empty mysql database. 
 	"""
@@ -77,24 +131,29 @@ def mysql_create_db():
 		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
 		return
 
-	user     = fabric.api.prompt('Please enter username:')
-	database = fabric.api.prompt('Please enter database name:')
+	if not user:
+		user     = fabric.api.prompt('Please enter username:')
+	if not database:
+		database = fabric.api.prompt('Please enter database name:')
 	
 	params = 'DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci'
-	mysql_execute('CREATE DATABASE %s %s;' % (database, params), user)
+	mysql_execute('CREATE DATABASE %s %s;' % (database, params), user, password)
 
-def mysql_create_user():
+def mysql_create_user(user='',password='',new_user='',new_password=''):
 	""" Create a new mysql user. """
 	if not _mysql_is_installed():
 		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
 		return
 
-	user         = fabric.api.prompt('Please enter username:')
-	new_user     = fabric.api.prompt('Please enter new username:')
-	new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
+	if not user:
+		user         = fabric.api.prompt('Please enter username:')
+	if not new_user:
+		new_user     = fabric.api.prompt('Please enter new username:')
+	if not new_password:
+		new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
 
 	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";""" % 
-		(new_user, new_password), user)
+		(new_user, new_password), user, password)
 
 def mysql_drop_user():
 	""" Drop a mysql user. """

@@ -15,6 +15,7 @@ from fab_deploy.server import *
 from fab_deploy.server import web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import get_hostname, set_hostname, prepare_server
 from fab_deploy.utils import detect_os, run_as
+from fab_deploy.user import provider_as_ec2, ssh_local_keygen
 from fab_deploy import vcs
 from fab_deploy.virtualenv import pip_install, virtualenv_create, virtualenv
 
@@ -28,13 +29,22 @@ def go(stage = "development", keyname = 'aws.ubuntu'):
 	"""
 
 	# Setup keys and authorize ports
-	ec2_create_key(keyname)
-	ec2_authorize_port('default','tcp','22')
-	ec2_authorize_port('default','tcp','80')
+	provider = fabric.api.env.conf['PROVIDER']
+	keyname = '%s.%s' % (provider,keyname)
+	if 'ec2' in provider:
+		ec2_create_key(keyname)
+		ec2_authorize_port('default','tcp','22')
+		ec2_authorize_port('default','tcp','80')
 
-	# Deploy the nodes for the given stage
-	deploy_nodes(stage, keyname)
-	time.sleep(30)
+		# Deploy the nodes for the given stage
+		deploy_nodes(stage,keyname)
+	elif 'rackspace' == provider:
+		ssh_local_keygen(keyname)
+		deploy_nodes(stage,'%s.pub'%keyname)
+		#provider_as_ec2()
+
+	fabric.api.warn(fabric.colors.yellow('Wait 60 seconds for nodes to deploy'))
+	time.sleep(60)
 	update_nodes()
 
 def go_setup(stage = "development"):
@@ -51,7 +61,8 @@ def go_setup(stage = "development"):
 		if host == fabric.api.env.host:
 			set_hostname(name)
 			prepare_server()
-			for service in node_dict['services']:
+			for service in node_dict['services'].keys():
+				settings = node_dict['services'][service]
 				if service == 'nginx':
 					nginx_install()
 					nginx_setup(stage = stage)
@@ -60,7 +71,8 @@ def go_setup(stage = "development"):
 					uwsgi_setup()
 				elif service == 'mysql':
 					mysql_install()
-				elif service in ['apache', 'postgresql']:
+					mysql_setup(stage=stage,**settings)
+				elif service in ['apache','postgresql']:
 					fabric.api.warn(fabric.colors.yellow("%s is not yet available" % service))
 
 def go_deploy(stage = "development", tagname = "trunk"):

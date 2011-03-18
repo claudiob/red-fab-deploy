@@ -28,17 +28,24 @@ libcloud.security.VERIFY_SSL_CERT = True
 libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 
 #=== CONF Defaults
-CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
+#CONF_FILE = os.path.join(os.getcwd(),'fabric.conf')
 
-SERVER = ['nginx','uwsgi']
-DB     = ['mysql',]
+SERVER = {'nginx':{},'uwsgi':{}}
+DB     = {
+	'mysql': {
+		'name'        :'dbname',     # not default
+		'user'        :'dbuser',     # not root
+		'password'    :'dbpassword', # not root
+		#'slave'       :'db1',        # reference to master database
+	},
+}
 
 #=== Cloud Defaults
 EC2_IMAGE = 'ami-9a8b79f3' # Ubuntu 10.04, 32-bit instance
 EC2_MACHINES = {
 	'development' : {
 		'dev1' : {
-			'services': SERVER + DB,
+			'services': dict(SERVER, **DB),
 			'size':'m1.small',},
 	},
 	'production' : {
@@ -75,7 +82,7 @@ PROVIDER_DICT = {
 		'machines'   : {
 			'development' : {
 				'dev1'  : {
-					'services': SERVER + DB,
+					'services': dict(SERVER, **DB),
 					'size':'1',}, # 256MB  RAM, 10GB
 			},
 			'production' : {
@@ -101,21 +108,36 @@ PROVIDER_DICT = {
 
 #=== Conf File
 
-def write_conf(node_dict):
+def write_conf(node_dict,filename=''):
+	if not filename:
+		filename = fabric.api.env.conf['CONF_FILE']
 	""" Overwrite the conf file with dictionary values """
 	obj = json.dumps(node_dict, sort_keys=True, indent=4)
-	f = open(CONF_FILE,'w')
+	f = open(filename,'w')
 	f.write(obj)
 	f.close()
 
 def generate_config(provider='ec2_us_east'):
 	""" Generate a default json config file for your provider """
 	_provider_exists(provider)
-	if os.path.exists(CONF_FILE):
-		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (CONF_FILE), default=False):
-			fabric.api.abort(fabric.colors.red("Aborting config file generation."))
-	
-	write_conf(PROVIDER_DICT[provider])
+	conf_file = fabric.api.env.conf['CONF_FILE']
+	if os.path.exists(conf_file):
+		if not fabric.contrib.console.confirm("Do you wish to overwrite the config file %s?" % (conf_file), default=False):
+			conf_file = os.path.join(os.getcwd(),fabric.api.prompt('Enter a new filename:'))
+
+	write_conf(PROVIDER_DICT[provider],filename=conf_file)
+	print fabric.colors.green('Successfully generated config file %s' % conf_file)
+
+def get_provider_dict():
+	""" Get the dictionary of provider settings """
+	conf_file = fabric.api.env.conf['CONF_FILE']
+	return json.loads(open(conf_file,'r').read())
+
+def stage_exists(stage):
+	""" Abort if provider does not exist """
+	PROVIDER = get_provider_dict()
+	if stage not in PROVIDER['machines'].keys():
+		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
 
 #=== Private Methods
 
@@ -126,10 +148,6 @@ def _provider_exists(provider):
 	""" Abort if provider does not exist """
 	if provider not in PROVIDER_DICT.keys():
 		fabric.api.abort(fabric.colors.red('Provider "%s" is not available' % provider))
-
-def get_provider_dict():
-	""" Get the dictionary of provider settings """
-	return json.loads(open(CONF_FILE,'r').read())
 
 def _get_driver(provider):
 	""" Get the driver for the given provider """
@@ -166,12 +184,6 @@ def _get_connection():
 	access_key, secret_key = _get_access_secret_keys(provider)
 	driver = _get_driver(provider)
 	return driver(access_key,secret_key)
-
-def stage_exists(stage):
-	""" Abort if provider does not exist """
-	PROVIDER = get_provider_dict()
-	if stage not in PROVIDER['machines'].keys():
-		fabric.api.abort(fabric.colors.red('Stage "%s" is not available' % stage))
 
 def _get_stage_machines(stage):
 	""" Return a list of server names for stage """
@@ -264,7 +276,8 @@ def get_node_size(size_id):
 	for size in list_node_sizes():
 		if size.id == size_id: return size
 	return NodeSize(id=size_id,name="",ram=None,disk=None,
-			bandwith=None,price=None,driver="")
+			#bandwith=None,
+			price=None,driver="")
 
 def get_node_location(location_id):
 	""" 
@@ -330,18 +343,21 @@ def create_node(name, **kwargs):
 	size     = kwargs.get('size','')
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
 	
-	if keyname:
+	if 'ec2' in fabric.api.env.conf['PROVIDER']:
 		node = _get_connection().create_node(name=name, ex_keyname=keyname, 
 				image=image, size=size, location=location)
+    	
+		# TODO: This does not work until libcloud 0.5.0
+    	#tags = {'name':name,}
+    	#_get_connection().ex_create_tags(node,tags)
+
 	else:
-		node = _get_connection().create_node(name=name, 
+		pubkey = open(keyname,'r').read()
+		from libcloud.compute.base import NodeAuthSSHKey
+		key = NodeAuthSSHKey(pubkey)
+		node = _get_connection().create_node(name=name, auth=key,
 				image=image, size=size, location=location)
 	    
-    # TODO: This does not work until libcloud 0.5.0
-    #if 'ec2' in _get_provider_name():
-    #   tags = {'name':name,}
-    #   _get_connection().ex_create_tags(node,tags)
-
 	print fabric.colors.green('Node %s successfully created' % name)
 	return node
 
@@ -358,9 +374,9 @@ def deploy_nodes(stage='development',keyname=None):
 	for name in PROVIDER['machines'][stage]:
 		node_dict = PROVIDER['machines'][stage][name]
 		if 'uuid' not in node_dict or not node_dict['uuid']:
-			size  = get_node_size(node_dict['size'])
+			size = get_node_size(node_dict['size'])
 			node = create_node(name,keyname=keyname,size=size)
-			node_dict.update({'uuid' : node.uuid,})
+			node_dict.update({'id': node.id, 'uuid' : node.uuid,})
 			PROVIDER['machines'][stage][name] = node_dict
 		else:
 			fabric.api.warn(fabric.colors.yellow("%s machine %s already exists" % (stage,name)))
