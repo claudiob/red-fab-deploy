@@ -16,7 +16,7 @@ def web_server_setup(stage=''):
 		nginx_install()
 		nginx_setup(stage=stage)
 		uwsgi_install()
-		uwsgi_setup()
+		uwsgi_setup(stage = stage)
 
 def web_server_start(stage=''):
 	""" Starts up a web server. """
@@ -24,7 +24,7 @@ def web_server_start(stage=''):
 		apache_start()
 	elif fabric.api.env.conf['SERVER_TYPE'] == 'nginx':	
 		nginx_start()
-		uwsgi_start(stage=stage)
+		uwsgi_start()
 
 def web_server_stop():
 	""" Stops the web server. """

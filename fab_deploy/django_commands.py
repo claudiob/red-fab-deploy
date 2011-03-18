@@ -4,14 +4,24 @@ from fab_deploy.db.mysql import mysql_dump
 from fab_deploy.virtualenv import virtualenv
 
 def manage(command):
-	""" Runs django management command.
-	Example::
+    """ Runs django management command.
+    Example::
 
-		fab manage:createsuperuser
-	"""
-	with fabric.api.cd('/srv/active/project/'):
-		with virtualenv():
-			fabric.api.run('python manage.py %s' % command)
+        fab manage:createsuperuser
+    """
+    with fabric.api.cd('/srv/active/'):
+        with virtualenv():
+            fabric.api.run('cd project && python manage.py %s' % command)
+
+def syn(stage=''):
+    """ Runs django management command.
+    Example::
+
+        fab syn:staging
+    """ 
+    with fabric.api.cd('/srv/active/project/'):
+        with fabric.api.prefix('source ../env/bin/activate'):
+            fabric.api.run('./syn %s' % stage)
 
 def migrate(params='', do_backup=True):
 	""" Runs migrate management command. Database backup is performed

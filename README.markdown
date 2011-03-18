@@ -1,6 +1,4 @@
-=========================================
-django-fab-deploy: django deployment tool
-=========================================
+# django-fab-deploy: django deployment tool
 
 red-fab-deploy is a collection of Fabric scripts for deploying and
 managing django projects on Debian/Ubuntu servers. License is MIT.
@@ -16,8 +14,7 @@ and `cuisine <https://github.com/ff0000/cuisine/>`.
 These tools are being geared towards deploying on Amazon EC2, however 
 there are steps to set up Rackspace and other hosts to work with these tools.
 
-Installation
-============
+## Installation
 
 IMPORTANT: red-fab-deploy will only work if you install the following packages::
     
@@ -28,8 +25,7 @@ IMPORTANT: red-fab-deploy will only work if you install the following packages::
 Be aware that the dependencies are Fabric>=1.0 and apache-libcloud>=0.4.3.  These
 packages are at the cutting edge and without them you will see things break.
 
-Important Notes
-===============
+## Important Notes
 
 Configuration files for apache, nginx, and uwsgi must follow a very common naming
 convention.  These files all should be found in the /deploy/ folder in side of
@@ -46,11 +42,9 @@ If these two files are the same then it's recommended that you write one file na
 Following this convention will make deployment much less of a hassle and hopefully
 will prevent the need to log into the servers.
 
-Advanced Deployment and Setup
-=============================
+## Advanced Deployment and Setup
 
-Development
-***********
+### Development
 
 There now exists a set of advanced tools for streamlining the setup of 
 cloud servers and project deployment.  Follow these steps:
@@ -61,9 +55,9 @@ PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or
 
 2. To set up your AWS account you must run the following::
 
-    $ fab generate_config
-    $ fab go:development
-    $ fab update_nodes # might need to wait a minute and run this
+    fab generate_config
+    fab go:development
+    fab update_nodes # might need to wait a minute and run this
 
 This sets up your config file, creates a default ec2 key file, authorizes port 22 with
 the default security group, and then deploys 1 development node server to your account.
@@ -73,47 +67,44 @@ up to 5 minutes.
 
 3. If you are running Rackspace you'll need these commands::
 
-    $ fab ssh_local_keygen:"rackspace.development"
-    $ fab set_hosts:development,root provider_as_ec2:username=ubuntu
-    $ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
+    fab ssh_local_keygen:"rackspace.development"
+    fab set_hosts:development,root provider_as_ec2:username=ubuntu
+    fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
 
 4. To install all the correct software on your new development node run the following::
 
-    $ fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
+    fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
 
 This will grab all the development node ip addresses, set them as hosts, and then run
 a software setup package on each of the servers based on the generated config file.
 
 5. Next you want to deploy to the development server by running the following::
 
-    $ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+    fab -i deploy/[your private SSH key here] set_hosts go_deploy
 
 This will put the trunk of your repo onto each machine with server software and make it active.
 Be aware that this will remove any current version of trunk that is currently deployed.
 
-Production
-**********
+### Production
 
 Production is almost identical to development, except for the following::
 
-    $ fab generate_config # Do not overwrite an earlier file
-    $ fab go:production
-    $ fab update_nodes # might need to wait a minute and run this
-    $ fab ssh_local_keygen:"rackspace.production"
-    $ fab set_hosts:production,root provider_as_ec2:username=ubuntu
-    $ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
-    $ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
-    $ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+    fab generate_config # Do not overwrite an earlier file
+    fab go:production
+    fab update_nodes # might need to wait a minute and run this
+    fab ssh_local_keygen:"rackspace.production"
+    fab set_hosts:production,root provider_as_ec2:username=ubuntu
+    fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
+    fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
+    fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
 
 NOTE: If you already have generated a config for deployment DO NOT generate another config file.
 This is very important as you may overwrite the original and lose the information you have inside
 of it.  Furthermore, you'll want to check in the config file into your repository.
 
-Cloud Server Setup
-==================
+## Cloud Server Setup
 
-Amazon Deployment
-*****************
+### Amazon Deployment
 
 These steps will help you deploy cloud servers:
 
@@ -144,8 +135,7 @@ These steps will help you deploy cloud servers:
 
 7. Your cloud servers should now be operational.
 
-Rackspace Deployment
-********************
+### Rackspace Deployment
 
 These steps will help you deploy cloud servers:
 
@@ -168,8 +158,7 @@ These steps will help you deploy cloud servers:
 
 5. Your cloud servers should now be operational.
 
-Rackspace Setup
-===============
+## Rackspace Setup
 
 1. Make an ssh key pair and put it in the project /deploy folder with
    names that are recognizable.
@@ -180,34 +169,34 @@ Rackspace Setup
 
 3. To create the ubuntu user run the following command::
 
-       $ fab dev provider_as_ec2
+       fab dev provider_as_ec2
 
    and press ENTER to every question.  This will generate a DSA key pair
    with names 'ubuntu.id_dsa' and 'ubuntu.id_dsa.pub'.  Add these to your
    project and don't lose it.  This is the private SSH key you will use in 
    the following steps.
 
-4. **If this is the first time** deploying on the server run the following::
+4. *If this is the first time* deploying on the server run the following::
 
-       $ fab -i deploy/[your private SSH key here] dev deploy_full:"tagname"
+       fab -i deploy/[your private SSH key here] dev deploy_full:"tagname"
        
    Here "tagname" is the name of the tagged version of the code you wish
    to deploy.  This code must reside in the /repo/tags/ directory.
    If you have not created a tag yet, do it with::
 
-       $ svn copy trunk tags/release-0.0.1; svn ci -m "Tagging 'trunk' for django-fab-deploy to work."
+       svn copy trunk tags/release-0.0.1; svn ci -m "Tagging 'trunk' for django-fab-deploy to work."
 
    For the source code to be installed from the SVN repository to the 
    server you need to enter your SVN credentials.
    
-   **If this is not the first time** you are deploying on the server then run::
+   *If this is not the first time* you are deploying on the server then run::
 
-       $ fab -i deploy/[your private SSH key here] dev deploy_project:"tagname" 
-       $ fab -i deploy/[your private SSH key here] dev make_active:"tagname"
+       fab -i deploy/[your private SSH key here] dev deploy_project:"tagname" 
+       fab -i deploy/[your private SSH key here] dev make_active:"tagname"
 
 5. Next you'll want to get the server going.
 
-   **If this is the first time** deploying on the server run the following::
+   *If this is the first time* deploying on the server run the following::
 
        Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP 
        address of the production machine.
@@ -217,36 +206,33 @@ Rackspace Setup
   
    Then launch::
   
-       $ fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
+       fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
 
    **If this is not the first time** then just run::
 
-       $ fab -i deploy/[your private SSH key here] dev uwsgi_restart
-       $ fab -i deploy/[your private SSH key here] dev web_server_restart
+       fab -i deploy/[your private SSH key here] dev uwsgi_restart
+       fab -i deploy/[your private SSH key here] dev web_server_restart
   
 6. Next you'll have to run the commands to have the application running, such as::
 
-       $ fab -i deploy/[your private SSH key here] dev manage:syncdb 
-       $ fab -i deploy/[your private SSH key here] dev manage:loaddata test
+       fab -i deploy/[your private SSH key here] dev manage:syncdb 
+       fab -i deploy/[your private SSH key here] dev manage:loaddata test
 
 7. Now everything should be running
 
-Database Setup
-==============
+## Database Setup
 
 The databases supported with red-fab-deploy are MySQL and PostgreSQL
 
-MySQL Setup
-***********
+### MySQL Setup
 
 To install and setup mysql you'll need to run the following commands::
 
-       $ fab -i deploy/[your private SSH key here] dev mysql_install
-       $ fab -i deploy/[your private SSH key here] dev mysql_create_db
-       $ fab -i deploy/[your private SSH key here] dev mysql_create_user
+       fab -i deploy/[your private SSH key here] dev mysql_install
+       fab -i deploy/[your private SSH key here] dev mysql_create_db
+       fab -i deploy/[your private SSH key here] dev mysql_create_user
 
-PostgreSQL
-**********
+### PostgreSQL
 
 The PostgreSQL commands are not yet set up
 
