@@ -171,9 +171,9 @@ The databases supported with red-fab-deploy are MySQL and PostgreSQL
 
 To install and setup mysql you'll need to run the following commands::
 
-       fab -i deploy/[your private SSH key here] dev mysql_install
-       fab -i deploy/[your private SSH key here] dev mysql_create_db
-       fab -i deploy/[your private SSH key here] dev mysql_create_user
+	fab -i deploy/[your private SSH key here] dev mysql_install
+	fab -i deploy/[your private SSH key here] dev mysql_create_db
+	fab -i deploy/[your private SSH key here] dev mysql_create_user
 
 ### PostgreSQL
 

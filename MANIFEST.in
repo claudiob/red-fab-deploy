@@ -1,5 +1,5 @@
 include *.txt
-include *.rst
+include *.markdown
 recursive-include fab_deploy/config_templates *.config
 recursive-include fab_deploy/config_templates *.py
 recursive-include fab_deploy/db *.py
