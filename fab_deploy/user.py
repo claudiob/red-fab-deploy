@@ -9,12 +9,12 @@ from fab_deploy.machine import get_provider_dict
 from fab_deploy.utils import run_as
 
 @run_as('root')
-def provider_as_ec2(user='ubuntu',group='www-data'):
+def provider_as_ec2(username='ubuntu',group='www-data'):
 	""" Set up a provider similar to Amazon EC2 """
-	user_create(user)
-	user_setup(user)
-	group_user_add(group,user)
-	grant_sudo_access(user)
+	user_create(username)
+	user_setup(username)
+	group_user_add(group,username)
+	grant_sudo_access(username)
 
 @run_as('root')
 def generate_keys(keyname=None):
@@ -50,12 +50,16 @@ def user_create(user, home=None, uid=None, gid=None, password=False):
 	By default users will be created without a password.  To create users with a
 	password you must set "password" to True.
 	"""
-	options = []
-	if home: options.append("-d '%s'" % home)
-	if uid:  options.append("-u '%s'" % uid)
-	if gid:  options.append("-g '%s'" % gid)
-	if not password: options.append("--disabled-password")
-	fabric.api.sudo("adduser %s '%s'" % (" ".join(options), user))
+	u = user_exists(user)
+	if not u:
+		options = []
+		if home: options.append("-d '%s'" % home)
+		if uid:  options.append("-u '%s'" % uid)
+		if gid:  options.append("-g '%s'" % gid)
+		if not password: options.append("--disabled-password")
+		fabric.api.sudo("adduser %s '%s'" % (" ".join(options), user))
+	else:
+		fabric.api.warn(fabric.colors.yellow("User already exists: %s" % user))
 
 def user_setup(user):
 	"""
@@ -151,18 +155,19 @@ def ssh_get_key(username):
 	file_attribs('%s.id_dsa.pub'%username,mode='0400',local=True)
 	file_attribs('%s.id_dsa'%username,mode='0400',local=True)
 
-def ssh_authorize(username,key):
+def ssh_authorize(username='ubuntu',key=None):
 	""" 
 	Adds a ssh key from passed file to user's authorized_keys on server. 
 	
 	SSH keys can be added at any time::
 
-		fab ssh_authorize:"/home/ubuntu.id_dsa.pub"
+		fab ssh_authorize:username=ubuntu,key=ec2.development.pub
 	"""
 	d = user_exists(username)
+	fabric.api.run("mkdir -p %s" % os.path.join(d['home'], ".ssh/"))
 	keyf = os.path.join(d['home'],'.ssh/authorized_keys')
 	
-	with open(os.path.normpath(key), 'r') as f:
+	with open(key, 'r') as f:
 		ssh_key = f.read()
 	
 	if fabric.contrib.files.exists(keyf):

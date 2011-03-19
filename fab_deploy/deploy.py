@@ -45,7 +45,7 @@ def go(stage="development", keyname='ec2.development'):
 	time.sleep(60)
 	update_nodes()
 
-def go_setup(stage = "development"):
+def go_setup(stage="development"):
 	"""
 	Install the correct services on each machine
 	

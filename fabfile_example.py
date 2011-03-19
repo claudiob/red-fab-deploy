@@ -29,7 +29,7 @@ def my_site():
 my_site()
 
 #--- Set all available hosts
-def set_hosts(stage='development'): 
+def set_hosts(stage='development',username='ubuntu'): 
     hosts = []
     PROVIDER = json.loads(open('fabric.conf','r').read()) 
     if stage in PROVIDER['machines']:
@@ -38,9 +38,9 @@ def set_hosts(stage='development'):
 			if 'public_ip' in node_dict:
                 public_ip = node_dict['public_ip']
                 for ip in public_ip:            
-                    hosts.append('ubuntu@%s' % ip)  
+                    hosts.append('%s@%s' % (username,ip))  
             else:
-                fabric.api.warn(fabric.api.yellow('No public IPs found for %s in %s' % (name,stage)))
+                fabric.api.warn(fabric.colors.yellow('No public IPs found for %s in %s' % (name,stage)))
     env.hosts = hosts
     update_env()
 
