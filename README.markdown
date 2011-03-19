@@ -78,7 +78,7 @@ This sets up your config file, creates a default ec2 key file, authorizes port 2
 the default security group, and then deploys 1 development node server to your account.
 
 2. You must wait until all your instances have spawned before going further.  This could take 
-up to 5 minutes.
+up to 5 minutes.  You must also wait until you have the root password if you are using Rackspace.
 
 3. If you are running Rackspace you'll need these commands:
 
