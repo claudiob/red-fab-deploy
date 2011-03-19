@@ -143,11 +143,8 @@ server you need to enter your SVN credentials.
 
 *If this is the first time* deploying on the server run the following:
 
-	Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP 
-	address of the production machine.
-	Edit deploy/nginx.conf and substitute the 127.0.0.1 in the upstream 
-	django server with the local IP address and the 127.0.0.1 in the 
-	server_name with the remote IP address of the production machine.
+	* Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP address of the production machine.
+	* Edit deploy/nginx.conf and substitute the 127.0.0.1 in the upstream django server with the local IP address and the 127.0.0.1 in the server_name with the remote IP address of the production machine.
 
 Then launch:
 
