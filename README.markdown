@@ -44,6 +44,21 @@ will prevent the need to log into the servers.
 
 ## Advanced Deployment and Setup
 
+### Fabfile
+
+Inside your fabfile you need to set the following settings for amazon:
+
+	PROVIDER = 'amazon'
+	AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
+	AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
+
+Or the following settings for Rackspace:
+
+	PROVIDER = 'rackspace'
+	RACKSPACE_USER = 'yourrackspaceclouduser',
+	RACKSPACE_KEY  = 'yourrackspacecloudkey',
+
+
 ### Development
 
 There now exists a set of advanced tools for streamlining the setup of 
@@ -102,123 +117,51 @@ NOTE: If you already have generated a config for deployment DO NOT generate anot
 This is very important as you may overwrite the original and lose the information you have inside
 of it.  Furthermore, you'll want to check in the config file into your repository.
 
-## Cloud Server Setup
+## Deploying on the Server
 
-### Amazon Deployment
+### The Code Manually
 
-These steps will help you deploy cloud servers:
+*If this is the first time* deploying on the server run the following:
 
-1. Currently you can deploy to either rackspace or amazon cloud servers using
-   libcloud.  In your env.conf place the following::
+	fab -i deploy/[your private SSH key here] dev deploy_full:"tagname"
+    
+Here "tagname" is the name of the tagged version of the code you wish
+to deploy.  This code must reside in the /repo/tags/ directory.
+If you have not created a tag yet, do it with::
 
-	PROVIDER = 'amazon'
+	svn copy trunk tags/release-0.0.1; svn ci -m "Tagging 'trunk' for django-fab-deploy to work."
 
-2. Place the access keys in your env.conf::
+For the source code to be installed from the SVN repository to the 
+server you need to enter your SVN credentials.
 
-    AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
-    AWS_SECRET_ACCESS_KEY = 'yourawssecretaccesskey',
+*If this is not the first time* you are deploying on the server then run:
 
-3. You can now run any commands to get information your your cloud servers.
+	fab -i deploy/[your private SSH key here] dev deploy_project:"tagname" 
+	fab -i deploy/[your private SSH key here] dev make_active:"tagname"
 
-4. When deploying on amazon you must create a security key::
+### The Server
 
-    fab ec2_create_key:"yourkeyname"
+*If this is the first time* deploying on the server run the following:
 
-5. You cannot get ssh access unless you add ports to the default security group::
+	Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP 
+	address of the production machine.
+	Edit deploy/nginx.conf and substitute the 127.0.0.1 in the upstream 
+	django server with the local IP address and the 127.0.0.1 in the 
+	server_name with the remote IP address of the production machine.
 
-    fab ec2_authorize_port:"default,tcp,22"
+Then launch:
 
-6. To deploy development or production nodes run one of the following commands::
+	fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
 
-    fab deploy_nodes:"development"
-    fab deploy_nodes:"production"
+**If this is not the first time** then just run::
 
-7. Your cloud servers should now be operational.
-
-### Rackspace Deployment
-
-These steps will help you deploy cloud servers:
-
-1. Currently you can deploy to either rackspace or amazon cloud servers using
-   libcloud.  In your env.conf place the following::
-
-    PROVIDER = 'rackspace'
-
-2. Place the access keys in your env.conf::
-
-    RACKSPACE_USER = 'yourrackspaceclouduser',
-    RACKSPACE_KEY  = 'yourrackspacecloudkey',
-
-3. You can now run any commands to get information your your cloud servers.
-
-4. To deploy development or production nodes run one of the following commands::
-
-    fab deploy_nodes:"development"
-    fab deploy_nodes:"production"
-
-5. Your cloud servers should now be operational.
-
-## Rackspace Setup
-
-1. Make an ssh key pair and put it in the project /deploy folder with
-   names that are recognizable.
-
-2. Copy the fabfile_example.py file from the project to the top level 
-   directory of your project, then edit specifying your INSTANCE_NAME,
-   REPO and SERVER
-
-3. To create the ubuntu user run the following command::
-
-       fab dev provider_as_ec2
-
-   and press ENTER to every question.  This will generate a DSA key pair
-   with names 'ubuntu.id_dsa' and 'ubuntu.id_dsa.pub'.  Add these to your
-   project and don't lose it.  This is the private SSH key you will use in 
-   the following steps.
-
-4. *If this is the first time* deploying on the server run the following::
-
-       fab -i deploy/[your private SSH key here] dev deploy_full:"tagname"
-       
-   Here "tagname" is the name of the tagged version of the code you wish
-   to deploy.  This code must reside in the /repo/tags/ directory.
-   If you have not created a tag yet, do it with::
-
-       svn copy trunk tags/release-0.0.1; svn ci -m "Tagging 'trunk' for django-fab-deploy to work."
-
-   For the source code to be installed from the SVN repository to the 
-   server you need to enter your SVN credentials.
-   
-   *If this is not the first time* you are deploying on the server then run::
-
-       fab -i deploy/[your private SSH key here] dev deploy_project:"tagname" 
-       fab -i deploy/[your private SSH key here] dev make_active:"tagname"
-
-5. Next you'll want to get the server going.
-
-   *If this is the first time* deploying on the server run the following::
-
-       Edit deploy/uwsgi.ini and substitute 127.0.0.1 with the local IP 
-       address of the production machine.
-       Edit deploy/nginx.conf and substitute the 127.0.0.1 in the upstream 
-       django server with the local IP address and the 127.0.0.1 in the 
-       server_name with the remote IP address of the production machine.
+	fab -i deploy/[your private SSH key here] dev uwsgi_restart
+	fab -i deploy/[your private SSH key here] dev web_server_restart
   
-   Then launch::
-  
-       fab dev web_server_setup web_server_start -i deploy/[your private SSH key here]
+Next you'll have to run the commands to have the application running, such as:
 
-   **If this is not the first time** then just run::
-
-       fab -i deploy/[your private SSH key here] dev uwsgi_restart
-       fab -i deploy/[your private SSH key here] dev web_server_restart
-  
-6. Next you'll have to run the commands to have the application running, such as::
-
-       fab -i deploy/[your private SSH key here] dev manage:syncdb 
-       fab -i deploy/[your private SSH key here] dev manage:loaddata test
-
-7. Now everything should be running
+	fab -i deploy/[your private SSH key here] dev manage:syncdb 
+	fab -i deploy/[your private SSH key here] dev manage:loaddata test
 
 ## Database Setup
 
