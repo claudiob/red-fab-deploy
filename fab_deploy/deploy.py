@@ -87,6 +87,7 @@ def go_deploy(stage = "development", tagname = "trunk"):
 
 		if host == fabric.api.env.host:
 			service = node_dict['services']
+			# If any of these services are listed then deploy the project
 			if list(set(['nginx','uwsgi','apache']) & set(node_dict['services'])):
 				deploy_full(tagname,force=True)
 	

@@ -99,7 +99,7 @@ each machine you've created the user on.
 
 6. Next you want to deploy to the development server by running the following:
 
-		$ fab -i deploy/[your private SSH key here] set_hosts go_deploy
+		$ fab -i deploy/[your private SSH key here] set_hosts:development go_deploy:development,tag
 
 	This will put the trunk of your repo onto each machine with server software and make it active.
 	Be aware that this will remove any current version of trunk that is currently deployed.
@@ -114,8 +114,8 @@ Production is almost identical to development, except for the following:
 	$ fab ssh_local_keygen:"rackspace.production"
 	$ fab set_hosts:production,root provider_as_ec2:username=ubuntu
 	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
-	$ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:stage=production
-	$ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:stage=production,tagname=tag
+	$ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:production
+	$ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:production,tag
 
 NOTE: If you already have generated a config for deployment DO NOT generate another config file.
 This is very important as you may overwrite the original and lose the information you have inside
