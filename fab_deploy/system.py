@@ -24,7 +24,7 @@ def get_hostname():
 
 def set_hostname(hostname):
 	""" Set the host name on a server """
-	host_text = "127.0.0.1 %s" % hostname
+	host_text = "\n127.0.0.1 %s\n" % hostname
 	if not fabric.contrib.files.contains('/etc/hosts',host_text,use_sudo=True):
 		# TODO: Figure out why fabric.contrib.files.append doesn't work here
 		# It's likely that append wants a list of strings, so giving simply
