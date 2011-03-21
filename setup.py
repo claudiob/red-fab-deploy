@@ -57,7 +57,7 @@ setup(
     license = 'MIT license',
     description = """ Code deployment tool """,
 
-    long_description = open('README.rst').read(),
+    long_description = open('README.markdown').read(),
     install_requires = parse_requirements('requirements.txt'),#['fabric', 'apache-libcloud'],
 	dependency_links = parse_dependency_links('requirements.txt'),
 

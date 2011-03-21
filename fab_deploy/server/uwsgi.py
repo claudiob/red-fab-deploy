@@ -2,6 +2,7 @@ import os
 
 import fabric.api
 import fabric.contrib
+import os
 
 from fab_deploy.file import link, unlink
 from fab_deploy.package import package_install, package_update
@@ -23,25 +24,26 @@ def uwsgi_install(force = False):
 	package_install('libxml2','libxml2-dev')
 	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
 
-def uwsgi_setup():
+def uwsgi_setup(stage=''):
 	""" Setup uWSGI. """
-	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
-	uwsgi_service_script = '/etc/init.d/uwsgi'
 	
-	fabric.api.sudo('mkdir -p /etc/uwsgi')
-
 	# Service script
-	unlink(uwsgi_service_script, use_sudo = True)
+	uwsgi_service_script = '/etc/init.d/uwsgi'
 	if fabric.contrib.files.exists(uwsgi_service_script):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_service_script, uwsgi_service_script))
-	fabric.api.put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo = True)
+	fabric.api.put(os.path.join(fabric.api.env.conf['FILES'], 'uwsgi_init.sh'), uwsgi_service_script, use_sudo=True)
 	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
+	fabric.api.sudo('chown root:root %s' % uwsgi_service_script)
 
 	# INI File
-	unlink(uwsgi_file, use_sudo = True)
+	fabric.api.sudo('mkdir -p /etc/uwsgi')
+	uwsgi_file = '/etc/uwsgi/uwsgi.ini'
 	if fabric.contrib.files.exists(uwsgi_file):
 		fabric.api.sudo('mv %s %s.bkp' % (uwsgi_file, uwsgi_file))
-	link('/srv/active/deploy/uwsgi.ini', uwsgi_file, use_sudo = True)
+	if stage:
+		stage = '.%s' % stage
+	link('/srv/active/deploy/uwsgi%s.ini' % stage, dest=uwsgi_file, 
+		use_sudo=Truei, do_unlink=True, silent=True)
 
 	# Log File
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')

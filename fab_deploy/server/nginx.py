@@ -12,9 +12,9 @@ def _nginx_is_installed():
 
 def nginx_install():
 	""" Install nginx. """
-#	if _nginx_is_installed():
-#		fabric.api.warn(fabric.colors.yellow('Nginx is already installed'))
-#		return
+	if _nginx_is_installed():
+		fabric.api.warn(fabric.colors.yellow('Nginx is already installed'))
+		return
 
 	os = detect_os()
 	options = {'lenny': '-t lenny-backports'}
@@ -30,7 +30,7 @@ def nginx_setup(stage=''):
 		fabric.api.sudo('mv %s %s.bkp' % (nginx_file,nginx_file))
 	if stage:
 		stage = '.%s' % stage
-	link('/srv/active/deploy/nginx.conf%s' % stage, dest=nginx_file,
+	link('/srv/active/deploy/nginx%s.conf' % stage, dest=nginx_file,
 		use_sudo=True, do_unlink=True, silent=True)
 
 def nginx_service(command):

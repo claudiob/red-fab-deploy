@@ -45,7 +45,7 @@ def go(stage="development", keyname='ec2.development'):
 	time.sleep(60)
 	update_nodes()
 
-def go_setup(stage = "development"):
+def go_setup(stage="development"):
 	"""
 	Install the correct services on each machine
 	
@@ -63,10 +63,10 @@ def go_setup(stage = "development"):
 				settings = node_dict['services'][service]
 				if service == 'nginx':
 					nginx_install()
-					nginx_setup(stage = stage)
+					nginx_setup(stage=stage)
 				elif service == 'uwsgi':
 					uwsgi_install()
-					uwsgi_setup()
+					uwsgi_setup(stage=stage)
 				elif service == 'mysql':
 					mysql_install()
 					mysql_setup(stage=stage,**settings)
@@ -80,7 +80,7 @@ def go_setup(stage = "development"):
 				else:
 					fabric.api.warn('%s is not an available service' % service)
 
-def go_deploy(stage = "development", tagname = "trunk"):
+def go_deploy(stage="development", tagname="trunk"):
 	"""
 	Deploy project and make active on any machine with server software
 	
@@ -94,6 +94,7 @@ def go_deploy(stage = "development", tagname = "trunk"):
 
 		if host == fabric.api.env.host:
 			service = node_dict['services']
+			# If any of these services are listed then deploy the project
 			if list(set(['nginx','uwsgi','apache']) & set(node_dict['services'])):
 				deploy_full(tagname,force=True)
 	
@@ -110,14 +111,11 @@ def deploy_full(tagname, force=False):
 	Deploys a project with a given tag name, and then makes
 	that deployment the active deployment on the server.
 	"""
-	os_sys = detect_os()
-	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
-		fabric.api.abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
-	prepare_server()
-	deploy_project(tagname)
+	make_src_dir()
+	deploy_project(tagname,force=force)
 	make_active(tagname)
 
-def deploy_project(tagname, force = False):
+def deploy_project(tagname, force=False):
 	""" Deploys project on prepared server. """
 	make_src_dir()
 	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)
@@ -133,7 +131,7 @@ def deploy_project(tagname, force = False):
 	else:
 		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 		with fabric.api.lcd('/tmp'):
-			vcs.export(tagname, local = True)
+			vcs.export(tagname, local=True)
 		fabric.contrib.project.rsync_project(
 			local_dir = os.path.join('/tmp', tagname),
 			remote_dir = fabric.api.env.conf['SRC_DIR'],
@@ -145,7 +143,7 @@ def deploy_project(tagname, force = False):
 		with virtualenv():
 			pip_install()
 	
-	#fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
+	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
 
 def make_src_dir():
 	""" Makes the /srv/<project>/ directory and creates the correct permissions """
@@ -155,7 +153,7 @@ def make_src_dir():
 def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
 	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname),
-			'/srv/active', do_unlink = True, silent = True)
+			'/srv/active', do_unlink=True, silent=True)
 	uwsgi_service_script = '/etc/init.d/uwsgi'
 	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
 
@@ -168,7 +166,7 @@ def undeploy():
 	""" Shuts site down. This command doesn't clean everything, e.g.
 	user data (database, backups) is preserved. """
 
-	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default = False):
+	if not fabric.contrib.console.confirm("Do you wish to undeploy host %s?" % fabric.api.env.hosts[0], default=False):
 		fabric.api.abort(fabric.colors.red("Aborting."))
 
 	web_server_stop()

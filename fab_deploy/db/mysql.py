@@ -109,7 +109,7 @@ def mysql_setup(**kwargs):
 
 	# Create the database user
 	if user and password:
-		mysql_create_user(user='root',passord=root_passwd,
+		mysql_create_user(user='root',password=root_passwd,
 				new_user=user,new_password=password)
 
 	# Create the database

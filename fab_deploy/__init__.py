@@ -37,7 +37,7 @@ from fab_deploy.utils import (update_env, delete_pyc, debug_env, detect_os)
 
 #--- Django
 from fab_deploy.django_commands import (migrate, manage, syncdb,
-	compress, test)
+	compress, test, syn)
 
 #--- Media
 from fab_deploy.media import (media_rsync, media_chown, media_chmod, media_sync)

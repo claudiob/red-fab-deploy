@@ -19,8 +19,8 @@ import fabric.api
 import fabric.colors
 import fabric.contrib
 
-from libcloud.base import NodeImage, NodeSize
-from libcloud.types import Provider
+from libcloud.compute.base import NodeImage, NodeLocation, NodeSize
+from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 import libcloud.security
 
@@ -35,10 +35,10 @@ libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 SERVER = {'nginx':{},'uwsgi':{}}
 DB     = {
 	'mysql': {
-		'name'        :'dbname',     # not default
-		'user'        :'dbuser',     # not root
-		'password'    :'dbpassword', # not root
-		#'slave'       :'db1',        # reference to master database
+		'name'     :'',     # not default
+		'user'     :'',     # not root
+		'password' :'',     # not root
+		#'slave'    :'db1',  # reference to master database
 	},
 }
 
@@ -277,9 +277,14 @@ def get_node_size(size_id):
 	"""
 	for size in list_node_sizes():
 		if size.id == size_id: return size
-	return NodeSize(id=size_id,name="",ram=None,disk=None,
-			#bandwith=None,
-			price=None,driver="")
+	id        = size_id
+	name      = ""
+	ram       = None
+	disk      = None
+	bandwidth = None
+	price     = None
+	driver    = ""
+	return NodeSize(id,name,ram,disk,bandwidth,price,driver)
 
 def get_node_location(location_id):
 	""" 

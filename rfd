@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+import os, os.path, random, stat, sys
+from optparse import OptionParser
+from shutil import ignore_patterns, move
+from distutils.dir_util import copy_tree
+
+from colors import green, yellow, COLORS
+
+ ##### Constants #####
+
+ROOT = os.path.abspath(os.path.dirname(__file__))
+FILE_TYPES = ['conf','html','ini','py','txt','types',]
+
+ ########### Environments ###########
+
+class Environment:
+    def deploy(self, instance_name, options):
+        # Copy the entire directory tree over
+        source = os.path.join(ROOT,'files/')
+        destination = os.path.join(os.getcwd(), 'deploy/')
+        copy_tree(source, destination)
+
+        # For each file replace the keyword arguments
+        for root, dirnames, filenames in os.walk(destination):
+            for filename in filenames:
+                parts = filename.split('.')
+                extension = None
+                if len(parts) >=2:
+                    extension = parts[-1]
+                if extension and extension in FILE_TYPES:
+                    orig = os.path.join(root,filename)
+                    content = open(orig,'r').read() 
+                    
+                    context = {
+                        'INSTANCE_NAME': instance_name, # Recommend no underscores
+                        'INSTANCE_ID': options.instance_id,
+                        'ENVIRONMENT': options.environment,
+                        'REPO': options.repo,
+                        'AWS_ACCESS_KEY_ID': options.aws_access_key_id,
+                        'AWS_SECRET_ACCESS_KEY': options.aws_secret_access_key,
+                        'PROVIDER': options.provider,
+                        'RACKSPACE_USER': options.rackspace_user,     
+                        'RACKSPACE_KEY': options.rackspace_key,
+                        'PRIVATE_IP': options.private_ip,
+                        'PUBLIC_IP': options.public_ip,
+                    }
+                    context.update(COLORS)
+                    file(orig, 'w').write(content % context)
+
+        # Rename nginx.[environment].ini and uwsgi.[environment].ini
+        move(os.path.join(destination, "nginx.conf"), os.path.join(destination, "nginx.%s.conf" % options.environment))
+        move(os.path.join(destination, "uwsgi.ini"), os.path.join(destination, "uwsgi.%s.ini" % options.environment))
+
+        # Move fabfile.py to the root
+        move(os.path.join(destination, "fabfile.py"), os.path.join(destination, "../fabfile.py"))
+
+        # Move fabfile.[PROVIDER].conf to the root and rename it fabfile.conf
+        move(os.path.join(destination, "fabric.%s.conf" % options.provider), os.path.join(destination, "../fabric.conf"))
+        # TODO: Delete the ones related to the other providers
+        
+        
+
+ ########### Main Program ###########
+
+def success_message(message):
+    """ Simply print message """
+    print(green(message))
+
+def exit_message(message):
+    """ Simply print message and exit """
+    print(yellow(message))
+    sys.exit(1)
+
+def main():
+    parser = OptionParser('usage: %(green)s%%prog%(normal)s instance_name [options] ' % COLORS,
+        version='0.1')
+    parser.add_option('-i', '--instance-id', help='The ID of the instance to deploy to', default = '')
+    parser.add_option('-r', '--repo', help='The VCS repo where to deploy from', default = '')
+    parser.add_option('-a', '--aws_access_key_id', help='AWS Access Key ID', default = '')
+    parser.add_option('-s', '--aws_secret_access_key', help='AWS Secret Key', default = '')
+    parser.add_option('-p', '--provider', help='AWS Provider') #, default = 'ec2_us_east')
+    parser.add_option('-u', '--rackspace_user', help='Rackspace user', default = '')
+    parser.add_option('-k', '--rackspace_key', help='Rackspace API key', default = '')
+    parser.add_option('-v', '--private-ip', help='Machine private IP', default = '')
+    parser.add_option('-b', '--public-ip', help='Machine public IP', default = '')
+    parser.add_option('-e', '--environment', help='Either "staging" or "production"', default = '')
+
+    (options, args) = parser.parse_args()
+
+    # Check if name was given
+    if not len(args):
+        exit_message('Arguments required')
+    else: instance_name = args[0]
+
+    # Deploy the project
+    Environment().deploy(instance_name, options)
+    success_message('[%s] created successfully' % instance_name)
+
+    # Message
+    print("Now run the following commands:")
+    print("    fab update_nodes")
+    print("    fab set_hosts:%s provider_as_ec2" % options.environment)
+    print("And type the server instance password when required (skip everything else)")
+    return
+
+if __name__ == '__main__': main()
