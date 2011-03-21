@@ -29,15 +29,16 @@ packages are at the cutting edge and without them you will see things break.
 
 Configuration files for apache, nginx, and uwsgi must follow a very common naming
 convention.  These files all should be found in the /deploy/ folder in side of
-the project.  Simply put, the files must end in '.<stage>', where <stage> can be
+the project.  Simply put, the files must describe the stage by using the 
+convention 'filename.<stage>.[ini|conf]', where <stage> can be
 'production, 'staging', or 'development'.  You can choose the names of your stages
 for your individual project, but they must conform to the stages found in the 
 generated config file.
 
-For example, the nginx.conf file for production will be named 'nginx.conf.production',
-whereas the nginx.conf file for development will be named 'nginx.conf.development'.
+For example, the nginx.conf file for production will be named 'nginx.production.conf',
+whereas the nginx.conf file for development will be named 'nginx.development.conf'.
 If these two files are the same then it's recommended that you write one file named
-'nginx.conf' and check in symlinks 'nginx.conf.<stage>' into the same folder.
+'nginx.conf' and check in symlinks 'nginx.<stage>.conf' into the same folder.
 
 Following this convention will make deployment much less of a hassle and hopefully
 will prevent the need to log into the servers.
@@ -46,7 +47,12 @@ will prevent the need to log into the servers.
 
 ### Fabfile
 
-Inside your fabfile you need to set the following settings for amazon:
+The first thing you need to do is set up your fabfile.  This project includes an example
+that is necessary to get started called fabfile_example.py.  You can take a look at it and 
+replace the default values with your actual values.
+
+Importantly there are different settings for setting up Amazon EC2 instances or Rackspace
+Cloud instances.  These settings are listed below:
 
 	PROVIDER = 'amazon'
 	AWS_ACCESS_KEY_ID     = 'yourawsaccesskeyid',
@@ -58,15 +64,26 @@ Or the following settings for Rackspace:
 	RACKSPACE_USER = 'yourrackspaceclouduser',
 	RACKSPACE_KEY  = 'yourrackspacecloudkey',
 
+As an example here is the env.conf dictionary for amazon that you'd find in your file:
+
+	env.conf = dict(
+		# THIS IS YOUR PROVIDER AND ACCESS
+		PROVIDER = 'ec2_us_east',
+		AWS_ACCESS_KEY_ID     = '',     
+		AWS_SECRET_ACCESS_KEY = '',     
+		
+		# THESE THREE ARE NECESSARY
+		CONF_FILE = os.path.join(os.getcwd(),'fabric.conf'),
+		INSTANCE_NAME = 'projectname', 
+		REPO = 'http://some.repo.com/projectname/',
+	)
 
 ### Development
 
 There now exists a set of advanced tools for streamlining the setup of 
 cloud servers and project deployment.  Follow these steps:
 
-1. Ensure you have the following in your fabfile conf settings: INSTANCE_NAME,
-PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or 
-(RACKSPACE_USER, RACKSPACE_KEY).
+1. Ensure you have correctly set up your fabfile using the instructions above.
 
 2. To begin with the set up of your cloud account you must run the following commands. On
 AWS only this will create a default key file and authorize tcp ports 22 and 80 for use.  With
@@ -84,7 +101,6 @@ which usually comes in an email a few minutes later.
 default key file, create and set up a user, add the user to the default security group, 
 and then grant sudo access.  Finally, it will copy that key into the authorized_keys file for 
 each machine you've created the user on.
-
 
 		$ fab ssh_local_keygen:"rackspace.development"
 		$ fab set_hosts:development,root provider_as_ec2:username=ubuntu

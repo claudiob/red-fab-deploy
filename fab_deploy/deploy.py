@@ -63,10 +63,10 @@ def go_setup(stage="development"):
 				settings = node_dict['services'][service]
 				if service == 'nginx':
 					nginx_install()
-					nginx_setup(stage = stage)
+					nginx_setup(stage=stage)
 				elif service == 'uwsgi':
 					uwsgi_install()
-					uwsgi_setup(stage = stage)
+					uwsgi_setup(stage=stage)
 				elif service == 'mysql':
 					mysql_install()
 					mysql_setup(stage=stage,**settings)
