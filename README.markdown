@@ -182,7 +182,22 @@ Next you'll have to run the commands to have the application running, such as:
 
 ## Database Setup
 
-The databases supported with red-fab-deploy are MySQL and PostgreSQL
+The databases supported with red-fab-deploy are MySQL and PostgreSQL.
+
+### Important Setup
+
+By default red-fab-deploy will set to values inside of fabric.api.env.conf:
+
+	DB        = 'mysql' # 'postgresql' is also allowed
+	DB_PASSWD = 'password'
+
+These indicate that the database type being used is 'mysql' and that the
+database password for the root user is 'password'.  BE AWARE THAT THIS IS 
+ENTIRELY INSECURE.  If you are installing any databases you should put the
+'DB_PASSWD' setting inside your fabfile inside of the env.conf dictionary
+and change the value from 'password' to something secure.  You can also set
+this value to an empty string if you want to always be prompted for a 
+password.
 
 ### MySQL Setup
 
