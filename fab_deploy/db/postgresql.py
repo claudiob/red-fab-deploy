@@ -92,7 +92,7 @@ def postgresql_install(id, node_dict, stage, **options):
 	append(pg_dir + 'postgresql.conf', "listen_addresses = '*'", True)
 
 	append(pg_dir + 'pg_hba.conf', "host all all 0.0.0.0/0 md5", True)
-	append(pg_dir + 'pg_ident.conf', "ubuntu ubuntu %s" % options['user'], True)	
+	fabric.contrib.files.sed(pg_dir + 'pg_hba.conf', "ident", "trust", use_sudo=True)
 	
 	# Figure out if we're a master
 	if 'slave' not in options and any('slave' in values.get('services', {}).get('postgresql', {})
@@ -115,14 +115,13 @@ def postgresql_install(id, node_dict, stage, **options):
 			'checkpoint_segments = 8',
 			'wal_keep_segments = 8'], True)
 		
-		fabric.api.sudo('rm -rf /data/*')
+		#fabric.api.sudo('rm -rf /data/*')
 		append('/data/recovery.conf', [
 			"standby_mode = 'on'",
 			"primary_conninfo = 'host=%s port=5432 user=%s password=%s'" % (master['public_ip'][0], options['user'], options['password']),
 			"trigger_file = '/data/failover'"], True)
 		
-		fabric.api.local('''ssh -i %s ubuntu@%s sudo tar czvf - /data/* | ssh -i deploy/nbc-west.pem ubuntu@%s sudo tar xzvf - -C /''' % (fabric.api.env.key_filename[0], master['public_ip'][0], node_dict['public_ip'][0]))
-		fabric.api.sudo('rm -rf /data/pg_xlog /data/postgresql.conf /data/postgresql.pid')
+		fabric.api.local('''ssh -i %s ubuntu@%s sudo tar czf - /data | ssh -i deploy/nbc-west.pem ubuntu@%s sudo tar xzf - -C /''' % (fabric.api.env.key_filename[0], master['public_ip'][0], node_dict['public_ip'][0]))
 		fabric.api.sudo('chown -R postgres:postgres /data')
 	
 	fabric.api.sudo('service postgresql start')
@@ -135,9 +134,11 @@ def postgresql_client_install():
 	package_add_repository('ppa:pitti/postgresql')
 	package_install(['postgresql-client', 'python-psycopg2'])
 	
-def postgresql_setup(id, node_dict, stage, **settings):
-	fabric.api.sudo('su postgres -c "createuser -s -U postgres -P %s"' % (settings['user']))
-	fabric.api.sudo('su postgres -c "createdb -U %s %s"' % (settings['user'], settings['name']))
+def postgresql_setup(id, node_dict, stage, **options):
+	if 'slave' not in options:
+		with fabric.api.settings(warn_only = True):
+			fabric.api.sudo('su postgres -c "createuser -s -U postgres -P %s"' % (options['user']))
+			fabric.api.sudo('su postgres -c "createdb -U %s %s"' % (options['user'], options['name']))
 
 def postgresql_execute(sql, user='', password=''):
 	"""
