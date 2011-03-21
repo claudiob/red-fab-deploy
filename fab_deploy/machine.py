@@ -33,10 +33,10 @@ libcloud.security.CA_CERTS_PATH.append("cacert.pem")
 SERVER = {'nginx':{},'uwsgi':{}}
 DB     = {
 	'mysql': {
-		'name'        :'dbname',     # not default
-		'user'        :'dbuser',     # not root
-		'password'    :'dbpassword', # not root
-		#'slave'       :'db1',        # reference to master database
+		'name'     :'',     # not default
+		'user'     :'',     # not root
+		'password' :'',     # not root
+		#'slave'    :'db1',  # reference to master database
 	},
 }
 
