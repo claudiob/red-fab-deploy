@@ -111,7 +111,6 @@ def deploy_full(tagname, force=False):
 	Deploys a project with a given tag name, and then makes
 	that deployment the active deployment on the server.
 	"""
-	make_src_dir()
 	deploy_project(tagname,force=force)
 	make_active(tagname)
 
