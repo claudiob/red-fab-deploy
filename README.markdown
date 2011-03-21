@@ -68,37 +68,41 @@ cloud servers and project deployment.  Follow these steps:
 PROVIDER, REPO and either (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) or 
 (RACKSPACE_USER, RACKSPACE_KEY).
 
-2. To set up your AWS account you must run the following:
+2. To begin with the set up of your cloud account you must run the following commands. On
+AWS only this will create a default key file and authorize tcp ports 22 and 80 for use.  With
+Rackspace setup the key file will not be created so you must follow instructions in step 4.
 
 		$ fab generate_config
 		$ fab go:development
 		$ fab update_nodes # might need to wait a minute and run this
 
-This sets up your config file, creates a default ec2 key file, authorizes port 22 with
-the default security group, and then deploys 1 development node server to your account.
+3. You must wait until all your instances have spawned before going further.  This could take 
+up to 5 minutes.  You must also wait until you have the root password if you are using Rackspace,
+which usually comes in an email a few minutes later.
 
-2. You must wait until all your instances have spawned before going further.  This could take 
-up to 5 minutes.  You must also wait until you have the root password if you are using Rackspace.
+4. If you are running Rackspace you must run this next set of commands.  This will create a 
+default key file, create and set up a user, add the user to the default security group, 
+and then grant sudo access.  Finally, it will copy that key into the authorized_keys file for 
+each machine you've created the user on.
 
-3. If you are running Rackspace you'll need these commands:
 
 		$ fab ssh_local_keygen:"rackspace.development"
 		$ fab set_hosts:development,root provider_as_ec2:username=ubuntu
 		$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
 
-4. To install all the correct software on your new development node run the following:
+5. To install all the correct software on your new development node run the following:
 
 		$ fab -i deploy/[your private SSH key here] set_hosts:development go_setup:development
 
-This will grab all the development node ip addresses, set them as hosts, and then run
-a software setup package on each of the servers based on the generated config file.
+	This will grab all the development node ip addresses, set them as hosts, and then run
+	a software setup package on each of the servers based on the generated config file.
 
-5. Next you want to deploy to the development server by running the following:
+6. Next you want to deploy to the development server by running the following:
 
 		$ fab -i deploy/[your private SSH key here] set_hosts go_deploy
 
-This will put the trunk of your repo onto each machine with server software and make it active.
-Be aware that this will remove any current version of trunk that is currently deployed.
+	This will put the trunk of your repo onto each machine with server software and make it active.
+	Be aware that this will remove any current version of trunk that is currently deployed.
 
 ### Production
 
