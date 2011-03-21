@@ -22,7 +22,7 @@ def uwsgi_install(force = False):
 			return
 
 	package_install('libxml2','libxml2-dev')
-	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')
+	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-lts.tar.gz')
 
 def uwsgi_setup(stage=''):
 	""" Setup uWSGI. """
@@ -43,7 +43,7 @@ def uwsgi_setup(stage=''):
 	if stage:
 		stage = '.%s' % stage
 	link('/srv/active/deploy/uwsgi%s.ini' % stage, dest=uwsgi_file, 
-		use_sudo=Truei, do_unlink=True, silent=True)
+		use_sudo=True, do_unlink=True, silent=True)
 
 	# Log File
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')
