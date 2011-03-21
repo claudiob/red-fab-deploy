@@ -33,7 +33,7 @@ from fab_deploy.user import (provider_as_ec2,
 	ssh_keygen, ssh_local_keygen, ssh_get_key, ssh_authorize,
 	grant_sudo_access,)
 
-from fab_deploy.utils import (update_env, delete_pyc, debug_env, detect_os)
+from fab_deploy.utils import (update_env, set_hosts, delete_pyc, debug_env, detect_os)
 
 #--- Django
 from fab_deploy.django_commands import (migrate, manage, syncdb,

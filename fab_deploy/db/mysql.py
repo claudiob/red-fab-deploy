@@ -102,6 +102,8 @@ def mysql_setup(**kwargs):
 	if slave:
 		PROVIDER = get_provider_dict()
 		if slave in PROVIDER['machines'][stage]:
+			private_ip = PROVIDER['machines'][stage][slave]['private_ip'][0]
+
 			settings = PROVIDER['machines'][stage][slave]['services']['mysql']
 			name     = settings.get('name',None)
 			user     = settings.get('user',None)

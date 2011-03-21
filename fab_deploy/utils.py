@@ -95,6 +95,32 @@ def update_env():
 		if fabric.api.env.conf.VCS == vcs:
 			fabric.api.env.conf.VCS = 'fab_deploy.vcs.%s' % vcs
 			break
+
+def set_hosts(stage='development',username='ubuntu',machine=''):
+	"""
+	The stage specifies which group of machines to set the hosts for
+
+	The username specifies which user to use when setting the hosts
+
+	The machine is optional and can specify a specific machine within
+	a stage to set the host for.
+	"""
+	hosts = []
+	PROVIDER = json.loads(open('fabric.conf','r').read()) 
+	if stage in PROVIDER['machines']:
+		for name in PROVIDER['machines'][stage]:
+			if (machine and machine == name) or not machine:
+				node_dict = PROVIDER['machines'][stage][name]
+				if 'public_ip' in node_dict:
+					public_ip = node_dict['public_ip']
+					for ip in public_ip:            
+						hosts.append('%s@%s' % (username,ip))  
+				else:
+					fabric.api.warn(fabric.colors.yellow('No public IPs found for %s in %s' % (name,stage)))
+			else:
+				fabric.api.warn(fabric.colors.yellow('No machines found matching %s in %s' % (machine,stage)))
+	env.hosts = hosts
+	update_env()
 	
 def delete_pyc():
 	""" Deletes *.pyc files from project source dir """
