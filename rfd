@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import os, os.path, random, stat, sys
 from optparse import OptionParser
-from shutil import copytree, ignore_patterns, move
+from shutil import ignore_patterns, move
+from distutils.dir_util import copy_tree
 
 from colors import green, yellow, COLORS
 
@@ -17,8 +18,7 @@ class Environment:
         # Copy the entire directory tree over
         source = os.path.join(ROOT,'files/')
         destination = os.path.join(os.getcwd(), 'deploy/')
-        copytree(source, destination,
-                ignore=ignore_patterns('*.pyc','.svn*','*.swp','.gitignore'))
+        copy_tree(source, destination)
 
         # For each file replace the keyword arguments
         for root, dirnames, filenames in os.walk(destination):
