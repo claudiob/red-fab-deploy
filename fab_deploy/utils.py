@@ -1,7 +1,7 @@
 from functools import wraps
 import json
 import os
-import pprint
+from pprint import pformat
 import re
 
 import fabric.api
@@ -29,7 +29,7 @@ def detect_os():
 def run_as(user):
 	"""
 	Decorator.  Runs fabric command as specified user.  It is most useful to run
-	commands that require root access to server::
+	commands that require root access to server:
 
 		from fabric.api import run
 		from fab_deploy.utils import run_as
@@ -56,9 +56,7 @@ def update_env():
 	it to _AttributeDict (that's a dictionary subclass enabling attribute
 	lookup/assignment of keys/values).
 
-	Call :func:`update_env` at the end of each server-configuring function.
-
-	::
+	Call :func:`update_env` at the end of each server-configuring function:
 
 		from fab_deploy import update_env
 
@@ -106,7 +104,12 @@ def set_hosts(stage='development',username='ubuntu',machine=''):
 	The machine is optional and can specify a specific machine within
 	a stage to set the host for.
 	"""
-	hosts = []
+	host_types = {
+		'db'     : [],
+		'load'   : [],
+		'server' : [],
+		'other'  : [],
+	}
 	PROVIDER = json.loads(open('fabric.conf','r').read()) 
 	if stage in PROVIDER['machines']:
 		for name in PROVIDER['machines'][stage]:
@@ -114,12 +117,32 @@ def set_hosts(stage='development',username='ubuntu',machine=''):
 				node_dict = PROVIDER['machines'][stage][name]
 				if 'public_ip' in node_dict:
 					public_ip = node_dict['public_ip']
-					for ip in public_ip:            
-						hosts.append('%s@%s' % (username,ip))  
+					services  = node_dict['services']
+					for ip in public_ip:
+						host = '%s@%s' % (username,ip)
+						# Set up databases first
+						if list(set(['mysql','postgresql','postgresql-client']) & set(services)):
+							for db in ['mysql','postgresql','postgresql-client']:
+								# Slaves can be appended to the end, but full 
+								# db instances should be given priority
+								if db in services and 'slave' in services[db]:
+									host_types['db'].append(host)
+								elif db in services:
+									host_types['db'].insert(0,host)
+						# Set up load balancer or servers
+						elif list(set(['nginx','apache']) & set(services)):
+							host_types['load'].append(host)
+						# Set up these last
+						elif list(set(['uwsgi']) & set(services)):
+							host_types['server'].append(host)
+						# Catch all other hosts
+						else:
+							host_types['other'].append(host)
 				else:
 					fabric.api.warn(fabric.colors.yellow('No public IPs found for %s in %s' % (name,stage)))
-			#else:
-			#	fabric.api.warn(fabric.colors.yellow('No machines found matching %s in %s' % (machine,stage)))
+	
+	# The order in which these are combined is important
+	hosts = host_types['db'] + host_types['load'] + host_types['server'] + host_types['other']
 	fabric.api.env.hosts = hosts
 	update_env()
 	
@@ -129,5 +152,5 @@ def delete_pyc():
 
 def debug_env():
 	""" Prints env values. Useful for debugging. """
-	fabric.api.puts(pprint.pformat(fabric.api.env))
+	fabric.api.puts(pformat(fabric.api.env))
 
