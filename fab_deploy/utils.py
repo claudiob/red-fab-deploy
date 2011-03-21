@@ -118,9 +118,9 @@ def set_hosts(stage='development',username='ubuntu',machine=''):
 						hosts.append('%s@%s' % (username,ip))  
 				else:
 					fabric.api.warn(fabric.colors.yellow('No public IPs found for %s in %s' % (name,stage)))
-			else:
-				fabric.api.warn(fabric.colors.yellow('No machines found matching %s in %s' % (machine,stage)))
-	env.hosts = hosts
+			#else:
+			#	fabric.api.warn(fabric.colors.yellow('No machines found matching %s in %s' % (machine,stage)))
+	fabric.api.env.hosts = hosts
 	update_env()
 	
 def delete_pyc():
