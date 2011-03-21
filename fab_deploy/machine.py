@@ -9,7 +9,9 @@ Ubuntu 10.4 image sizes:
 	http://uec-images.ubuntu.com/lucid/current/
 """
 
-import json
+try: import simplejson as json
+except ImportError: import json
+
 from pprint import pprint
 import os
 
@@ -398,8 +400,8 @@ def update_nodes():
 					if node.__dict__['id'] == id:
 						info = {
 							'uuid'       : node.__dict__['uuid'],
-							'private_ip' : node.__dict__['private_ip'],
-							'public_ip'  : node.__dict__['public_ip'],
+							'private_ip' : [node.__dict__.get('extra', {}).get('private_dns')] or node.__dict__['private_ip'],
+							'public_ip'  : [node.__dict__.get('extra', {}).get('dns_name')] or node.__dict__['public_ip'],
 						}
 						PROVIDER['machines'][stage][name].update(info)
 

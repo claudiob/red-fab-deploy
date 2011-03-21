@@ -71,8 +71,8 @@ def go_setup(stage = "development"):
 					mysql_install()
 					mysql_setup(stage=stage,**settings)
 				elif service == 'postgresql':
-					postgresql_install(node_dict, stage=stage, **settings)
-					postgresql_setup(node_dict, stage=stage, **settings)
+					postgresql_install(name, node_dict, stage=stage, **settings)
+					postgresql_setup(name, node_dict, stage=stage, **settings)
 				elif service == 'postgresql-client':
 					postgresql_client_install()
 				elif service in ['apache']:
@@ -114,12 +114,12 @@ def deploy_full(tagname, force=False):
 	if not fabric.contrib.console.confirm("Is the OS detected correctly (%s)?" % os_sys, default = False):
 		fabric.api.abort(fabric.colors.red("Detection fails. Please set env.conf.OS to correct value."))
 	prepare_server()
-	make_src_dir()
 	deploy_project(tagname)
 	make_active(tagname)
 
 def deploy_project(tagname, force = False):
 	""" Deploys project on prepared server. """
+	make_src_dir()
 	tag_dir = os.path.join(fabric.api.env.conf['SRC_DIR'], tagname)
 	if fabric.contrib.files.exists(tag_dir):
 		if force:

@@ -13,11 +13,12 @@ def _uwsgi_is_installed():
 		option = fabric.api.run('which uwsgi')
 	return option.succeeded
 
-def uwsgi_install():
+def uwsgi_install(force = False):
 	""" Install uWSGI. """
 	if _uwsgi_is_installed():
 		fabric.api.warn(fabric.colors.yellow('uWSGI is already installed'))
-		return
+		if not force:
+			return
 
 	package_install('libxml2','libxml2-dev')
 	fabric.api.sudo('pip install http://projects.unbit.it/downloads/uwsgi-latest.tar.gz')

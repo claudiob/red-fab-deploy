@@ -1,8 +1,10 @@
 from datetime import datetime
+import time
 
 import fabric.api, fabric.contrib.files
 
 from fab_deploy.package import package_install, package_add_repository
+from fab_deploy.machine import get_provider_dict
 
 def _postgresql_is_installed():
 	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
@@ -14,7 +16,7 @@ def _postgresql_client_is_installed():
 		output = fabric.api.run('psql --version')
 	return output.succeeded
 
-def postgresql_install(node_dict, stage, **options):
+def postgresql_install(id, node_dict, stage, **options):
 	""" Installs postgreSQL """
 
 	if _postgresql_is_installed():
@@ -27,39 +29,61 @@ def postgresql_install(node_dict, stage, **options):
 		options.update(master['services']['postgresql'])
 	
 	package_add_repository('ppa:pitti/postgresql')
-	package_install(['postgresql', 'xfsprogs', 'mdadm'])
+	package_install(['postgresql', 'python-psycopg2'])
 	
 	# Figure out cluster name
 	output = fabric.api.run('pg_lsclusters -h')
 	version, cluster = output.split()[:2]
 	
-	if 'ec2'  in fabric.api.env.conf['PROVIDER']:
-		# Create two ebs volumes
-		import boto
-		ec2 = boto.connect_ec2(fabric.api.env.conf['AWS_ACCESS_KEY_ID'],
-							   fabric.api.env.conf['AWS_SECRET_ACCESS_KEY'],
-							   region = fabric.api.env.conf['PROVIDER'])
-		
-		volume1 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
-		volume1.attach(node_dict['id'], '/dev/sdf')
-		volume2 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
-		volume2.attach(node_dict['id'], '/dev/sdg')
-							   
-		# RAID 0 together the EBS volumes, and format the result as xfs.  Mount at /data.
-		fabric.api.sudo('mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sdf /dev/sdg')
-		fabric.api.sudo('mkfs.xfs /dev/md0')
-		fabric.api.sudo('mkdir -p /data')
-		fabric.api.sudo('chown postgres:postgres /data')
-		fabric.api.sudo('chmod 644 /data')
-		fabric.api.sudo('echo "/dev/md0  /data  auto  defaults  0  0" >> /etc/fstab')
-		fabric.api.sudo('mount /data')
-
-		# Move cluster/dbs to /data		
-		fabric.api.sudo('pg_dropcluster --stop %s %s' % (version, cluster))
-		fabric.api.sudo('pg_createcluster --start -d /data -e UTF-8 %s %s' % (version, cluster))
+	if 'ec2' in fabric.api.env.conf['PROVIDER']:
+		if not options.get('simple'):
+			package_install('xfsprogs')
+			package_install('mdadm', '--no-install-recommends')
+			
+			# Create two ebs volumes
+			import boto.ec2
+			ec2 = boto.ec2.connect_to_region(config['location'][:-1],
+								aws_access_key_id = fabric.api.env.conf['AWS_ACCESS_KEY_ID'],
+								aws_secret_access_key = fabric.api.env.conf['AWS_SECRET_ACCESS_KEY'])
+			
+			tag1 = u'%s-1' % id
+			tag2 = u'%s-2' % id
+			if not tag1 in [vol.tags.get(u'Name') for vol in ec2.get_all_volumes()]:
+				volume1 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
+				volume1.add_tag('Name', tag1)
+				volume1.attach(node_dict['id'], '/dev/sdf')
+			if not tag2 in [vol.tags.get(u'Name') for vol in ec2.get_all_volumes()]:
+				volume2 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
+				volume2.add_tag('Name', tag2)
+				volume2.attach(node_dict['id'], '/dev/sdg')
+			
+			time.sleep(10)
+			
+			# RAID 0 together the EBS volumes, and format the result as xfs.  Mount at /data.
+			if not fabric.contrib.files.exists('/dev/md0', True):
+				fabric.api.sudo('mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sdf /dev/sdg')
+				fabric.api.sudo('mkfs.xfs /dev/md0')
+			
+			# Add mountpoint
+			if not fabric.contrib.files.exists('/data'):
+				fabric.api.sudo('mkdir -p /data')
+				fabric.api.sudo('chown postgres:postgres /data')
+				fabric.api.sudo('chmod 644 /data')
+			
+			# Add to fstab and mount
+			fabric.contrib.files.append('/etc/fstab', '/dev/md0  /data  auto  defaults  0  0')
+			with fabric.api.settings(warn_only = True):
+				fabric.api.sudo('mount /data')
+	
+			# Move cluster/dbs to /data
+			if fabric.api.run('pg_lsclusters -h').split()[5] != '/data':
+				fabric.api.sudo('pg_dropcluster --stop %s %s' % (version, cluster))
+				fabric.api.sudo('pg_createcluster --start -d /data -e UTF-8 %s %s' % (version, cluster))
 	
 	else:
 		fabric.api.warn(fabric.colors.yellow('PostgreSQL advanced drive setup (RAID 0 + XFS) is not currently supported on non-ec2 instances'))
+
+	fabric.api.sudo('service postgresql stop')
 
 	# Set up postgres config files - Allow global listening (have a firewall!) and local ubuntu->your user connections
 	pg_dir = '/etc/postgresql/%s/%s/' % (version, cluster)
@@ -68,7 +92,6 @@ def postgresql_install(node_dict, stage, **options):
 
 	fabric.contrib.files.append(pg_dir + 'pg_hba.conf', "host all all 0.0.0.0/0 md5", True)
 	fabric.contrib.files.append(pg_dir + 'pg_ident.conf', "ubuntu ubuntu %s" % options['user'], True)	
-	
 	
 	# Figure out if we're a master
 	if 'slave' not in options and any('slave' in values.get('services', {}).get('postgresql', {}) for name, values in config['machines'][stage]):
@@ -93,13 +116,14 @@ def postgresql_install(node_dict, stage, **options):
 		fabric.contrib.files.append('/data/recovery.conf', [
 			"standby_mode = 'on'",
 			"primary_conninfo = 'host=%s port=5432 user=%s password=%s'" % (master, options['user'], options['password']),
-			"trigger_file = '/data/failover"], True)
+			"trigger_file = '/data/failover'"], True)
 		
-	with cd('/srv/active'):
-		fabric.api.sudo('''scp -ri %s %s:/data/* /data''' % (env.key_filename, master['private_ip'][0]))
-		
+#		with cd('/srv/active'):
+#			fabric.api.sudo('rm -rf /data/*')
+#			fabric.api.sudo('''scp -ri %s %s:/data/* /data''' % (env.key_filename, master['private_ip'][0]))
+#			fabric.api.sudo('rm -rf /data/pg_xlog /data/postgresql.conf /data/postgresql.pid')
 	
-	fabric.api.sudo('service postgresql restart')
+	fabric.api.sudo('service postgresql start')
 	
 def postgresql_client_install():
 	if _postgresql_client_is_installed():
@@ -109,7 +133,7 @@ def postgresql_client_install():
 	package_add_repository('ppa:pitti/postgresql')
 	package_install(['postgresql-client', 'python-psycopg2'])
 	
-def postgresql_setup(node_dict, stage, settings):
+def postgresql_setup(id, node_dict, stage, settings):
 	sudo('su postgres -c "createuser -s -U postgres -P %s"' % (settings['user']))
 	sudo('su postgres -c "createdb -U %s %s"' % (settings['user'], settings['name']))
 

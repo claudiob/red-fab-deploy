@@ -40,7 +40,7 @@ def set_hosts(stage='development'):
                 for ip in public_ip:            
                     hosts.append('ubuntu@%s' % ip)  
             else:
-                fabric.api.warn(fabric.api.yellow('No public IPs found for %s in %s' % (name,stage)))
+                fabric.api.warn(fabric.colors.yellow('No public IPs found for %s in %s' % (name,stage)))
     env.hosts = hosts
     update_env()
 
