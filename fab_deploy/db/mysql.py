@@ -79,18 +79,23 @@ def mysql_setup(**kwargs):
 		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
 		return
 
+	# Get Parameters
+	stage          = kwargs.get('stage',None)
+	name           = kwargs.get('name',None)
+	user           = kwargs.get('user',None)
+	password       = kwargs.get('password',None)
+	slave          = kwargs.get('slave',None)        # Name of the master database
+	slave_user     = kwargs.get('slave_user','slave_user')
+	slave_password = kwargs.get('slave_password','password')
+	replication    = kwargs.get('replication',False) # Do Master/Slave replication
+	
 	# The root db password for setup
 	root_passwd = ''
 	if 'DB_PASSWD' in fabric.api.env.conf:
 		root_passwd = fabric.api.env.conf['DB_PASSWD']
 
-	# Get Parameters
-	stage       = kwargs.get('stage',None)
-	name        = kwargs.get('name',None)
-	user        = kwargs.get('user',None)
-	password    = kwargs.get('password',None)
-	slave       = kwargs.get('slave',None)        # Name of the master database
-	replication = kwargs.get('replication',False) # Do Master/Slave replication
+	# Private IP is necessary for bind-address
+	private_ip = get_internal_ip()
 	
 	# Create the database user
 	if user and password and not slave:
@@ -102,18 +107,16 @@ def mysql_setup(**kwargs):
 		mysql_create_db(user='root',password=root_passwd, 
 				database=name)
 	
-	# Private IP is necessary
-	private_ip = get_internal_ip()
-	
-	# If replication is False then we do normal mysql setup
+	# Update the bind-address with default mysqld conf
 	if not replication:
-		
 		context = {
 			'private_ip'  : private_ip,
 		}
 		template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_default.cnf')
 		fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',
-			context=context,use_jinja=False,template_dir=None,use_sudo=False)
+			context=context,use_sudo=True)
+		mysql_restart()
+		time.sleep(10)
 
 	# If replication is True then we must do the setup
 	elif replication:
@@ -124,33 +127,41 @@ def mysql_setup(**kwargs):
 			PROVIDER = get_provider_dict()
 			if slave in PROVIDER['machines'][stage]:
 				# Get the private IP of the master database
-				master_ip = PROVIDER['machines'][stage][slave]['private_ip'][0]
+				master_ip = PROVIDER['machines'][stage][slave]['public_ip'][0]
 
 				# Get the settings of the master database
 				settings = PROVIDER['machines'][stage][slave]['services']['mysql']
 				name     = settings.get('name',None)
 				user     = settings.get('user',None)
 				password = settings.get('password',None)
+	
+				# Create the database	
+				mysql_create_db(user='root',password=root_passwd, 
+					database=name)
 				
+				# Set up a slave conf file and restart
 				context = {
 					'db_name'     : name,
-					'db_password' : password,
-					'db_user'     : 'slave_user',
+					'db_password' : slave_password,
+					'db_user'     : slave_user,
 					'master_ip'   : master_ip,
 					'private_ip'  : private_ip,
 				}
 				template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_slave.cnf')
-				fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',context=context,use_sudo=False)
-		
-				# Restart so changes take effect
+				fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',
+					context=context,use_sudo=True)
 				mysql_restart()
+				time.sleep(10)
 				
-				mysql_execute("""LOAD DATA FROM MASTER; SLAVE STOP;""" , 'root', root_passwd)
+				# Load the data from master
+				mysql_execute("""LOAD DATA FROM MASTER;SLAVE STOP;""" , 'root', root_passwd)
+				mysql_restart()
+				time.sleep(10)
 
 				log_file = fabric.api.prompt('Enter the master log file name:')
 				log_pos  = fabric.api.prompt('Enter the master log position:')
 
-				mysql_execute("""CHANGE MASTER TO MASTER_HOST="%s", MASTER_USER="slave_user", MASTER_PASSWORD="%s", MASTER_LOG_FILE="%s", MASTER_LOG_POS=%s; START SLAVE;""" % (name,password,log_file,log_pos), 'root', root_passwd)
+				mysql_execute("""CHANGE MASTER TO MASTER_HOST="%s", MASTER_USER="%s", MASTER_PASSWORD="%s", MASTER_LOG_FILE="%s", MASTER_LOG_POS=%s;START SLAVE;""" % (master_ip,slave_user,slave_password,log_file,log_pos), 'root', root_passwd)
 
 			else:
 				fabric.api.warn(fabric.colors.yellow('The server %s is not available in %s' % (slave,stage)))
@@ -158,20 +169,26 @@ def mysql_setup(**kwargs):
 		# If the replication is True and the 'slave' key is not given then this should be set up
 		# as a master database and we should correctly set the values in the my.cnf file
 		else:
-
+			# Set up a master conf file and restart
 			context = {
 				'private_ip' : private_ip,
 				'db_name'    : name,
 			}
 			template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_master.cnf')
-			fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',context=context,use_sudo=False)
-
-			# Restart so changes take effect
+			fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',
+				context=context,use_sudo=True)
 			mysql_restart()
 			time.sleep(10)
 
-			mysql_execute("""GRANT REPLICATION SLAVE ON *.* TO "slave_user"@"%%" IDENTIFIED BY "%s"; FLUSH PRIVILEGES; USE %s; FLUSH TABLES WITH READ LOCK; SHOW MASTER STATUS; UNLOCK TABLES;""" % (password,name), 'root', root_passwd)
-			fabric.contrib.console.confirm('Write down the log file name and log position. Do you want to continue?')
+			# Create the slave user for replication and restart
+			mysql_execute("""GRANT REPLICATION SLAVE ON *.* TO "%s"@"%%" IDENTIFIED BY "%s";FLUSH PRIVILEGES;""" % (slave_user,slave_password), 'root', root_passwd)
+			mysql_restart()
+			time.sleep(10)
+
+			# Get the master status
+			mysql_execute("""USE %s;FLUSH TABLES WITH READ LOCK;SHOW MASTER STATUS;""" % (name), 'root', root_passwd)
+			fabric.contrib.console.confirm('Write down the log file name and position. Do you want to continue?')
+			mysql_execute("""UNLOCK TABLES;""", 'root', root_passwd)
 
 def mysql_start():
 	""" Start MySQL """
