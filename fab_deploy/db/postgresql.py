@@ -5,6 +5,7 @@ import fabric.api, fabric.contrib.files
 
 from fab_deploy.package import package_install, package_add_repository
 from fab_deploy.machine import get_provider_dict
+from fab_deploy.utils import append
 
 def _postgresql_is_installed():
 	with fabric.api.settings(fabric.api.hide('stderr'), warn_only=True):
@@ -48,11 +49,11 @@ def postgresql_install(id, node_dict, stage, **options):
 			
 			tag1 = u'%s-1' % id
 			tag2 = u'%s-2' % id
-			if not tag1 in [vol.tags.get(u'Name') for vol in ec2.get_all_volumes()]:
+			if not any(vol for vol in ec2.get_all_volumes() if vol.tags.get(u'Name') == tag1):
 				volume1 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
 				volume1.add_tag('Name', tag1)
 				volume1.attach(node_dict['id'], '/dev/sdf')
-			if not tag2 in [vol.tags.get(u'Name') for vol in ec2.get_all_volumes()]:
+			if not any(vol for vol in ec2.get_all_volumes() if vol.tags.get(u'Name') == tag2):
 				volume2 = ec2.create_volume(options.get('max-size', 10)/2, config['location'])
 				volume2.add_tag('Name', tag2)
 				volume2.attach(node_dict['id'], '/dev/sdg')
@@ -71,7 +72,7 @@ def postgresql_install(id, node_dict, stage, **options):
 				fabric.api.sudo('chmod 644 /data')
 			
 			# Add to fstab and mount
-			fabric.contrib.files.append('/etc/fstab', '/dev/md0  /data  auto  defaults  0  0')
+			append('/etc/fstab', '/dev/md0  /data  auto  defaults  0  0', True)
 			with fabric.api.settings(warn_only = True):
 				fabric.api.sudo('mount /data')
 	
@@ -88,40 +89,40 @@ def postgresql_install(id, node_dict, stage, **options):
 	# Set up postgres config files - Allow global listening (have a firewall!) and local ubuntu->your user connections
 	pg_dir = '/etc/postgresql/%s/%s/' % (version, cluster)
 	fabric.contrib.files.comment(pg_dir + 'postgresql.conf', 'listen_addresses', True)
-	fabric.contrib.files.append(pg_dir + 'postgresql.conf', "listen_addresses = '*'", True)
+	append(pg_dir + 'postgresql.conf', "listen_addresses = '*'", True)
 
-	fabric.contrib.files.append(pg_dir + 'pg_hba.conf', "host all all 0.0.0.0/0 md5", True)
-	fabric.contrib.files.append(pg_dir + 'pg_ident.conf', "ubuntu ubuntu %s" % options['user'], True)	
+	append(pg_dir + 'pg_hba.conf', "host all all 0.0.0.0/0 md5", True)
+	fabric.contrib.files.sed(pg_dir + 'pg_hba.conf', "ident", "trust", use_sudo=True)
 	
 	# Figure out if we're a master
-	if 'slave' not in options and any('slave' in values.get('services', {}).get('postgresql', {}) for name, values in config['machines'][stage]):
+	if 'slave' not in options and any('slave' in values.get('services', {}).get('postgresql', {})
+									  for name, values in config['machines'][stage].iteritems()):
 		# We're a master!
 		
-		fabric.contrib.files.append(pg_dir + 'postgresql.conf', [
+		append(pg_dir + 'postgresql.conf', [
 			'wal_level = hot_standby',
 			'max_wal_senders = 1',
 			'checkpoint_segments = 8',
 			'wal_keep_segments = 8'], True)
 		
-		fabric.contrib.files.append(pg_dir + 'pg_hba.conf', "host replication all 0.0.0.0/0 md5", True)
+		append(pg_dir + 'pg_hba.conf', "host replication all 0.0.0.0/0 md5", True)
 		
 	elif 'slave' in options:
 		# We're a slave!
 		
-		fabric.contrib.files.append(pg_dir + 'postgresql.conf', [
+		append(pg_dir + 'postgresql.conf', [
 			'hot_standby = on',
 			'checkpoint_segments = 8',
 			'wal_keep_segments = 8'], True)
 		
-		fabric.contrib.files.append('/data/recovery.conf', [
+		#fabric.api.sudo('rm -rf /data/*')
+		append('/data/recovery.conf', [
 			"standby_mode = 'on'",
-			"primary_conninfo = 'host=%s port=5432 user=%s password=%s'" % (master, options['user'], options['password']),
+			"primary_conninfo = 'host=%s port=5432 user=%s password=%s'" % (master['public_ip'][0], options['user'], options['password']),
 			"trigger_file = '/data/failover'"], True)
 		
-#		with cd('/srv/active'):
-#			fabric.api.sudo('rm -rf /data/*')
-#			fabric.api.sudo('''scp -ri %s %s:/data/* /data''' % (env.key_filename, master['private_ip'][0]))
-#			fabric.api.sudo('rm -rf /data/pg_xlog /data/postgresql.conf /data/postgresql.pid')
+		fabric.api.local('''ssh -i %s ubuntu@%s sudo tar czf - /data | ssh -i deploy/nbc-west.pem ubuntu@%s sudo tar xzf - -C /''' % (fabric.api.env.key_filename[0], master['public_ip'][0], node_dict['public_ip'][0]))
+		fabric.api.sudo('chown -R postgres:postgres /data')
 	
 	fabric.api.sudo('service postgresql start')
 	
@@ -133,9 +134,11 @@ def postgresql_client_install():
 	package_add_repository('ppa:pitti/postgresql')
 	package_install(['postgresql-client', 'python-psycopg2'])
 	
-def postgresql_setup(id, node_dict, stage, settings):
-	sudo('su postgres -c "createuser -s -U postgres -P %s"' % (settings['user']))
-	sudo('su postgres -c "createdb -U %s %s"' % (settings['user'], settings['name']))
+def postgresql_setup(id, node_dict, stage, **options):
+	if 'slave' not in options:
+		with fabric.api.settings(warn_only = True):
+			fabric.api.sudo('su postgres -c "createuser -s -U postgres -P %s"' % (options['user']))
+			fabric.api.sudo('su postgres -c "createdb -U %s %s"' % (options['user'], options['name']))
 
 def postgresql_execute(sql, user='', password=''):
 	"""

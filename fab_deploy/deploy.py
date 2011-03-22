@@ -161,8 +161,6 @@ def make_active(tagname):
 	""" Make a tag at /srv/<project>/<tagname>  active """
 	link(os.path.join(fabric.api.env.conf['SRC_DIR'], tagname),
 			'/srv/active', do_unlink=True, silent=True)
-	uwsgi_service_script = '/etc/init.d/uwsgi'
-	fabric.api.sudo('chmod 755 %s' % uwsgi_service_script)
 
 def check_active():
 	""" Abort if there is no active deployment """

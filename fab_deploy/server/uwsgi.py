@@ -43,7 +43,7 @@ def uwsgi_setup(stage=''):
 	if stage:
 		stage = '.%s' % stage
 	link('/srv/active/deploy/uwsgi%s.ini' % stage, dest=uwsgi_file, 
-		use_sudo=Truei, do_unlink=True, silent=True)
+		use_sudo=True, do_unlink=True, silent=True)
 
 	# Log File
 	fabric.api.sudo('mkdir -p /var/log/uwsgi')

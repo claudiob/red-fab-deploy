@@ -154,3 +154,45 @@ def debug_env():
 	""" Prints env values. Useful for debugging. """
 	fabric.api.puts(pformat(fabric.api.env))
 
+def append(filename, text, use_sudo=False, partial=True, escape=True):
+    """
+    Append string (or list of strings) ``text`` to ``filename``. Modified from fabric.contrib to actually work.
+
+    When a list is given, each string inside is handled independently (but in
+    the order given.)
+
+    If ``text`` is already found in ``filename``, the append is not run, and
+    None is returned immediately. Otherwise, the given text is appended to the
+    end of the given ``filename`` via e.g. ``echo '$text' >> $filename``.
+
+    The test for whether ``text`` already exists defaults to a full line match,
+    e.g. ``^<text>$``, as this seems to be the most sensible approach for the
+    "append lines to a file" use case. You may override this and force partial
+    searching (e.g. ``^<text>``) by specifying ``partial=True``.
+
+    Because ``text`` is single-quoted, single quotes will be transparently 
+    backslash-escaped. This can be disabled with ``escape=False``.
+
+    If ``use_sudo`` is True, will use `sudo` instead of `run`.
+
+    .. versionchanged:: 0.9.1
+        Added the ``partial`` keyword argument.
+
+    .. versionchanged:: 1.0
+        Swapped the order of the ``filename`` and ``text`` arguments to be
+        consistent with other functions in this module.
+    .. versionchanged:: 1.0
+        Changed default value of ``partial`` kwarg to be ``False``.
+    """
+    func = use_sudo and fabric.api.sudo or fabric.api.run
+    # Normalize non-list input to be a list
+    if isinstance(text, str):
+        text = [text]
+    for line in text:
+        regex = '^' + re.escape(line) + ('' if partial else '$')
+        if (fabric.contrib.files.exists(filename) and line
+            and fabric.contrib.files.contains(filename, regex, use_sudo=use_sudo)):
+        	print filename, regex, fabric.contrib.files.contains(filename, regex, use_sudo=use_sudo)
+        	continue
+        line = line.replace('"', r'\"') if escape else line
+        func('echo "%s" >> %s' % (line, filename))
