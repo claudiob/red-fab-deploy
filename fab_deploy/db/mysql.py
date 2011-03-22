@@ -107,18 +107,14 @@ def mysql_setup(**kwargs):
 	
 	# If replication is False then we do normal mysql setup
 	if not replication:
-		#mysql_conf = '/etc/mysql/my.cnf'
-		#before = "bind-address[[:space:]]*=[[:space:]]*127.0.0.1"
-		#after  = "bind-address = %s" % private_ip
-		#if not fabric.contrib.files.contains(mysql_conf, after):
-		#	fabric.contrib.files.sed(mysql_conf,before,after,
-		#		use_sudo=True, backup='.bkp')
+		
 		context = {
 			'private_ip'  : private_ip,
 		}
-		template = os.path.join(fabric.api.env.conf['FILES'],'mysql_default.cnf')
+		template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_default.cnf')
 		fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',
 			context=context,use_jinja=False,template_dir=None,use_sudo=False)
+
 	# If replication is True then we must do the setup
 	elif replication:
 		# If the replication is True and the 'slave' key is given then this should be set up
@@ -136,20 +132,6 @@ def mysql_setup(**kwargs):
 				user     = settings.get('user',None)
 				password = settings.get('password',None)
 				
-				## Change lines in conf file
-				#before = "#server-id[[:space:]]*=[[:space:]]*1"
-				#after  = "server-id = 2"
-				#fabric.contrib.files.sed(mysql_conf,before,after,
-				#	use_sudo=True, backup='.bkp')
-				#newlines = [
-				#	"master=host=%s" % private_ip,
-				#	"master-user=slave_user",
-				#	"master-password=%s" % password,
-				#	"master-connect-retry=60",
-				#	"replicate-do-db=%s" % name,
-				#]
-				#fabric.contrib.files.append(mysql_conf,newlines,use_sudo=True)
-
 				context = {
 					'db_name'     : name,
 					'db_password' : password,
@@ -157,7 +139,7 @@ def mysql_setup(**kwargs):
 					'master_ip'   : master_ip,
 					'private_ip'  : private_ip,
 				}
-				template = os.path.join(fabric.api.env.conf['FILES'],'mysql_slave.cnf')
+				template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_slave.cnf')
 				fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',context=context,use_sudo=False)
 		
 				# Restart so changes take effect
@@ -176,29 +158,12 @@ def mysql_setup(**kwargs):
 		# If the replication is True and the 'slave' key is not given then this should be set up
 		# as a master database and we should correctly set the values in the my.cnf file
 		else:
-			## Uncomment the log_bin
-			#before = "#log_bin[[:space:]]*=[[:space:]]*/var/log/mysql/mysql-bin.log"
-			#after  = "log_bin = /var/log/mysql/mysql-bin.log"
-			#fabric.contrib.files.sed(mysql_conf,before,after,
-			#	use_sudo=True, backup='.bkp')
-
-			## Set the server-id
-			#before = "#server-id[[:space:]]*=[[:space:]]*1"
-			#after  = "server-id = 1"
-			#fabric.contrib.files.sed(mysql_conf,before,after,
-			#	use_sudo=True, backup='.bkp')
-			#
-			## Set up the binlog_do_db database name
-			#before = "#binlog_do_db[[:space:]]*=[[:space:]]*include_database_name"
-			#after  = "binlog_do_db = %s" % name
-			#fabric.contrib.files.sed(mysql_conf,before,after,
-			#	use_sudo=True, backup='.bkp')
 
 			context = {
 				'private_ip' : private_ip,
 				'db_name'    : name,
 			}
-			template = os.path.join(fabric.api.env.conf['FILES'],'mysql_master.cnf')
+			template = os.path.join(fabric.api.env.conf['FILES'],'mysqld_master.cnf')
 			fabric.contrib.files.upload_template(template,'/etc/mysql/conf.d/',context=context,use_sudo=False)
 
 			# Restart so changes take effect
