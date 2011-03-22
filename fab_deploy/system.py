@@ -40,10 +40,17 @@ def get_hostname():
 	""" Get the host name on a server """
 	return fabric.api.run('hostname')
 
-def prepare_server():
+def prepare_server(backports=False,common=True):
 	""" Prepares server: installs system packages. """
-	setup_backports()
-	install_common_software()
+	if backports:
+		setup_backports()
+	
+	with fabric.api.settings(warn_only = True):
+		package_update()
+		package_upgrade()
+
+	if common:
+		install_common_packages()
 
 def setup_backports():
 	""" Adds backports repo to apt sources. """
@@ -60,21 +67,20 @@ def setup_backports():
 		return
 
 	fabric.api.run("echo 'deb %s' > /etc/apt/sources.list.d/backports.sources.list" % backports[os])
-	with fabric.api.settings(warn_only = True):
-		package_update()
-		package_upgrade()
-
-def install_common_software():
+	
+def install_common_packages():
 	""" Installs common system packages. """
 	common_packages = [
 		'ack-grep',
 		'build-essential',
 		'curl',
+		'git-core',
 		'gcc',
 		'ipython',
 		'libcurl3-dev',
 		'libjpeg-dev',
 		'libssl-dev',
+		'mercurial',
 		'ntp',
 		'psmisc',
 		'python2.6',
@@ -90,25 +96,9 @@ def install_common_software():
 		'subversion',
 		'zlib1g-dev',
 	]
-	extra_packages = {
-		'lenny': [],
-		'sqeeze': [],
-		'lucid': [],
-		'maverick': [],
-	}
 
-	os = detect_os()
-	if os not in extra_packages:
-		fabric.api.abort(fabric.colors.red('Your OS (%s) is currently unsupported.' % os))
-
-	with fabric.api.settings(warn_only = True):
-		package_update()
-		package_upgrade()
-
-	package_install(common_packages + extra_packages[os])
-
-	vcs_options = {'lenny': '-t lenny-backports'}
-	package_install(['mercurial', 'git-core'], vcs_options.get(os, "") + "--no-install-recommends")
+	# Install common and extra packages with no recommended packages
+	package_install(common_packages,"--no-install-recommends")
 
 def usage_disk():
 	""" Return disk usage """
