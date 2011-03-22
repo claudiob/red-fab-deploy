@@ -9,7 +9,8 @@ from fab_deploy.utils import detect_os, append
 
 def service(service, command):
 	""" Give a command to a service """
-	if service not in ['apache', 'nginx', 'uwsgi']:
+	if service not in ['apache', 'nginx', 'uwsgi','mysql']:
+		fabric.api.warn(fabric.api.colors('Service is not allowed: %s' % service))
 		return
 	fabric.api.sudo('service %s %s' % (service, command))
 
@@ -107,7 +108,7 @@ def install_common_software():
 	package_install(common_packages + extra_packages[os])
 
 	vcs_options = {'lenny': '-t lenny-backports'}
-	package_install(['mercurial', 'git-core'], vcs_options.get(os, ""))
+	package_install(['mercurial', 'git-core'], vcs_options.get(os, "") + "--no-install-recommends")
 
 def usage_disk():
 	""" Return disk usage """

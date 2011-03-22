@@ -64,7 +64,7 @@ def mysql_install():
 		'lucid'   : ['libmysqlclient-dev',],
 		'maverick': ['libmysqlclient-dev',],
 	}
-	package_install(common_packages + extra_packages[os])
+	package_install(common_packages + extra_packages[os], "--no-install-recommends")
 
 def mysql_setup(**kwargs):
 	"""
