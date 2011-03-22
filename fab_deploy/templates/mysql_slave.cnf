@@ -1,9 +1,0 @@
-[mysqld]
-bind-address         = %(private_ip)s
-
-server-id            = 2
-master-host          = %(master_ip)s
-master-user          = %(db_user)s
-master-password      = %(db_password)s
-master-connect-retry = 60
-replicate-do-db      = %(db_name)s
