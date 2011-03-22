@@ -182,10 +182,16 @@ def mysql_setup(**kwargs):
 			mysql_execute("""GRANT REPLICATION SLAVE ON *.* TO "slave_user"@"%%" IDENTIFIED BY "%s"; FLUSH PRIVILEGES; USE %s; FLUSH TABLES WITH READ LOCK; SHOW MASTER STATUS; UNLOCK TABLES;""" % (password,name), 'root', root_passwd)
 			fabric.contrib.console.confirm('Write down the log file name and log position. Do you want to continue?')
 
+def mysql_start():
+	""" Start MySQL """
+	service('mysql','start')
+
+def mysql_stop():
+	""" Stop MySQL """
+	service('mysql','stop')
+
 def mysql_restart():
-	"""
-	Restart MySQL
-	"""
+	""" Restart MySQL """
 	service('mysql','restart')
 
 def mysql_execute(sql, user='', password=''):

@@ -23,19 +23,21 @@ def get_internal_ip():
 	command = """ifconfig eth1 | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}'"""
 	return fabric.api.run(command)
 
-def get_hostname():
-	""" Get the host name on a server """
-	return fabric.api.run('hostname')
+def print_hosts():
+	""" Print the current env.hosts """
+	print fabric.api.env.hosts
 
 def set_hostname(hostname):
 	""" Set the host name on a server """
 	host_text = "127.0.0.1 %s" % hostname
 	append('/etc/hosts', host_text, True)
 	
-	print host_text
-	
 	if hostname != get_hostname():
 		fabric.api.sudo('hostname %s' % hostname)
+
+def get_hostname():
+	""" Get the host name on a server """
+	return fabric.api.run('hostname')
 
 def prepare_server():
 	""" Prepares server: installs system packages. """
