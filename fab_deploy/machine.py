@@ -403,10 +403,21 @@ def update_nodes():
 				id = PROVIDER['machines'][stage][name]['id']
 				for node in list_nodes():
 					if node.__dict__['id'] == id:
+
+						if 'private_ip' in node.__dict__:
+							private_ip = node.__dict__['private_ip']
+						else:
+							private_ip = [node.__dict__.get('extra', {}).get('private_dns')]
+						
+						if 'public_ip' in node.__dict__:
+							public_ip = node.__dict__['public_ip']
+						else:
+							public_ip = [node.__dict__.get('extra', {}).get('dns_name')]
+						
 						info = {
 							'uuid'       : node.__dict__['uuid'],
-							'private_ip' : [node.__dict__.get('extra', {}).get('private_dns')] or node.__dict__['private_ip'],
-							'public_ip'  : [node.__dict__.get('extra', {}).get('dns_name')] or node.__dict__['public_ip'],
+							'private_ip' : private_ip,
+							'public_ip'  : public_ip,
 						}
 						PROVIDER['machines'][stage][name].update(info)
 

@@ -1,10 +1,11 @@
 from datetime import datetime
+import time
 
 import fabric.api
 
 from fab_deploy.machine import get_provider_dict
 from fab_deploy.package import package_install
-from fab_deploy.system import get_internal_ip
+from fab_deploy.system import get_internal_ip, service
 from fab_deploy.utils import detect_os
 
 def _mysql_is_installed():
@@ -77,10 +78,11 @@ def mysql_setup(**kwargs):
 		fabric.api.warn(fabric.colors.yellow('MySQL must be installed.'))
 		return
 
-	# Set up the mysql conf file
+	# Do initial set up of the mysql conf file
+	private_ip = get_internal_ip()
 	mysql_conf = '/etc/mysql/my.cnf'
 	before = "bind-address[[:space:]]*=[[:space:]]*127.0.0.1"
-	after  = "bind-address = %s" % get_internal_ip()
+	after  = "bind-address = %s" % private_ip
 	if not fabric.contrib.files.contains(mysql_conf, after):
 		fabric.contrib.files.sed(mysql_conf,before,after,
 			use_sudo=True, backup='.bkp')
@@ -91,26 +93,15 @@ def mysql_setup(**kwargs):
 		root_passwd = fabric.api.env.conf['DB_PASSWD']
 
 	# Get Parameters
-	stage    = kwargs.get('stage',None)
-	name     = kwargs.get('name',None)
-	user     = kwargs.get('user',None)
-	password = kwargs.get('password',None)
-	slave    = kwargs.get('slave',None)
+	stage       = kwargs.get('stage',None)
+	name        = kwargs.get('name',None)
+	user        = kwargs.get('user',None)
+	password    = kwargs.get('password',None)
+	slave       = kwargs.get('slave',None)        # Name of the master database
+	replication = kwargs.get('replication',False) # Do Master/Slave replication
 	
-	# If the slave parameter exists then this should do a conf file lookup
-	# and return values for name, user and password to use in setup
-	if slave:
-		PROVIDER = get_provider_dict()
-		if slave in PROVIDER['machines'][stage]:
-			private_ip = PROVIDER['machines'][stage][slave]['private_ip'][0]
-
-			settings = PROVIDER['machines'][stage][slave]['services']['mysql']
-			name     = settings.get('name',None)
-			user     = settings.get('user',None)
-			password = settings.get('password',None)
-
 	# Create the database user
-	if user and password:
+	if user and password and not slave:
 		mysql_create_user(user='root',password=root_passwd,
 				new_user=user,new_password=password)
 
@@ -118,12 +109,91 @@ def mysql_setup(**kwargs):
 	if name:
 		mysql_create_db(user='root',password=root_passwd, 
 				database=name)
+	
+	# If replication is True then we must do the setup
+	if replication:
+		# If the replication is True and the 'slave' key is given then this should be set up
+		# as a slave database and we should do a conf file lookup to return values 
+		# for name, user and password to use in setup
+		if slave:
+			PROVIDER = get_provider_dict()
+			if slave in PROVIDER['machines'][stage]:
+				# Get the private IP of the master database
+				private_ip = PROVIDER['machines'][stage][slave]['private_ip'][0]
+
+				# Get the settings of the master database
+				settings = PROVIDER['machines'][stage][slave]['services']['mysql']
+				name     = settings.get('name',None)
+				user     = settings.get('user',None)
+				password = settings.get('password',None)
+				
+				# Change lines in conf file
+				before = "#server-id[[:space:]]*=[[:space:]]*1"
+				after  = "server-id = 2"
+				fabric.contrib.files.sed(mysql_conf,before,after,
+					use_sudo=True, backup='.bkp')
+				newlines = [
+					"master=host=%s" % private_ip,
+					"master-user=slave_user",
+					"master-password=%s" % password,
+					"master-connect-retry=60",
+					"replicate-do-db=%s" % name,
+				]
+				fabric.contrib.files.append(mysql_conf,newlines,use_sudo=True)
+		
+				# Restart so changes take effect
+				mysql_restart()
+				
+				mysql_execute("""LOAD DATA FROM MASTER; SLAVE STOP;""" , 'root', root_passwd)
+
+				log_file = fabric.api.prompt('Enter the master log file name:')
+				log_pos  = fabric.api.prompt('Enter the master log position:')
+
+				mysql_execute("""CHANGE MASTER TO MASTER_HOST="%s", MASTER_USER="slave_user", MASTER_PASSWORD="%s", MASTER_LOG_FILE="%s", MASTER_LOG_POS=%s; START SLAVE;""" % (name,password,log_file,log_pos), 'root', root_passwd)
+
+			else:
+				fabric.api.warn(fabric.colors.yellow('The server %s is not available in %s' % (slave,stage)))
+			
+		# If the replication is True and the 'slave' key is not given then this should be set up
+		# as a master database and we should correctly set the values in the my.cnf file
+		else:
+			# Uncomment the log_bin
+			before = "#log_bin[[:space:]]*=[[:space:]]*/var/log/mysql/mysql-bin.log"
+			after  = "log_bin = /var/log/mysql/mysql-bin.log"
+			fabric.contrib.files.sed(mysql_conf,before,after,
+				use_sudo=True, backup='.bkp')
+
+			# Set the server-id
+			before = "#server-id[[:space:]]*=[[:space:]]*1"
+			after  = "server-id = 1"
+			fabric.contrib.files.sed(mysql_conf,before,after,
+				use_sudo=True, backup='.bkp')
+			
+			# Set up the binlog_do_db database name
+			before = "#binlog_do_db[[:space:]]*=[[:space:]]*include_database_name"
+			after  = "binlog_do_db = %s" % name
+			fabric.contrib.files.sed(mysql_conf,before,after,
+				use_sudo=True, backup='.bkp')
+
+			# Restart so changes take effect
+			mysql_restart()
+			time.sleep(10)
+
+			mysql_execute("""GRANT REPLICATION SLAVE ON *.* TO "slave_user"@"%%" IDENTIFIED BY "%s"; FLUSH PRIVILEGES; USE %s; FLUSH TABLES WITH READ LOCK; SHOW MASTER STATUS; UNLOCK TABLES;""" % (password,name), 'root', root_passwd)
+			fabric.contrib.console.confirm('Write down the log file name and log position. Do you want to continue?')
+
+def mysql_restart():
+	"""
+	Restart MySQL
+	"""
+	service('mysql','restart')
 
 def mysql_execute(sql, user='', password=''):
 	"""
 	Executes passed sql command using mysql shell.
 	"""
-	return fabric.api.run("echo '%s' | mysql -u%s -p%s" % (sql, user, password))
+	with fabric.api.settings(warn_only=True):
+		return fabric.api.run("echo '%s' | mysql -u%s -p%s" % (sql, user, password))
 
 def mysql_create_db(user='',password='',database=''):
 	"""
@@ -154,7 +224,7 @@ def mysql_create_user(user='',password='',new_user='',new_password=''):
 	if not new_password:
 		new_password = fabric.api.prompt('Please enter new password for %s:' % new_user)
 
-	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";""" % 
+	mysql_execute("""GRANT ALL privileges ON *.* TO "%s" IDENTIFIED BY "%s";FLUSH PRIVILEGES;""" % 
 		(new_user, new_password), user, password)
 
 def mysql_drop_user():
