@@ -104,7 +104,7 @@ each machine you've created the user on.
 
 		$ fab ssh_local_keygen:"rackspace.development"
 		$ fab set_hosts:development,root provider_as_ec2:username=ubuntu
-		$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
+		$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=deploy/rackspace.development.pub
 
 5. To install all the correct software on your new development node run the following:
 
@@ -129,7 +129,7 @@ Production is almost identical to development, except for the following:
 	$ fab update_nodes # might need to wait a minute and run this
 	$ fab ssh_local_keygen:"rackspace.production"
 	$ fab set_hosts:production,root provider_as_ec2:username=ubuntu
-	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
+	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=deploy/rackspace.production.pub
 	$ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:production
 	$ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:production,tag
 
