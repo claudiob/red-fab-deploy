@@ -134,7 +134,6 @@ def mysql_setup(**kwargs):
 				# Create the database	
 				mysql_create_db(user='root',password=root_passwd, 
 					database=name)
-				fabric.contrib.console.confirm('Did this work?')
 				
 				# Set up a slave conf file and restart
 				context = {
