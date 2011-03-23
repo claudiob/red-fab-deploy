@@ -1,5 +1,4 @@
 [mysqld]
-bind-address         = %(private_ip)s
 
 server-id            = 1
 log_bin              = /var/log/mysql/mysql-bin.log

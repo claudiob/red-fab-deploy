@@ -1,5 +1,4 @@
 [mysqld]
-bind-address         = %(private_ip)s
 
 server-id            = 2
 master-host          = %(master_ip)s
