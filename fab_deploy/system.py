@@ -29,8 +29,8 @@ def get_hostname():
 
 def set_hostname(hostname):
 	""" Set the host name on a server """
-	host_text = "127.0.0.1 %s" % hostname
-	append('/etc/hosts', host_text, True)
+	host_text = "localhost %s" % hostname
+	fabric.contrib.files.sed('/etc/hosts', 'localhost', host_text, True)
 	
 	print host_text
 	

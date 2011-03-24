@@ -134,6 +134,10 @@ def postgresql_client_install():
 	package_add_repository('ppa:pitti/postgresql')
 	package_install(['postgresql-client', 'python-psycopg2'])
 	
+	# PGPool
+	package_install('libpq-dev')
+	'http://pgfoundry.org/frs/download.php/2958/pgpool-II-3.0.3.tar.gz'
+	
 def postgresql_setup(id, node_dict, stage, **options):
 	if 'slave' not in options:
 		with fabric.api.settings(warn_only = True):

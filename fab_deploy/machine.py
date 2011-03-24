@@ -19,10 +19,13 @@ import fabric.api
 import fabric.colors
 import fabric.contrib
 
+
 from libcloud.compute.base import NodeImage, NodeLocation, NodeSize
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 import libcloud.security
+
+from fab_deploy.package import package_install, package_update
 
 #=== SSL Security
 
@@ -412,3 +415,41 @@ def update_nodes():
 
 	write_conf(PROVIDER)
 
+def save_as_ami(name, arch='i386'):
+	config = get_provider_dict()
+	# Copy pk and cert to /tmp, somehow
+	fabric.api.put(fabric.api.env.conf['AWS_X509_PRIVATE_KEY'], '/tmp/pk.pem')
+	fabric.api.put(fabric.api.env.conf['AWS_X509_CERTIFICATE'], '/tmp/cert.pem')
+	
+	fabric.contrib.files.sed('/etc/apt/sources.list', 'universe$', 'universe multiverse', use_sudo=True)
+	package_update()
+	package_install('ec2-ami-tools', 'ec2-api-tools')
+	
+	fabric.api.sudo('ec2-bundle-vol -c /tmp/cert.pem -k /tmp/pk.pem -u %s -s 10240 -r %s' % (fabric.api.env.conf['AWS_ID'], arch))
+	fabric.api.sudo('ec2-upload-bundle -b %s -m /tmp/image.manifest.xml -a %s -s %s --location %s' % (fabric.api.env.conf['AWS_AMI_BUCKET'], fabric.api.env.conf['AWS_ACCESS_KEY_ID'], fabric.api.env.conf['AWS_SECRET_ACCESS_KEY'], config['location'][:-1]))
+	result = fabric.api.sudo('ec2-register -C /tmp/cert.pem -K /tmp/pk.pem --region %s %s/image.manifest.xml -n %s' % (config['location'][:-1], fabric.api.env.conf['AWS_AMI_BUCKET'], name))
+	fabric.api.run('rm /tmp/pk.pem')
+	fabric.api.run('rm /tmp/cert.pem')
+	
+	ami = result.split()[1]
+	
+def launch_auto_scaling(stage = 'development'):
+	config = get_provider_dict()
+	from boto.ec2.autoscale import AutoScaleConnection, AutoScalingGroup, LaunchConfiguration, Trigger
+	conn = AutoScaleConnection(fabric.api.env.conf['AWS_ACCESS_KEY_ID'], fabric.api.env.conf['AWS_SECRET_ACCESS_KEY'], host='%s.autoscaling.amazonaws.com' % config['location'][:-1])
+	
+	for name, values in config.get(stage, {}).get('autoscale', {}):
+		if any(group.name == name for group in conn.get_all_groups()):
+			fabric.api.warn(fabric.colors.orange('Autoscale group %s already exists' % name))
+			continue
+		lc = LaunchConfiguration(name = '%s-launch-config' % name, image_id = values['image'],  key_name = config['key'])
+		conn.create_launch_configuration(lc)
+		ag = AutoScalingGroup(group_name = name, load_balancers = values.get('load-balancers'), availability_zones = [config['location']], launch_config = lc, min_size = values['min-size'], max_size = values['max-size'])
+		conn.create_auto_scaling_group(ag)
+		if 'min-cpu' in values and 'max-cpu' in values:
+			tr = Trigger(name = '%s-trigger' % name, autoscale_group = ag, measure_name = 'CPUUtilization', statistic = 'Average', unit = 'Percent', dimensions = [('AutoScalingGroupName', ag.name)],
+						 period = 60, lower_threshold = values['min-cpu'], lower_breach_scale_increment = '-1', upper_threshold = values['max-cpu'], upper_breach_scale_increment = '2', breach_duration = 60)
+			conn.create_trigger(tr)
+		
+	 	
+	
