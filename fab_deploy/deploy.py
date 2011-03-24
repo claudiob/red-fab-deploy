@@ -53,6 +53,14 @@ def go_setup(stage="development"):
 	"""
 	stage_exists(stage)
 	PROVIDER = get_provider_dict()
+
+	# Determine if a master/slave relationship exists for databases in config
+	slave = []
+	for db in ['mysql','postgresql','postgresql-client']:
+		slave.append(any(['slave' in PROVIDER['machines'][stage][name].get('services',{}).get(db,{}) for name in PROVIDER['machines'][stage]]))
+	replication = any(slave)
+	
+	# Begin installing and setting up services
 	for name in PROVIDER['machines'][stage]:
 		node_dict = PROVIDER['machines'][stage][name]
 		host = node_dict['public_ip'][0]
@@ -69,7 +77,7 @@ def go_setup(stage="development"):
 					uwsgi_setup(stage=stage)
 				elif service == 'mysql':
 					mysql_install()
-					mysql_setup(stage=stage,**settings)
+					mysql_setup(stage=stage,replication=replication,**settings)
 				elif service == 'postgresql':
 					postgresql_install(name, node_dict, stage=stage, **settings)
 					postgresql_setup(name, node_dict, stage=stage, **settings)
@@ -100,7 +108,7 @@ def go_deploy(stage="development", tagname="trunk"):
 	
 	# Link the hostname to the <stage>.py file
 	hostname = get_hostname()
-	host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/hosts')
+	host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/settings')
 	if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
 		link(os.path.join(host_dir,'%s.py' % stage), 
 			dest=os.path.join(host_dir,'%s.py' % hostname),

@@ -19,7 +19,7 @@ there are steps to set up Rackspace and other hosts to work with these tools.
 IMPORTANT: red-fab-deploy will only work if you install the following packages:
     
 	$ pip install -e git+git://github.com/bitprophet/fabric.git#egg=fabric
-	$ pip install -e git+git://github.com/apache/libcloud.git#egg=libcloud
+	$ pip install -e git+git://github.com/apache/libcloud.git@trunk#egg=libcloud
 	$ pip install -e git+git://github.com/ff0000/red-fab-deploy.git#egg=red-fab-deploy
 
 Be aware that the dependencies are Fabric>=1.0 and apache-libcloud>=0.4.3.  These
@@ -104,7 +104,7 @@ each machine you've created the user on.
 
 		$ fab ssh_local_keygen:"rackspace.development"
 		$ fab set_hosts:development,root provider_as_ec2:username=ubuntu
-		$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=rackspace.development.pub
+		$ fab set_hosts:development,root ssh_authorize:username=ubuntu,key=deploy/rackspace.development.pub
 
 5. To install all the correct software on your new development node run the following:
 
@@ -129,7 +129,7 @@ Production is almost identical to development, except for the following:
 	$ fab update_nodes # might need to wait a minute and run this
 	$ fab ssh_local_keygen:"rackspace.production"
 	$ fab set_hosts:production,root provider_as_ec2:username=ubuntu
-	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=rackspace.production.pub
+	$ fab set_hosts:production,root ssh_authorize:username=ubuntu,key=deploy/rackspace.production.pub
 	$ fab -i deploy/[your private SSH key here] set_hosts:production go_setup:production
 	$ fab -i deploy/[your private SSH key here] set_hosts:production go_deploy:production,tag
 

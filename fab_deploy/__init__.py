@@ -22,8 +22,8 @@ from fab_deploy.package import package_install, package_update, package_upgrade,
 	package_add_repository
 
 from fab_deploy.system import (service, 
-	get_public_ip, get_internal_ip, set_hostname, get_hostname,
-	prepare_server, setup_backports, install_common_software,
+	get_public_ip, get_internal_ip, print_hosts, set_hostname, get_hostname,
+	prepare_server, setup_backports, install_common_packages,
 	usage_disk, usage_mem, usage_cpu, usage_system,)
 
 from fab_deploy.user import (provider_as_ec2,
