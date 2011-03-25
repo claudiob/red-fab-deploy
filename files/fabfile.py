@@ -3,7 +3,7 @@ fab deployment script
 ====================================
 
 """
-import json
+import simplejson
 from fabric.api import *
 import fabric.colors
 from fab_deploy import *
@@ -25,7 +25,7 @@ my_site()
 #--- Set all available hosts
 def set_hosts(stage='development'): 
     hosts = []
-    PROVIDER = json.loads(open('fabric.conf','r').read()) 
+    PROVIDER = simplejson.loads(open('fabric.conf','r').read()) 
     if stage in PROVIDER['machines']:
         for name in PROVIDER['machines'][stage]: 
             node_dict = PROVIDER['machines'][stage][name]

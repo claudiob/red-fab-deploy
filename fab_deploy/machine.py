@@ -9,8 +9,7 @@ Ubuntu 10.4 image sizes:
 	http://uec-images.ubuntu.com/lucid/current/
 """
 
-try: import simplejson as json
-except ImportError: import json
+import simplejson
 
 from pprint import pprint
 import os
@@ -117,7 +116,7 @@ def write_conf(node_dict,filename=''):
 	if not filename:
 		filename = fabric.api.env.conf['CONF_FILE']
 	""" Overwrite the conf file with dictionary values """
-	obj = json.dumps(node_dict, sort_keys=True, indent=4)
+	obj = simplejson.dumps(node_dict, sort_keys=True, indent=4)
 	f = open(filename,'w')
 	f.write(obj)
 	f.close()
@@ -136,7 +135,7 @@ def generate_config(provider='ec2_us_east'):
 def get_provider_dict():
 	""" Get the dictionary of provider settings """
 	conf_file = fabric.api.env.conf['CONF_FILE']
-	return json.loads(open(conf_file,'r').read())
+	return simplejson.loads(open(conf_file,'r').read())
 
 def stage_exists(stage):
 	""" Abort if provider does not exist """

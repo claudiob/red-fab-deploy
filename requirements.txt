@@ -1,3 +1,6 @@
 fabric==1.0
 -e git+git://github.com/apache/libcloud.git#egg=apache-libcloud
 -e git+git://github.com/ff0000/pycolors2.git#egg=pycolors
+# Using simplejson instead of json because json.loads on str returns unicode, 
+# which Python2 does not accept as keyword for dicts.
+simplejson 

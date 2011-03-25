@@ -1,5 +1,5 @@
 from functools import wraps
-import json
+import simplejson
 import os
 from pprint import pformat
 import re
@@ -110,7 +110,7 @@ def set_hosts(stage='development',username='ubuntu',machine=''):
 		'server' : [],
 		'other'  : [],
 	}
-	PROVIDER = json.loads(open('fabric.conf','r').read()) 
+	PROVIDER = simplejson.loads(open('fabric.conf','r').read()) 
 	if stage in PROVIDER['machines']:
 		for name in PROVIDER['machines'][stage]:
 			if (machine and machine == name) or not machine:
