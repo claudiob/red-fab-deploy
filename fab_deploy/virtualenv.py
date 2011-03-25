@@ -1,7 +1,7 @@
 import fabric.api
 import fabric.colors
 
-from fab_deploy.file import link
+from fab_deploy.file import link, unlink
 
 def pip(commands=''):
 	""" Runs pip command """
@@ -23,6 +23,7 @@ def virtualenv_create(site_packages=True):
 		fabric.api.run('virtualenv env/')
 	else:
 		fabric.api.run('virtualenv --no-site-packages env/')
+	unlink('activate', silent=True) 
 	link('env/bin/activate')
 
 def virtualenv():
