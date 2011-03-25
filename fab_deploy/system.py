@@ -31,7 +31,7 @@ def print_hosts():
 def set_hostname(hostname):
 	""" Set the host name on a server """
 	host_text = "localhost %s" % hostname
-	fabric.contrib.files.sed('/etc/hosts', 'localhost', host_text, True)
+	fabric.contrib.files.sed('/etc/hosts', 'localhost', host_text, use_sudo=True)
 	
 	if hostname != get_hostname():
 		fabric.api.sudo('hostname %s' % hostname)
