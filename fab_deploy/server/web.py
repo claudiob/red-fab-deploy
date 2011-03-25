@@ -18,7 +18,7 @@ def web_server_setup(stage=''):
 		uwsgi_install()
 		uwsgi_setup(stage = stage)
 
-def web_server_start(stage=''):
+def web_server_start():
 	""" Starts up a web server. """
 	if fabric.api.env.conf['SERVER_TYPE'] == 'apache':
 		apache_start()
