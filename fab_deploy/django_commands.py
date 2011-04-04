@@ -3,7 +3,7 @@ import fabric.api
 from fab_deploy.db.mysql import mysql_dump
 from fab_deploy.virtualenv import virtualenv
 
-def manage(command):
+def manage(command, settings=''):
     """ Runs django management command.
     Example::
 
@@ -11,7 +11,10 @@ def manage(command):
     """
     with fabric.api.cd('/srv/active/'):
         with virtualenv():
-            fabric.api.run('cd project && python manage.py %s' % command)
+            cmd = 'cd project && python manage.py %s' % command
+			if settings:
+				cmd += ' --settings=%s' % settings
+            fabric.api.run(cmd)
 
 def syn(stage=''):
     """ Runs django management command.
