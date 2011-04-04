@@ -106,13 +106,13 @@ def go_deploy(stage="development", tagname="trunk"):
 			if list(set(['nginx','uwsgi','apache']) & set(node_dict['services'])):
 				deploy_full(tagname,force=True)
 	
-	# Link the hostname to the <stage>.py file
-	hostname = get_hostname()
-	host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/settings')
-	if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
-		link(os.path.join(host_dir,'%s.py' % stage), 
-			dest=os.path.join(host_dir,'%s.py' % hostname),
-			do_unlink=True, silent=True)
+				# Link the hostname to the <stage>.py file
+				hostname = get_hostname()
+				host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/settings')
+				if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
+					link(os.path.join(host_dir,'%s.py' % stage), 
+						dest=os.path.join(host_dir,'%s.py' % hostname),
+						do_unlink=True, silent=True)
 				
 def deploy_full(tagname, force=False):
 	""" 

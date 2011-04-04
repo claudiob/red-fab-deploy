@@ -64,7 +64,7 @@ EC2_MACHINES = {
 			'services': DB,
 			'size':'m1.small',},
 		'dbs2' : {
-			'services': DB,
+			'services': {'slave':'dbs1'},
 			'size':'m1.small',},
 	},
 }
@@ -91,19 +91,19 @@ PROVIDER_DICT = {
 			},
 			'production' : {
 				'load1' : {
-					'services': ['nginx'],
+					'services': {'nginx':{}},
 					'size':'2',}, # 512MB  RAM, 20GB
 				'web1'  : {
-					'services': ['uwsgi'],
+					'services': {'uwsgi':{}},
 					'size':'2',}, # 512MB  RAM, 20GB
 				'web2'  : {
-					'services': ['uwsgi'],
+					'services': {'uwsgi':{}},
 					'size':'2',}, # 512MB  RAM, 20GB
 				'dbs1'  : {
 					'services': DB,
 					'size':'3',}, # 1024MB RAM, 40GB
 				'dbs2'  : {
-					'services': DB,
+					'services': {'slave':'dbs1'},
 					'size':'3',}, # 1024MB RAM, 40GB
 			},
 		},
