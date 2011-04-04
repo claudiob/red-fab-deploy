@@ -23,8 +23,7 @@ def virtualenv_create(site_packages=True):
 		fabric.api.run('virtualenv env/')
 	else:
 		fabric.api.run('virtualenv --no-site-packages env/')
-	unlink('activate', silent=True) 
-	link('env/bin/activate')
+	link('env/bin/activate',do_unlink=True,silent=True)
 
 def virtualenv():
 	"""
