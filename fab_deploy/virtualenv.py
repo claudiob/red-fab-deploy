@@ -1,7 +1,7 @@
 import fabric.api
 import fabric.colors
 
-from fab_deploy.file import link, unlink
+from fab_deploy.file import link
 
 def pip(commands=''):
 	""" Runs pip command """
