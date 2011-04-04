@@ -50,6 +50,10 @@ def uwsgi_setup(stage=''):
 	fabric.api.sudo('touch /var/log/uwsgi/errors.log')
 	fabric.api.sudo('chmod -R a+w /var/log/uwsgi')
 
+	# Set up startup
+	with fabric.api.cd('/etc/rc2.d'):
+		link('/etc/init.d/uwsgi','S80uwsgi',use_sudo=True)
+
 def uwsgi_service(command):
 	""" Run a uWSGI service """
 	if not _uwsgi_is_installed():
