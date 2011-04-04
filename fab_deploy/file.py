@@ -1,6 +1,7 @@
 import fabric.api
 import fabric.colors
 import fabric.contrib
+import os
 
 def link_exists(source):
 	""" Determine if a file is a symlink """
@@ -13,7 +14,7 @@ def link(source,dest="",use_sudo=False,do_unlink=False,silent=False):
 		if dest:
 			unlink(dest, use_sudo=use_sudo,silent=silent)
 		else:
-			unlink(source, use_sudo=use_sudo,silent=silent)
+			unlink(os.path.basename(source), use_sudo=use_sudo,silent=silent)
 			
 	if use_sudo:
 		fabric.api.sudo('ln -s %s %s' % (source,dest))
