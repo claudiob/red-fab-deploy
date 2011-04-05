@@ -171,8 +171,7 @@ def ssh_authorize(username='ubuntu',key=None):
 		ssh_key = f.read()
 	
 	if fabric.contrib.files.exists(keyf):
-		if not fabric.contrib.files.contains(keyf,ssh_key):
-			fabric.contrib.files.append(keyf, ssh_key)
+		fabric.contrib.files.append(keyf, ssh_key)
 	else:
 		fabric.api.put(key,keyf)
 
