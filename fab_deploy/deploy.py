@@ -107,12 +107,16 @@ def go_deploy(stage="development", tagname="trunk"):
 				deploy_full(tagname,force=True)
 	
 				# Link the hostname to the <stage>.py file
-				hostname = get_hostname()
-				host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/settings')
-				if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
-					link(os.path.join(host_dir,'%s.py' % stage), 
-						dest=os.path.join(host_dir,'%s.py' % hostname),
-						do_unlink=True, silent=True)
+				# Commented out as the environment-specific settings are called
+				# settings/staging.py or settings/production.py, and if someone
+				# really needs host-specific settings (e.g. two different files
+				# for web1 and web2), then he would write them by hand anyway
+				# hostname = get_hostname()
+				# host_dir = os.path.join(fabric.api.env.conf['SRC_DIR'],tagname,'project/settings')
+				# if not fabric.contrib.files.exists(os.path.join(host_dir,'%s.py' % hostname)):
+				# 	link(os.path.join(host_dir,'%s.py' % stage), 
+				# 		dest=os.path.join(host_dir,'%s.py' % hostname),
+				# 		do_unlink=True, silent=True)
 				
 def deploy_full(tagname, force=False):
 	""" 
