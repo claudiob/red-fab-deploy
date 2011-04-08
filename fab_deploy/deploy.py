@@ -146,6 +146,7 @@ def deploy_project(tagname, force=False):
 		fabric.contrib.project.rsync_project(
 			local_dir = os.path.join('/tmp', tagname),
 			remote_dir = fabric.api.env.conf['SRC_DIR'],
+			exclude = fabric.api.env.conf['RSYNC_EXCLUDE'],
 			extra_opts='--links')
 		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 
