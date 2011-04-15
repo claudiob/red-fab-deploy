@@ -4,5 +4,5 @@ from fab_deploy.db.mysql import (mysql_install, mysql_setup,
 	mysql_dump, mysql_load, list_sql_files, mysql_backup, )
 from fab_deploy.db.postgresql import (postgresql_install, 
 	postgresql_client_install, postgresql_setup, )
-from fab_deploy.server.redis import (redis_install, redis_setup,
+from fab_deploy.db.redis import (redis_install, redis_setup,
 	redis_start, )
