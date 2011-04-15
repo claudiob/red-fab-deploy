@@ -4,8 +4,6 @@ from fab_deploy.server.apache import (apache_install, apache_setup,
 	apache_make_config, apache_setup_locale, )
 from fab_deploy.server.nginx import (nginx_install, nginx_setup,
 	nginx_start, nginx_stop, nginx_restart, )
-from fab_deploy.server.redis import (redis_install, redis_setup,
-	redis_start, )
 from fab_deploy.server.uwsgi import (uwsgi_install, uwsgi_setup,
 	uwsgi_start, uwsgi_stop, uwsgi_restart, )
 from fab_deploy.server.web import (web_server_install, web_server_setup, 
