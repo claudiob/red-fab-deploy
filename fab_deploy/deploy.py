@@ -12,7 +12,6 @@ from fab_deploy.machine import (generate_config, get_provider_dict, stage_exists
 	ec2_create_key, ec2_authorize_port,
 	deploy_nodes, update_nodes)
 from fab_deploy.server import *
-from fab_deploy.server import web_server_install,web_server_setup,web_server_start,web_server_stop
 from fab_deploy.system import get_hostname, set_hostname, prepare_server
 from fab_deploy.utils import detect_os, run_as
 from fab_deploy.user import provider_as_ec2, ssh_local_keygen
@@ -72,6 +71,9 @@ def go_setup(stage="development"):
 				if service == 'nginx':
 					nginx_install()
 					nginx_setup(stage=stage)
+				elif service == 'redis':
+					redis_install()
+					redis_setup()
 				elif service == 'uwsgi':
 					uwsgi_install()
 					uwsgi_setup(stage=stage)
