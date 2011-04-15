@@ -6,5 +6,5 @@ from fab_deploy.server.nginx import (nginx_install, nginx_setup,
 	nginx_start, nginx_stop, nginx_restart, )
 from fab_deploy.server.uwsgi import (uwsgi_install, uwsgi_setup,
 	uwsgi_start, uwsgi_stop, uwsgi_restart, )
-from fab_deploy.server.web import (web_server_setup, web_server_start, 
-	web_server_stop, web_server_restart, web_server_touch)
+from fab_deploy.server.web import (web_server_install, web_server_setup, 
+	web_server_start, web_server_stop, web_server_restart, web_server_touch)

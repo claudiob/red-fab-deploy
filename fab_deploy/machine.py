@@ -150,8 +150,9 @@ def _get_provider_name():
 
 def _provider_exists(provider):
 	""" Abort if provider does not exist """
+	
 	if provider not in PROVIDER_DICT.keys():
-		fabric.api.abort(fabric.colors.red('Provider "%s" is not available' % provider))
+		fabric.api.abort(fabric.colors.red('Provider "%s" is not available, choose from %s' % (provider,PROVIDER_DICT.keys())))
 
 def _get_driver(provider):
 	""" Get the driver for the given provider """
