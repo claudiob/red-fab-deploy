@@ -349,7 +349,7 @@ def create_node(name, **kwargs):
 	""" Create a node server """
 	PROVIDER = get_provider_dict()
 	keyname  = kwargs.get('keyname',None)
-	image    = kwargs.get('image') or get_node_image(PROVIDER['image'])
+	image    = kwargs.get('image',get_node_image(PROVIDER['image']))
 	size     = kwargs.get('size','')
 	location = kwargs.get('location',get_node_location(PROVIDER['location']))
 	
