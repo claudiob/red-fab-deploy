@@ -152,10 +152,8 @@ def deploy_project(tagname, force=False):
 			extra_opts='--links --perms')
 		fabric.api.local('rm -rf %s' % os.path.join('/tmp', tagname))
 
-	with fabric.api.cd(tag_dir):
-		virtualenv_create()
-		with virtualenv():
-			pip_install()
+	virtualenv_create(dir=tag_dir)
+	pip_install(dir=tag_dir)
 	
 	fabric.api.sudo('chown -R ubuntu:ubuntu /srv')
 
