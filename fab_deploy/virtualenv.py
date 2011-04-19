@@ -3,18 +3,6 @@ import fabric.colors
 
 from fab_deploy.file import link
 
-def pip(commands=''):
-	""" Runs pip command """
-   	fabric.api.run('pip %s' % commands)
-
-def pip_install(what='requirements', options=''):
-	""" Installs pip requirements listed in ``deploy/<file>.txt`` file. """
-	fabric.api.run('pip install %s -r deploy/%s.txt' % (options,what))
-
-def pip_update(what='requirements', options=''):
-	""" Updates pip requirements listed in ``deploy/<file>.txt`` file. """
-   	fabric.api.run('pip install %s -U -r deploy/%s.txt' % (options,what))
-
 def virtualenv_create(site_packages=True):
 	""" 
 	Create a virtual environment in the env/ directory
@@ -35,4 +23,18 @@ def virtualenv():
 	"""
 	fabric.api.puts(fabric.colors.green('source env/bin/activate'))
 	return fabric.api.prefix('source env/bin/activate')
+
+def pip(commands=''):
+	""" Runs pip command """
+	with fabric.api.cd('/srv/active/'):
+		with virtualenv():
+   			fabric.api.run('pip %s' % commands)
+
+def pip_install(what='requirements', options=''):
+	""" Installs pip requirements listed in ``deploy/<file>.txt`` file. """
+	pip(commands='install %s -r deploy/%s.txt' % (options,what))
+
+def pip_update(what='requirements', options=''):
+	""" Updates pip requirements listed in ``deploy/<file>.txt`` file. """
+   	pip(commands='install %s -U -r deploy/%s.txt' % (options,what))
 
