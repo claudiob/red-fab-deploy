@@ -1,3 +1,6 @@
+#--- Django
+django>=1.3
+
 #--- Simplejson (cannot use json since json.loads(string) returs unicode,
 #                which Python2 does not accept as keyword for dicts)
 simplejson 
@@ -8,6 +11,8 @@ boto
 #--- Fabric (should be >= 1.0, previous versions are not compatible)
 fabric>=1.0
 
-#--- Libcloud (should be > 0.4.2, but there is 0.4.3 tag yet, using HEAD then)
--e git+git://github.com/apache/libcloud.git#egg=apache-libcloud
+#--- Libcloud (should be > 0.4.2, because previous versions do not have
+               libcloud.compute.base. 
+               Since there is no 0.4.3 tag yet, we are using HEAD)
+-e git+git://github.com/apache/libcloud.git@HEAD#egg=apache-libcloud
 

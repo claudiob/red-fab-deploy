@@ -8,6 +8,6 @@ SQLite database, and a virtual environment with `red-fab-deploy`:
     virtualenv env
     source env/bin/activate
     # pip install red-fab-deploy
-    pip install -e git+git://github.com/ff0000/red-fab-deploy.git#egg=fab_deploy
+    pip install -e git+git://github.com/claudiob/red-fab-deploy.git#egg=fab_deploy
     echo -e "\nINSTALLED_APPS += ('fab_deploy', )" >> settings.py
     
