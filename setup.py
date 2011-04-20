@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from distutils.core import setup
 import re
+import os
 
 # From http://cburgmer.posterous.com/pip-requirementstxt-and-setuppy
 # If somebody wants to install the package via "pip install pdfserver" 
