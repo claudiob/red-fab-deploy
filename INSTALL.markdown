@@ -5,3 +5,4 @@
     echo -e "\nDATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': 'grocery.db',}}" >> settings.py 
     virtualenv env
     source env/bin/activate
+    pip install red-fab-deploy
