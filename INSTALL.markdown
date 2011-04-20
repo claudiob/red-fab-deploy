@@ -9,5 +9,5 @@ SQLite database, and a virtual environment with `red-fab-deploy`:
     source env/bin/activate
     # pip install red-fab-deploy
     pip install -e git+git://github.com/claudiob/red-fab-deploy.git#egg=fab_deploy
-    echo -e "\nINSTALLED_APPS += ('fab_deploy', )" >> settings.py
+    echo -e "\nINSTALLED_APPS += ('fab_deploy.django', )" >> settings.py
     

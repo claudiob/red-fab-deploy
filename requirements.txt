@@ -12,7 +12,7 @@ boto
 fabric>=1.0
 
 #--- Libcloud (should be > 0.4.2, because previous versions do not have
-               libcloud.compute.base. 
-               Since there is no 0.4.3 tag yet, we are using HEAD)
+#              libcloud.compute.base. 
+#              Since there is no 0.4.3 tag yet, we are using HEAD)
 -e git+git://github.com/apache/libcloud.git@HEAD#egg=apache-libcloud
 
