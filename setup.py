@@ -33,14 +33,21 @@ def parse_dependency_links(file_name):
 			dependency_links.append(re.sub(r'\s*-[ef]\s+', '', line))
 	return dependency_links
 
+def get_packages():
+    # setuptools can't do the job :(
+    packages = []
+    for root, dirnames, filenames in os.walk('fab_deploy'):
+        if '__init__.py' in filenames:
+            packages.append(".".join(os.path.split(root)).strip("."))
+    return packages
+
 setup(
     name = "red-fab-deploy",
-    packages = ['fab_deploy', 'fab_deploy.db', 'fab_deploy.server', 
-        'fab_deploy.vcs'],
     version = "0.0.1",
     # requires => not used, see parse_requirements above
     install_requires = parse_requirements('requirements.txt'),
 	dependency_links = parse_dependency_links('requirements.txt'),
+    packages = get_packages(),
     package_data={'fab_deploy': [ # hidden files required by the application
 	    'cacert.pem', 'templates/.*rc', 'templates/.vim/*.vim',
         'templates/.vim/doc/*.doc', 'templates/.vim/plugin/*.vim', ]},

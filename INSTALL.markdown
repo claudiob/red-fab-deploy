@@ -1,4 +1,6 @@
 
+The following commands set up a new `grocery` Django project with a basic 
+SQLite database, and a virtual environment with `red-fab-deploy`:
 
     django-admin.py startproject grocery
     cd grocery
@@ -6,3 +8,5 @@
     virtualenv env
     source env/bin/activate
     pip install red-fab-deploy
+    echo -e "\nINSTALLED_APPS += ('fab_deploy', )" >> settings.py
+    
