@@ -1,6 +1,10 @@
-fabric==1.0
--e git+git://github.com/apache/libcloud.git#egg=apache-libcloud
--e git+git://github.com/ff0000/pycolors2.git#egg=pycolors
-# Using simplejson instead of json because json.loads on str returns unicode, 
-# which Python2 does not accept as keyword for dicts.
+#--- Simplejson (cannot use json since json.loads(string) returs unicode,
+#                which Python2 does not accept as keyword for dicts)
 simplejson 
+
+#--- Fabric (should be >= 1.0, previous versions are not compatible)
+fabric>=1.0
+
+#--- Libcloud (should be > 0.4.2, we are pointing to a specific commit since
+#              there is not yet any 0.4.3 tag)
+-e git+git://github.com/apache/libcloud.git@29632fa3#egg=apache-libcloud
